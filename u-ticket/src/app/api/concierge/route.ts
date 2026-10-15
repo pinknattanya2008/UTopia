@@ -1,13 +1,22 @@
-import { getUser } from "@/lib/fan";
+import { requireProfile } from "@/lib/auth";
 import { conciergeStream, type ChatMessage } from "@/lib/concierge";
+import { getUser } from "@/lib/data";
+import { BookingError } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
 
-/** POST แชต AI Concierge แบบ streaming (text/plain) */
+/** POST แชต AI Concierge แบบ streaming (text/plain) — ใช้ข้อมูลของผู้ซื้อที่ล็อกอินอยู่ */
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => ({}))) as { messages?: ChatMessage[]; userId?: string };
-  const user = getUser(body.userId ?? "");
+  let user;
+  try {
+    const p = await requireProfile(["buyer"]);
+    user = getUser(p.id);
+  } catch (err) {
+    const e = err as BookingError;
+    return Response.json({ error: e.message }, { status: e.status ?? 401 });
+  }
   if (!user) return Response.json({ error: "ไม่พบผู้ใช้" }, { status: 404 });
+  const body = (await req.json().catch(() => ({}))) as { messages?: ChatMessage[] };
   const messages = (body.messages ?? [])
     .filter((m) => (m.role === "user" || m.role === "assistant") && typeof m.content === "string")
     .map((m) => ({ role: m.role, content: m.content.slice(0, 1000) }));

@@ -2,12 +2,14 @@ import ConnectWallet from "@/components/ConnectWallet";
 import FanScoreCard from "@/components/FanScoreCard";
 import ConcertCard from "@/components/ConcertCard";
 import { sectionAvailability } from "@/lib/booking";
-import { getPublishedConcerts } from "@/lib/data";
+import { getPublishedConcerts, ready } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
-export default function Home() {
+export default async function Home() {
+  await ready();
   const concerts = getPublishedConcerts();
+  const avails = await Promise.all(concerts.map((c) => sectionAvailability(c)));
   return (
     <div className="space-y-12">
       <section className="grid gap-8 pt-4 lg:grid-cols-[1.3fr_1fr] lg:items-center">
@@ -37,8 +39,8 @@ export default function Home() {
       <section>
         <h2 id="concerts" className="mb-4 scroll-mt-28 text-xl font-bold">คอนเสิร์ตที่เปิดขาย</h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {concerts.map((c) => {
-            const avail = Object.values(sectionAvailability(c));
+          {concerts.map((c, i) => {
+            const avail = Object.values(avails[i]);
             return (
               <ConcertCard
                 key={c.id}

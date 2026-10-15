@@ -1,169 +1,145 @@
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import usersJson from "../../data/users.json";
-import transactionsJson from "../../data/transactions.json";
-import concertsJson from "../../data/concerts.json";
-import rewardsJson from "../../data/rewards.json";
 import demoCacheJson from "../../data/demo-cache.json";
-import type { Booking, Concert, Mission, PublicUser, Reward, Transaction, TrustAssessment, User, AiSource } from "./types";
+import { db, selectAll } from "./supabase/admin";
+import {
+  profileToUser,
+  rowToConcert,
+  rowToReward,
+  rowToTx,
+  type ConcertRow,
+  type ProfileRow,
+  type RewardRow,
+  type TxRow,
+} from "./mappers";
+import type { AiSource, Concert, Mission, PublicUser, Reward, Transaction, TrustAssessment, User } from "./types";
 import { removedSet, ROW_LABELS, seatId } from "./venue";
 
 /**
- * State ใน memory ฝั่ง server (แต้ม, cache ผล AI)
- * เก็บไว้ที่ globalThis เพื่อไม่ให้หายตอน hot reload ระหว่าง dev
- * หมายเหตุ: บน Vercel แต่ละ instance มี memory ของตัวเอง — พอสำหรับ MVP/เดโม
+ * ข้อมูลจาก Supabase + cache ฝั่ง server
+ * - profiles / concerts: cache ไม่เกิน 15 วินาที และล้างทันทีหลังเขียน (invalidate)
+ * - transactions / rewards: ข้อมูลคงที่ โหลดครั้งเดียวต่อ instance
+ * - การจอง / ล็อกที่นั่ง / แต้ม: อ่านเขียน database ตรงทุกครั้ง (ดู booking.ts)
+ * - ผล AI (trust, explain, missions): cache ใน memory ต่อ instance
+ *
+ * API route / server component ต้อง `await ready()` ก่อนเรียกฟังก์ชันอ่านข้อมูลแบบ sync ด้านล่าง
  */
 type Cached<T> = { value: T; source: AiSource };
+export type AppUser = User & { presaleBoost: number };
+
+interface Snapshot {
+  profiles: ProfileRow[];
+  users: AppUser[]; // เฉพาะผู้ซื้อ
+  concerts: Concert[];
+  organizers: { id: string; name: string }[];
+  loadedAt: number;
+}
 
 interface Store {
-  users: User[];
+  snapshot: Snapshot | null;
+  loading: Promise<void> | null;
+  transactions: Transaction[] | null;
+  txByUser: Map<string, Transaction[]>;
+  rewards: Reward[];
+  presold: Map<string, { key: string; seats: Set<string>; standing: Map<string, number> }>;
   trust: Map<string, Cached<TrustAssessment>>;
   explain: Map<string, Cached<string>>;
   missions: Map<string, Cached<Mission[]>>;
   summaries: Map<string, Cached<string>>;
   inflight: Map<string, Promise<unknown>>; // กันเรียก AI ซ้ำซ้อนขณะรอผล
-  boosts: Map<string, number>; // presale boost (+คะแนน) จากการแลกแต้ม
-  redemptions: { userId: string; rewardId: string; at: string }[];
-  // ---- ระบบขายบัตร ----
-  concerts: Concert[];
-  bookings: Booking[];
-  /** ยอดขายตั้งต้นของคอนตัวอย่าง (ผู้ซื้อรายอื่นนอกระบบเดโม) — สร้างแบบ deterministic */
-  presold: Map<string, { seats: Set<string>; standing: Map<string, number> }>;
-  /** บัญชีที่ AI กันไม่ให้ซื้อ (ไม่ซ้ำ) ต่อคอนเสิร์ต */
-  blocked: Map<string, string[]>;
-}
-
-/** state ที่บันทึกลงไฟล์ระหว่าง dev (ไม่ทำบน Vercel เพราะ filesystem อ่านอย่างเดียว) */
-interface PersistedState {
-  concerts: Concert[];
-  bookings: Booking[];
-  points: Record<string, number>;
-  redemptions: Store["redemptions"];
-  boosts: Record<string, number>;
-  blocked: Record<string, string[]>;
-}
-
-const STATE_FILE = join(process.cwd(), "data", "runtime-state.json");
-const canPersist = !process.env.VERCEL;
-
-function loadState(): PersistedState | null {
-  if (!canPersist || !existsSync(STATE_FILE)) return null;
-  try {
-    return JSON.parse(readFileSync(STATE_FILE, "utf8")) as PersistedState;
-  } catch {
-    return null;
-  }
-}
-
-/** บันทึก state หลังมีการเปลี่ยนแปลง (สร้างคอน, จอง, แลกแต้ม) */
-export function saveState() {
-  if (!canPersist) return;
-  const state: PersistedState = {
-    concerts: store.concerts,
-    bookings: store.bookings,
-    points: Object.fromEntries(store.users.map((u) => [u.id, u.points])),
-    redemptions: store.redemptions,
-    boosts: Object.fromEntries(store.boosts),
-    blocked: Object.fromEntries(store.blocked),
-  };
-  try {
-    writeFileSync(STATE_FILE, JSON.stringify(state));
-  } catch (err) {
-    console.error("[state] save failed:", (err as Error).message);
-  }
-}
-
-/** ล้าง state กลับเป็นข้อมูลเริ่มต้น (ใช้จากหน้า Admin) */
-export function resetState() {
-  const fresh = createStore(null);
-  Object.assign(store, fresh);
-  saveState();
 }
 
 const g = globalThis as unknown as { __uticketStore?: Store };
+export const store: Store = (g.__uticketStore ??= {
+  snapshot: null,
+  loading: null,
+  transactions: null,
+  txByUser: new Map(),
+  rewards: [],
+  presold: new Map(),
+  trust: new Map(),
+  explain: new Map(),
+  missions: new Map(),
+  summaries: new Map(),
+  inflight: new Map(),
+});
 
-function createStore(saved: PersistedState | null): Store {
-  const users = structuredClone(usersJson as User[]);
-  if (saved) for (const u of users) u.points = saved.points[u.id] ?? u.points;
-  const concerts = saved?.concerts ?? structuredClone(concertsJson as Concert[]);
-  return {
-    users,
-    trust: new Map(),
-    explain: new Map(),
-    missions: new Map(),
-    summaries: new Map(),
-    inflight: new Map(),
-    boosts: new Map(Object.entries(saved?.boosts ?? {})),
-    redemptions: saved?.redemptions ?? [],
-    concerts,
-    bookings: saved?.bookings ?? [],
-    presold: new Map(SEED_SALES.map(([id, level]) => [id, makePresold(concerts.find((c) => c.id === id), level)])),
-    blocked: new Map(Object.entries(saved?.blocked ?? {}).filter(([, v]) => Array.isArray(v))),
-  };
-}
+const TTL_MS = 15_000;
 
-// ---------------------------------------------------------------- ยอดขายตั้งต้นของคอนตัวอย่าง
-
-/** [concertId, ระดับยอดขาย 0–1] — c1 ขายรอบ Diamond ไปแล้วบางส่วน, c2 เปิดขายมาหลายวัน */
-const SEED_SALES: [string, number][] = [
-  ["c1", 0.45],
-  ["c2", 0.8],
-];
-
-function hashSeed(str: string) {
-  let h = 2166136261;
-  for (const ch of str) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
-  return h >>> 0;
-}
-
-function makePresold(concert: Concert | undefined, level: number) {
-  const seats = new Set<string>();
-  const standing = new Map<string, number>();
-  if (!concert) return { seats, standing };
-  let a = hashSeed(concert.id);
-  const rand = () => {
-    a = (a + 0x6d2b79f5) | 0;
-    let t = Math.imul(a ^ (a >>> 15), 1 | a);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-  // โซนแพง/แถวหน้า ขายไปก่อน
-  const byPrice = [...concert.zones].sort((x, y) => y.priceTHB - x.priceTHB).map((z) => z.id);
-  for (const s of concert.sections) {
-    const rank = byPrice.indexOf(s.zoneId);
-    const base = level * [1.2, 0.9, 0.55, 0.25, 0.2, 0.2][Math.max(0, rank)];
-    if (s.kind === "standing") {
-      standing.set(s.id, Math.floor(s.capacity * Math.min(0.95, base)));
-      continue;
-    }
-    const removed = removedSet(s);
-    for (let r = 0; r < s.rows && r < ROW_LABELS.length; r++) {
-      const p = Math.min(0.97, base * (1.15 - (r / s.rows) * 0.8));
-      for (let n = 1; n <= s.seatsPerRow; n++) {
-        const id = seatId(s.id, r, n);
-        if (rand() < p && !removed.has(id)) seats.add(id);
-      }
-    }
+async function loadStatic() {
+  const [txRows, rewardRows] = await Promise.all([
+    selectAll<TxRow>((a, b) => db().from("transactions").select("*").order("id").range(a, b)),
+    selectAll<RewardRow>((a, b) => db().from("rewards").select("*").order("id").range(a, b)),
+  ]);
+  const txs = txRows.map(rowToTx);
+  const byUser = new Map<string, Transaction[]>();
+  for (const t of txs) {
+    const list = byUser.get(t.userId) ?? [];
+    list.push(t);
+    byUser.set(t.userId, list);
   }
-  return { seats, standing };
+  store.transactions = txs;
+  store.txByUser = byUser;
+  store.rewards = rewardRows.map(rowToReward);
 }
 
-export const store: Store = (g.__uticketStore ??= createStore(loadState()));
-
-const transactions = transactionsJson as Transaction[];
-const txByUser = new Map<string, Transaction[]>();
-for (const t of transactions) {
-  const list = txByUser.get(t.userId) ?? [];
-  list.push(t);
-  txByUser.set(t.userId, list);
+async function loadSnapshot() {
+  const [profiles, concerts, organizers] = await Promise.all([
+    selectAll<ProfileRow>((a, b) => db().from("profiles").select("*").order("id").range(a, b)),
+    selectAll<ConcertRow>((a, b) => db().from("concerts").select("*").order("id").range(a, b)),
+    selectAll<{ id: string; name: string }>((a, b) => db().from("organizers").select("id, name").order("id").range(a, b)),
+  ]);
+  store.snapshot = {
+    profiles,
+    users: profiles.filter((p) => p.role === "buyer").map(profileToUser),
+    concerts: concerts.map(rowToConcert),
+    organizers,
+    loadedAt: Date.now(),
+  };
 }
 
-export function getUsers(): User[] {
-  return store.users;
+/** โหลดข้อมูลจาก Supabase ถ้ายังไม่มีหรือเก่าเกิน 15 วินาที */
+export async function ready(force = false) {
+  const stale = !store.snapshot || force || Date.now() - store.snapshot.loadedAt > TTL_MS;
+  if (!stale && store.transactions) return;
+  store.loading ??= (async () => {
+    try {
+      await Promise.all([store.transactions ? null : loadStatic(), stale ? loadSnapshot() : null]);
+    } finally {
+      store.loading = null;
+    }
+  })();
+  await store.loading;
 }
 
-export function getUser(id: string): User | undefined {
-  return store.users.find((u) => u.id === id);
+/** ล้าง cache หลังเขียนข้อมูล (แต้ม, คอนเสิร์ต) — ครั้งถัดไปจะโหลดใหม่ */
+export function invalidate() {
+  if (store.snapshot) store.snapshot.loadedAt = 0;
+}
+
+function snap(): Snapshot {
+  if (!store.snapshot) throw new Error("ยังไม่ได้โหลดข้อมูล — เรียก await ready() ก่อน");
+  return store.snapshot;
+}
+
+// ---------------------------------------------------------------- อ่านข้อมูล (หลัง ready())
+
+export function getUsers(): AppUser[] {
+  return snap().users;
+}
+
+export function getUser(id: string): AppUser | undefined {
+  return snap().users.find((u) => u.id === id);
+}
+
+export function getProfile(id: string): ProfileRow | undefined {
+  return snap().profiles.find((p) => p.id === id);
+}
+
+export function getProfileByAuthId(authId: string): ProfileRow | undefined {
+  return snap().profiles.find((p) => p.auth_id === authId);
+}
+
+export function getProfiles(): ProfileRow[] {
+  return snap().profiles;
 }
 
 /** ตัด persona ออกก่อนส่งให้ client หรือ AI */
@@ -174,31 +150,88 @@ export function toPublicUser(u: User): PublicUser {
 }
 
 export function getAllTransactions(): Transaction[] {
-  return transactions;
+  return store.transactions ?? [];
 }
 
 export function getUserTransactions(userId: string): Transaction[] {
-  return txByUser.get(userId) ?? [];
+  return store.txByUser.get(userId) ?? [];
 }
 
 export function getConcert(id: string): Concert | undefined {
-  return store.concerts.find((c) => c.id === id);
+  return snap().concerts.find((c) => c.id === id);
 }
 
 export function getConcerts(): Concert[] {
-  return store.concerts;
+  return snap().concerts;
 }
 
 export function getPublishedConcerts(): Concert[] {
-  return store.concerts.filter((c) => c.status === "published");
+  return snap().concerts.filter((c) => c.status === "published");
 }
 
-/** ผู้จัดงานจำลอง (ยังไม่มีระบบล็อกอินจริง) */
-export const ORGANIZER = { id: "o1", name: "Lunar Live Entertainment" };
+export function getOrganizers() {
+  return snap().organizers;
+}
 
 export function getRewards(): Reward[] {
-  return rewardsJson as Reward[];
+  return store.rewards;
 }
+
+// ---------------------------------------------------------------- ยอดขายตั้งต้นของคอนตัวอย่าง
+
+/** [concertId, ระดับยอดขาย 0–1] — c1 ขายรอบ Diamond ไปแล้วบางส่วน, c2 เปิดขายมาหลายวัน */
+const SEED_SALES: Record<string, number> = { c1: 0.45, c2: 0.8 };
+
+function hashSeed(str: string) {
+  let h = 2166136261;
+  for (const ch of str) h = Math.imul(h ^ ch.charCodeAt(0), 16777619);
+  return h >>> 0;
+}
+
+/**
+ * ที่นั่งที่ "ขายไปแล้ว" ให้ผู้ซื้อนอกระบบเดโม (คำนวณแบบ deterministic จากผังของคอน ไม่ได้เก็บใน DB)
+ * ใช้เฉพาะคอนตัวอย่าง c1, c2 — คอนที่สร้างใหม่เริ่มจาก 0
+ */
+export function presoldOf(concert: Concert) {
+  const level = SEED_SALES[concert.id];
+  const key = JSON.stringify(concert.sections);
+  const cached = store.presold.get(concert.id);
+  if (cached && cached.key === key) return cached;
+  const seats = new Set<string>();
+  const standing = new Map<string, number>();
+  if (level) {
+    let a = hashSeed(concert.id);
+    const rand = () => {
+      a = (a + 0x6d2b79f5) | 0;
+      let t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+    // โซนแพง/แถวหน้า ขายไปก่อน
+    const byPrice = [...concert.zones].sort((x, y) => y.priceTHB - x.priceTHB).map((z) => z.id);
+    for (const s of concert.sections) {
+      const rank = byPrice.indexOf(s.zoneId);
+      const base = level * [1.2, 0.9, 0.55, 0.25, 0.2, 0.2][Math.max(0, rank)];
+      if (s.kind === "standing") {
+        standing.set(s.id, Math.floor(s.capacity * Math.min(0.95, base)));
+        continue;
+      }
+      const removed = removedSet(s);
+      for (let r = 0; r < s.rows && r < ROW_LABELS.length; r++) {
+        const p = Math.min(0.97, base * (1.15 - (r / s.rows) * 0.8));
+        for (let n = 1; n <= s.seatsPerRow; n++) {
+          const id = seatId(s.id, r, n);
+          if (rand() < p && !removed.has(id)) seats.add(id);
+        }
+      }
+    }
+  }
+  const result = { key, seats, standing };
+  store.presold.set(concert.id, result);
+  return result;
+}
+
+// ---------------------------------------------------------------- ผล AI ที่บันทึกไว้ (DEMO_OFFLINE=1)
 
 /** ผล AI ที่บันทึกไว้ล่วงหน้าสำหรับโหมด DEMO_OFFLINE=1 (สร้างด้วย npm run build-demo-cache) */
 export interface DemoCache {

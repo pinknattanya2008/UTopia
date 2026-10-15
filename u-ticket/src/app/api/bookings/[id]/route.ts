@@ -1,20 +1,21 @@
+import { requireProfile } from "@/lib/auth";
 import { discountRewards, getBooking } from "@/lib/booking";
 import { getConcert, getUser } from "@/lib/data";
 import { handle } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
-/** GET รายการจอง + ส่วนลดที่ใช้ได้ (?userId=) */
-export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
+/** GET รายการจองของตัวเอง + ส่วนลดที่ใช้ได้ */
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const userId = new URL(req.url).searchParams.get("userId") ?? "";
-  return handle(() => {
-    const booking = getBooking(id, userId);
+  return handle(async () => {
+    const p = await requireProfile(["buyer"]);
+    const booking = await getBooking(id, p.id);
     const c = getConcert(booking.concertId);
     return {
       booking,
       concert: c && { id: c.id, title: c.title, artist: c.artist, venue: c.venue, date: c.date },
-      points: getUser(userId)?.points ?? 0,
+      points: getUser(p.id)?.points ?? 0,
       discounts: discountRewards(),
     };
   });

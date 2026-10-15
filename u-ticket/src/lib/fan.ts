@@ -1,7 +1,7 @@
 /**
  * รวม data + scoring + flags + trust เป็นฟังก์ชันที่ API routes ใช้
  */
-import { getAllTransactions, getUser, getUserTransactions, getUsers, store, toPublicUser } from "./data";
+import { getAllTransactions, getUser, getUserTransactions, getUsers, store, toPublicUser, type AppUser } from "./data";
 import { computeFlags, ruleBasedTrust, type Flag } from "./flags";
 import { computeScore, nextTier, tierInfo } from "./scoring";
 import type { AiSource, Transaction, TrustAssessment, User } from "./types";
@@ -17,7 +17,7 @@ export function getTrust(user: User): { value: TrustAssessment; source: AiSource
 
 export function getScore(user: User) {
   const trust = getTrust(user);
-  const score = computeScore(user, getUserTransactions(user.id), trust.value.trustMultiplier, store.boosts.get(user.id) ?? 0);
+  const score = computeScore(user, getUserTransactions(user.id), trust.value.trustMultiplier, (user as Partial<AppUser>).presaleBoost ?? 0);
   return { score, trust };
 }
 

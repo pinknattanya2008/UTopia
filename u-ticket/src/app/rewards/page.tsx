@@ -29,6 +29,7 @@ export default function RewardsPage() {
   const [toast, setToast] = useState<{ ok: boolean; text: string } | null>(null);
 
   useEffect(() => {
+    if (!userId) return;
     setToast(null);
     api<RewardsRes>(`/api/rewards?userId=${userId}`).then(setData).catch(() => setData(null));
   }, [userId]);

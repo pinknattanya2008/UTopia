@@ -7,16 +7,17 @@ import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import PresaleTimeline from "@/components/PresaleTimeline";
 import VenueMap from "@/components/VenueMap";
 import { sectionAvailability } from "@/lib/booking";
-import { getConcert } from "@/lib/data";
+import { getConcert, ready } from "@/lib/data";
 import { fmtDate, fmtTHB, fmtTime } from "@/lib/client";
 
 export const dynamic = "force-dynamic";
 
 export default async function ConcertPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  await ready();
   const concert = getConcert(id);
   if (!concert) notFound();
-  const availability = sectionAvailability(concert);
+  const availability = await sectionAvailability(concert);
   const zoneAvail = (zoneId: string) =>
     concert.sections.filter((s) => s.zoneId === zoneId).reduce((n, s) => n + (availability[s.id]?.available ?? 0), 0);
 

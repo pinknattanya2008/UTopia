@@ -15,9 +15,49 @@
 ```bash
 cd u-ticket
 npm install
-cp .env.example .env.local   # แล้วใส่ OPENAI_API_KEY เอง (ห้าม commit)
-npm run dev                  # http://localhost:3000
+cp .env.example .env.local   # ใส่ค่า Supabase + OPENAI_API_KEY เอง (ห้าม commit)
+npm run db:push              # สร้างตาราง/ฟังก์ชันใน Supabase (ต้อง supabase link ก่อน — ดูหัวข้อ Supabase)
+npm run db:seed              # สร้างบัญชีเดโมทุกแบบ + อัปโหลดผู้ใช้ ธุรกรรม คอนตัวอย่าง
+npm run dev                  # http://localhost:3000 → /login
 ```
+
+## Supabase (ฐานข้อมูลจริง + ล็อกอิน)
+
+Project: `u-ticket` (ref `gtypqawlclxeeeqpviiv`, Singapore) · schema อยู่ที่ `supabase/migrations/`
+
+| ตาราง | เก็บอะไร |
+|---|---|
+| `profiles` | บัญชีทุกแบบ (ผูกกับ Supabase Auth ผ่าน `auth_id`) + role, แต้ม, Presale Boost, ข้อมูลแฟน |
+| `organizers` | ผู้จัดงาน (Lunar Live = Pro, Echo House = Basic) |
+| `transactions` | ธุรกรรม U-topia 30 วันของผู้ซื้อ (3,463 รายการ) |
+| `concerts` | คอนเสิร์ต + ผัง (zones/sections/stage/รูปพื้นหลัง เป็น jsonb) |
+| `bookings` | การจอง (held → paid / cancelled / expired) |
+| `seat_locks` | ที่นั่งที่ล็อก/ขายแล้ว — primary key `(concert_id, seat_id)` กันจองซ้ำแม้มีหลาย server |
+| `redemptions`, `blocked_attempts`, `checkins` | การแลกแต้ม, บัญชีที่ AI กันไม่ให้ซื้อ, การเช็คอินหน้างาน |
+
+- **ทุกตารางเปิด RLS และไม่มี policy** → client อ่านเขียนตรงไม่ได้ ข้อมูลทั้งหมดผ่าน API routes ฝั่ง server ด้วย service role (`src/lib/supabase/admin.ts`)
+- **ล็อกอิน:** Supabase Auth (อีเมล/รหัสผ่าน) session อยู่ใน cookie (`@supabase/ssr`) — API ทุกตัวอ่านตัวตนจาก session ไม่เชื่อ `userId` ที่ส่งมาจากหน้าเว็บ
+- **งานที่ต้องทำครบทั้งชุด** เป็นฟังก์ชัน Postgres: `place_hold` (ล็อกที่นั่ง + ตรวจจำนวนบัตร/ความจุโซนยืน), `confirm_booking` (หักแต้ม + ชำระ), `cancel_booking`, `redeem_reward`
+- **Cache ฝั่ง server:** profiles/concerts 15 วินาที (ล้างทันทีหลังเขียน), transactions/rewards โหลดครั้งเดียว, ผล AI ใน memory
+
+```bash
+supabase link --project-ref <ref> -p <db-password>   # ครั้งแรก
+npm run db:push    # migration ใหม่
+npm run db:seed    # อัปเดตบัญชี/ข้อมูลตั้งต้น (ไม่ลบการจอง)
+npm run db:reset   # ล้างการจอง เช็คอิน แต้มที่ใช้ คอนที่สร้างเพิ่ม กลับเป็นค่าตั้งต้น
+```
+
+### บัญชีเดโม (รหัสผ่านทุกบัญชี = `DEMO_PASSWORD` ใน `.env.local`)
+
+หน้า `/login` มีปุ่มเข้าบัญชีเดโมในคลิกเดียว (เปิดด้วย `DEMO_LOGIN=1`, รหัสผ่านอยู่ฝั่ง server เท่านั้น) และ Navbar มี dropdown สลับบัญชี
+
+| Role | อีเมล | เข้าได้ |
+|---|---|---|
+| ผู้ซื้อ ×24 | `u01@demo.uticket.app` … `u24@demo.uticket.app` (u01 มายด์, u19 ShopKing99, u23 บอท ฯลฯ) | ซื้อบัตร, Fan Score, บัตรของฉัน, แลกแต้ม, Concierge |
+| ผู้จัด · Pro | `organizer.pro@demo.uticket.app` (Lunar Live) | `/admin` เฉพาะ NOVA LUNE, SUNRISE Fest |
+| ผู้จัด · Basic | `organizer.basic@demo.uticket.app` (Echo House) | `/admin` เฉพาะ Midnight Echo |
+| แอดมิน | `admin@demo.uticket.app` | `/admin` ทุกคอน + รายได้ทั้งแพลตฟอร์ม + ล้างข้อมูลเดโม, `/staff` |
+| Staff หน้างาน | `staff@demo.uticket.app` (Lunar Live) | `/staff` เช็คอินบัตรงานของ Lunar Live |
 
 ### ตัวแปรแวดล้อม (`.env.local`)
 
@@ -26,6 +66,10 @@ npm run dev                  # http://localhost:3000
 | `OPENAI_API_KEY` | `sk-...` | **ไม่ใส่ก็เปิดแอปได้** ทุกฟีเจอร์ AI จะใช้ fallback จากกฎในโค้ด |
 | `OPENAI_MODEL` | `gpt-5.4-mini` (ค่าเริ่มต้น) | เปลี่ยนเป็นโมเดลที่ใหญ่กว่าได้โดยไม่ต้องแก้โค้ด |
 | `DEMO_OFFLINE` | `1` | ใช้ผล AI จาก `data/demo-cache.json` แทนการเรียก OpenAI |
+| `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` | จาก Supabase | ใช้ล็อกอินฝั่งเว็บ |
+| `SUPABASE_SERVICE_ROLE_KEY` | จาก Supabase | **server เท่านั้น** ใช้อ่านเขียนข้อมูลทั้งหมด |
+| `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD` | | ใช้กับ supabase CLI (`db:push`) |
+| `DEMO_PASSWORD`, `DEMO_LOGIN` | | รหัสผ่านบัญชีเดโม / เปิดปุ่มล็อกอินเดโม |
 
 ### สคริปต์
 
@@ -34,7 +78,8 @@ npm run dev                  # http://localhost:3000
 | `npm run dev` / `build` / `start` / `lint` | มาตรฐาน Next.js |
 | `npm run seed` | สร้างข้อมูลจำลองใหม่ใน `data/` (seed คงที่ ได้ผลเหมือนเดิมทุกครั้ง) |
 | `npm run check-scores` | พิมพ์ตารางคะแนนทุกคน + ตรวจเงื่อนไขของเดโม (exit 1 ถ้าไม่ผ่าน) |
-| `npm run build-demo-cache` | บันทึกผล AI ทั้งหมดลง `data/demo-cache.json` (ต้องเปิด server ที่มี key ไว้ก่อน) |
+| `npm run build-demo-cache` | บันทึกผล AI ทั้งหมดลง `data/demo-cache.json` (ต้องเปิด server ที่มี key ไว้ก่อน — ล็อกอินบัญชีเดโมให้เอง) |
+| `npm run db:push` / `db:seed` / `db:reset` | สร้างตารางใน Supabase / อัปโหลดข้อมูล + บัญชีเดโม / ล้างข้อมูลที่เกิดจากการใช้งาน |
 
 ---
 
@@ -103,6 +148,7 @@ data/           users / transactions / concerts / rewards / demo-cache (.json)
 - เรียก OpenAI จาก API route ฝั่ง server เท่านั้น key ไม่เคยถูกส่งไป client
 - `.env*.local` อยู่ใน `.gitignore`, มีแค่ `.env.example` ที่ไม่มีค่า key
 - ฟิลด์ `persona` ไม่ถูกส่งให้ AI หรือ client
+- `SUPABASE_SERVICE_ROLE_KEY` ใช้ฝั่ง server เท่านั้น, ทุกตารางเปิด RLS, หน้า `/admin` `/staff` และหน้าของผู้ซื้อตรวจ role ทั้งใน layout และ API
 
 ### ระบบขายบัตรและรายได้ 2 ทาง
 
@@ -117,8 +163,9 @@ data/           users / transactions / concerts / rewards / demo-cache (.json)
 - **เวลาจำลอง (เดโม):** หน้าเลือกที่นั่งของงาน Pro มีแถบเลือกเวลา 09:00 / 10:00 Diamond / 11:00 Gold / 11:30 Silver / 12:00 ทั่วไป เพื่อโชว์ว่าแต่ละ Tier เข้าซื้อได้คนละเวลา (server ตรวจซ้ำทุกครั้งที่ล็อกที่นั่ง)
 - **ตัวจัดผัง:** แสดง section เป็นบล็อก (ไม่วาดที่นั่งรายจุด จึงลื่น) · ระหว่างลากอัปเดตเฉพาะในตัวจัดผัง แล้วบันทึกตอนปล่อย · รูปผังที่อัปโหลดถูกย่อเป็น JPEG ไม่เกิน ~1.5 MB · เส้นหนาด้านบนของบล็อกคือแถว A · หลังมียอดขายแล้วผังจะถูกล็อก
 - **ยอดขายตั้งต้น:** c1 และ c2 มีที่นั่งที่ "ขายไปแล้ว" แบบ deterministic ให้ผังดูสมจริง คอนที่สร้างใหม่เริ่มจาก 0
-- **การเก็บข้อมูล:** คอนที่สร้าง การจอง และแต้ม เก็บใน memory และบันทึกลง `data/runtime-state.json` ระหว่าง dev (gitignored) — บน Vercel จะหายเมื่อ instance ใหม่ขึ้น ปุ่ม "ล้างข้อมูลเดโม" ที่ `/admin` รีเซ็ตทั้งหมด
-- **ยังไม่มีระบบล็อกอิน:** ผู้จัดเป็นบัญชีจำลอง `Lunar Live Entertainment` ใครเปิด `/admin` ก็เข้าได้
+- **การเก็บข้อมูล:** ทุกอย่างอยู่ใน Supabase — ปุ่ม "ล้างข้อมูลเดโม" (เฉพาะแอดมิน) หรือ `npm run db:reset` คืนค่าตั้งต้น
+- **สิทธิ์:** ผู้จัดเห็น/แก้ได้เฉพาะคอนของตัวเอง, แอดมินเห็นทุกคอน, staff เช็คอินได้เฉพาะงานของผู้จัดที่สังกัด
+- **เช็คอินหน้างาน** `/staff`: กรอก/สแกนรหัสบัตร `UT-XXXXXX-n` (อยู่ใต้ QR) → เข้างานได้ / เช็คอินไปแล้ว / ไม่พบบัตร — บัตรใน "บัตรของฉัน" แสดงเวลาที่เช็คอิน
 
 ### แบรนด์และธีม
 ตามไฟล์ออกแบบโลโก้ (`../Logo on dark and light-html`, `../App icon, small sizes, digital ticket-html`):
@@ -142,10 +189,9 @@ UI ใช้ **MUI icons** แทน emoji ทั้งหมด (import ที�
 ## Deploy บน Vercel
 
 1. Import repo บน Vercel แล้วตั้ง **Root Directory = `u-ticket`**
-2. ตั้ง Environment Variables: `OPENAI_API_KEY`, `OPENAI_MODEL` (และ `DEMO_OFFLINE=1` ถ้าต้องการโหมดออฟไลน์)
-3. Deploy — ข้อมูล JSON ถูก bundle ไปกับแอป ไม่ต้องตั้งฐานข้อมูล
-
-> state (แต้มที่แลก, cache AI) อยู่ใน memory ของแต่ละ instance และหายเมื่อ instance ถูกสร้างใหม่ ซึ่งพอสำหรับเดโม
+2. ตั้ง Environment Variables: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `DEMO_PASSWORD`, `DEMO_LOGIN`, `OPENAI_API_KEY`, `OPENAI_MODEL` (และ `DEMO_OFFLINE=1` ถ้าต้องการโหมดออฟไลน์)
+3. Deploy — ข้อมูลอยู่ใน Supabase จึงใช้ร่วมกันทุก instance (มีแค่ cache ของผล AI ที่แยกต่อ instance)
+4. ถ้าเปิดให้คนนอกใช้จริง ให้ตั้ง `DEMO_LOGIN=` (ว่าง) เพื่อปิดปุ่มล็อกอินเดโม
 
 ## เตรียมเดโม
 

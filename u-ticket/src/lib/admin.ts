@@ -1,9 +1,12 @@
 /**
- * ฝั่งผู้จัดงาน (Organizer/Admin): สร้าง แก้ไข เผยแพร่คอนเสิร์ต + ภาพรวมรายได้
- * ยังไม่มีระบบล็อกอินจริง — ใช้ผู้จัดจำลอง ORGANIZER
+ * ฝั่งผู้จัดงาน (Organizer) และแอดมินแพลตฟอร์ม: สร้าง แก้ไข เผยแพร่คอนเสิร์ต + ภาพรวมรายได้
+ * ผู้จัดจัดการได้เฉพาะคอนของตัวเอง แอดมินจัดการได้ทุกคอน — ข้อมูลอยู่ใน Supabase
  */
-import { concertStats, BookingError } from "./booking";
-import { getConcert, ORGANIZER, saveState, store } from "./data";
+import { concertStats } from "./booking";
+import { getConcert, getConcerts, getOrganizers, invalidate, presoldOf, ready } from "./data";
+import { BookingError } from "./errors";
+import { concertToRow, type ProfileRow } from "./mappers";
+import { db } from "./supabase/admin";
 import type { Concert, MapRect, OrganizerPlan, Section, VenueTemplateId, Zone } from "./types";
 import {
   getTemplate,
@@ -162,22 +165,52 @@ function buildConcert(input: ConcertInput, base: Pick<Concert, "id" | "createdAt
   };
 }
 
-function hasSales(id: string) {
-  return store.bookings.some((b) => b.concertId === id && (b.status === "paid" || b.status === "held")) || store.presold.has(id);
+/** ผู้จัดแก้ได้เฉพาะคอนของตัวเอง แอดมินแก้ได้ทุกคอน */
+export function assertOwner(p: ProfileRow, concert: Concert) {
+  if (p.role === "admin") return;
+  if (p.role === "organizer" && p.organizer_id === concert.organizerId) return;
+  throw new BookingError("จัดการได้เฉพาะคอนเสิร์ตของผู้จัดตัวเอง", 403);
 }
 
-export function createConcert(input: ConcertInput): Concert {
-  const next = Math.max(0, ...store.concerts.map((c) => Number(c.id.replace(/\D/g, "")) || 0)) + 1;
-  const concert = buildConcert(input, { id: `c${next}`, createdAt: new Date().toISOString(), organizerId: ORGANIZER.id });
-  store.concerts.push(concert);
-  saveState();
+function findConcert(id: string) {
+  const c = getConcert(id);
+  if (!c) throw new BookingError("ไม่พบคอนเสิร์ต", 404);
+  return c;
+}
+
+/** มีการจองหรือยอดขายตั้งต้นแล้ว → ล็อกผัง/ห้ามลบ */
+async function hasSales(concert: Concert) {
+  if (presoldOf(concert).seats.size || presoldOf(concert).standing.size) return true;
+  const { count, error } = await db()
+    .from("bookings")
+    .select("id", { count: "exact", head: true })
+    .eq("concert_id", concert.id)
+    .in("status", ["held", "paid"]);
+  if (error) throw new Error(error.message);
+  return (count ?? 0) > 0;
+}
+
+async function save(c: Concert) {
+  const { error } = await db().from("concerts").upsert({ ...concertToRow(c), updated_at: new Date().toISOString() });
+  if (error) throw new Error(error.message);
+  invalidate();
+}
+
+export async function createConcert(p: ProfileRow, input: ConcertInput & { organizerId?: string }): Promise<Concert> {
+  const organizerId = p.role === "admin" ? (input.organizerId ?? getOrganizers()[0]?.id) : p.organizer_id;
+  if (!organizerId) throw new BookingError("บัญชีนี้ไม่ได้สังกัดผู้จัด", 403);
+  const { data, error } = await db().from("concerts").select("id");
+  if (error) throw new Error(error.message);
+  const next = Math.max(0, ...(data ?? []).map((r) => Number(String(r.id).replace(/\D/g, "")) || 0)) + 1;
+  const concert = buildConcert(input, { id: `c${next}`, createdAt: new Date().toISOString(), organizerId });
+  await save(concert);
   return concert;
 }
 
-export function updateConcert(id: string, input: ConcertInput): Concert {
-  const current = getConcert(id);
-  if (!current) throw new BookingError("ไม่พบคอนเสิร์ต", 404);
-  if (hasSales(id)) {
+export async function updateConcert(p: ProfileRow, id: string, input: ConcertInput): Promise<Concert> {
+  const current = findConcert(id);
+  assertOwner(p, current);
+  if (await hasSales(current)) {
     // มียอดขายแล้ว: ล็อกผังที่นั่งไว้ แก้ได้เฉพาะข้อมูลงานและราคา
     input = {
       ...input,
@@ -189,34 +222,34 @@ export function updateConcert(id: string, input: ConcertInput): Concert {
     };
   }
   const updated = buildConcert({ ...input, status: input.status ?? current.status }, current);
-  // ล้าง field ที่ถูกเอาออก (เช่น ลบรูปพื้นหลัง) แล้วค่อยใส่ค่าใหม่
-  for (const k of Object.keys(current) as (keyof Concert)[]) if (!(k in updated)) delete current[k];
-  Object.assign(current, updated);
-  saveState();
-  return current;
+  await save(updated);
+  return updated;
 }
 
-export function setConcertStatus(id: string, status: Concert["status"]) {
-  const c = getConcert(id);
-  if (!c) throw new BookingError("ไม่พบคอนเสิร์ต", 404);
-  if (status === "draft" && hasSales(id)) throw new BookingError("มียอดขายแล้ว ยกเลิกการเผยแพร่ไม่ได้", 409);
-  c.status = status;
-  saveState();
-  return c;
+export async function setConcertStatus(p: ProfileRow, id: string, status: Concert["status"]) {
+  const c = findConcert(id);
+  assertOwner(p, c);
+  if (status === "draft" && (await hasSales(c))) throw new BookingError("มียอดขายแล้ว ยกเลิกการเผยแพร่ไม่ได้", 409);
+  await save({ ...c, status });
+  return { ...c, status };
 }
 
-export function deleteConcert(id: string) {
-  const c = getConcert(id);
-  if (!c) throw new BookingError("ไม่พบคอนเสิร์ต", 404);
-  if (c.status !== "draft" || hasSales(id)) throw new BookingError("ลบได้เฉพาะงานที่เป็นร่างและยังไม่มียอดขาย", 409);
-  store.concerts = store.concerts.filter((x) => x.id !== id);
-  saveState();
+export async function deleteConcert(p: ProfileRow, id: string) {
+  const c = findConcert(id);
+  assertOwner(p, c);
+  if (c.status !== "draft" || (await hasSales(c))) throw new BookingError("ลบได้เฉพาะงานที่เป็นร่างและยังไม่มียอดขาย", 409);
+  const { error } = await db().from("concerts").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  invalidate();
 }
 
-export function adminOverview() {
-  const concerts = store.concerts
-    .filter((c) => c.organizerId === ORGANIZER.id)
-    .map((c) => ({
+/** ภาพรวม: ผู้จัดเห็นคอนของตัวเอง แอดมินเห็นทุกคอน */
+export async function adminOverview(p: ProfileRow) {
+  await ready();
+  const organizers = getOrganizers();
+  const mine = getConcerts().filter((c) => p.role === "admin" || c.organizerId === p.organizer_id);
+  const concerts = await Promise.all(
+    mine.map(async (c) => ({
       id: c.id,
       title: c.title,
       artist: c.artist,
@@ -225,12 +258,15 @@ export function adminOverview() {
       salesOpenAt: c.salesOpenAt,
       status: c.status,
       plan: c.plan,
-      stats: concertStats(c),
-    }));
+      organizer: organizers.find((o) => o.id === c.organizerId)?.name ?? c.organizerId,
+      stats: await concertStats(c),
+    })),
+  );
   const sum = (k: "gross" | "commission" | "serviceFees" | "discounts" | "platformRevenue" | "organizerPayout" | "ticketsSold") =>
     concerts.reduce((n, c) => n + c.stats[k], 0);
   return {
-    organizer: ORGANIZER,
+    viewer: { role: p.role, name: p.display_name },
+    organizer: p.role === "admin" ? { id: "all", name: "ทุกผู้จัด (แอดมินแพลตฟอร์ม)" } : (organizers.find((o) => o.id === p.organizer_id) ?? null),
     plans: PLANS,
     concerts,
     totals: {

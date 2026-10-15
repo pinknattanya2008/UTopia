@@ -1,4 +1,4 @@
-import { BookingError } from "./booking";
+import { BookingError } from "./errors";
 
 /** แปลง BookingError เป็น JSON response ภาษาไทย */
 export async function handle(fn: () => unknown | Promise<unknown>) {

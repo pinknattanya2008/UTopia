@@ -1,26 +1,32 @@
-import { getRewards, getUser, saveState, store } from "@/lib/data";
+import { requireProfile } from "@/lib/auth";
+import { getRewards, invalidate } from "@/lib/data";
+import { BookingError } from "@/lib/errors";
+import { body, handle } from "@/lib/http";
+import { db } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
 const PRESALE_BOOST = 5;
 
-/** POST แลกแต้ม { userId, rewardId } → { ok, pointsLeft } */
+/** POST แลกแต้ม { rewardId } → { ok, pointsLeft } (หักแต้มใน DB แบบครบทั้งชุด) */
 export async function POST(req: Request) {
-  const body = (await req.json().catch(() => ({}))) as { userId?: string; rewardId?: string };
-  const user = getUser(body.userId ?? "");
-  const reward = getRewards().find((r) => r.id === body.rewardId);
-  if (!user || !reward) return Response.json({ ok: false, error: "ไม่พบผู้ใช้หรือรีวอร์ด" }, { status: 404 });
-
-  if (reward.type === "presale_boost" && store.boosts.has(user.id)) {
-    return Response.json({ ok: false, pointsLeft: user.points, error: "ใช้ Presale Boost ในรอบนี้ไปแล้ว" }, { status: 409 });
-  }
-  if (user.points < reward.costPoints) {
-    return Response.json({ ok: false, pointsLeft: user.points, error: "แต้มไม่พอ" }, { status: 400 });
-  }
-
-  user.points -= reward.costPoints;
-  if (reward.type === "presale_boost") store.boosts.set(user.id, PRESALE_BOOST);
-  store.redemptions.push({ userId: user.id, rewardId: reward.id, at: new Date().toISOString() });
-  saveState();
-  return Response.json({ ok: true, pointsLeft: user.points });
+  const { rewardId } = await body<{ rewardId?: string }>(req);
+  return handle(async () => {
+    const p = await requireProfile(["buyer"]);
+    const reward = getRewards().find((r) => r.id === rewardId);
+    if (!reward) throw new BookingError("ไม่พบรีวอร์ด", 404);
+    const { data, error } = await db().rpc("redeem_reward", {
+      p_user: p.id,
+      p_reward: reward.id,
+      p_cost: reward.costPoints,
+      p_boost: reward.type === "presale_boost" ? PRESALE_BOOST : 0,
+    });
+    if (error) {
+      if (error.message.startsWith("BOOST_USED")) throw new BookingError("ใช้ Presale Boost ในรอบนี้ไปแล้ว", 409);
+      if (error.message.startsWith("POINTS")) throw new BookingError("แต้มไม่พอ");
+      throw new Error(error.message);
+    }
+    invalidate();
+    return { ok: true, pointsLeft: data as number };
+  });
 }

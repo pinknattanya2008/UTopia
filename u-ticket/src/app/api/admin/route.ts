@@ -1,9 +1,10 @@
 import { adminOverview } from "@/lib/admin";
+import { requireProfile } from "@/lib/auth";
 import { handle } from "@/lib/http";
 
 export const dynamic = "force-dynamic";
 
-/** GET ภาพรวมผู้จัด: คอนเสิร์ตทั้งหมด + ยอดขาย + รายได้แพลตฟอร์ม */
+/** GET ภาพรวม: ผู้จัดเห็นคอนของตัวเอง แอดมินเห็นทุกคอน */
 export async function GET() {
-  return handle(() => adminOverview());
+  return handle(async () => adminOverview(await requireProfile(["organizer", "admin"])));
 }

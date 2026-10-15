@@ -44,6 +44,7 @@ export default function DashboardPage() {
   const [error, setError] = useState(false);
 
   useEffect(() => {
+    if (!userId) return; // รอโหลดบัญชีก่อน
     let alive = true;
     setExplain(null);
     setMissions(null);

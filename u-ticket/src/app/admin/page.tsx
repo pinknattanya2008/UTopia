@@ -15,7 +15,8 @@ import { api, fmtDate, fmtPct, fmtTHB } from "@/lib/client";
 import type { OrganizerPlan } from "@/lib/types";
 
 interface Overview {
-  organizer: { id: string; name: string };
+  viewer: { role: "organizer" | "admin"; name: string };
+  organizer: { id: string; name: string } | null;
   concerts: {
     id: string;
     title: string;
@@ -24,6 +25,7 @@ interface Overview {
     date: string;
     status: "draft" | "published";
     plan: OrganizerPlan;
+    organizer: string;
     stats: { capacity: number; ticketsSold: number; sellThrough: number; gross: number; platformRevenue: number; blockedAttempts: number };
   }[];
   totals: {
@@ -64,8 +66,8 @@ export default function AdminPage() {
     <div className="space-y-6">
       <section className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <p className="text-sm text-muted">ผู้จัดงาน</p>
-          <h1 className="text-2xl font-bold">{data.organizer.name}</h1>
+          <p className="text-sm text-muted">{data.viewer.role === "admin" ? "แอดมินแพลตฟอร์ม" : "ผู้จัดงาน"}</p>
+          <h1 className="text-2xl font-bold">{data.organizer?.name ?? data.viewer.name}</h1>
         </div>
         <Link
           href="/admin/concerts/new"
@@ -138,6 +140,7 @@ export default function AdminPage() {
                     {c.status === "published" ? "เผยแพร่แล้ว" : "ร่าง"}
                   </span>
                   <span className="rounded-full bg-surface-2 px-2 py-0.5 text-xs text-muted">{c.plan === "pro" ? "Pro" : "Basic"}</span>
+                  {data.viewer.role === "admin" && <span className="text-xs text-muted">{c.organizer}</span>}
                 </div>
                 <p className="mt-1 truncate font-semibold">{c.title}</p>
                 <p className="truncate text-xs text-muted">
@@ -164,9 +167,11 @@ export default function AdminPage() {
         </div>
       </section>
 
-      <button onClick={reset} className="flex items-center gap-1.5 text-sm text-muted hover:text-danger">
-        <RestartAltIcon fontSize="small" /> ล้างข้อมูลเดโม
-      </button>
+      {data.viewer.role === "admin" && (
+        <button onClick={reset} className="flex items-center gap-1.5 text-sm text-muted hover:text-danger">
+          <RestartAltIcon fontSize="small" /> ล้างข้อมูลเดโม (การจอง เช็คอิน แต้ม คอนที่สร้างเพิ่ม)
+        </button>
+      )}
     </div>
   );
 }

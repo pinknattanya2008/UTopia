@@ -9,7 +9,10 @@
     "lint": "eslint",
     "seed": "node --disable-warning=ExperimentalWarning scripts/seed.ts",
     "check-scores": "node --disable-warning=ExperimentalWarning scripts/check-scores.ts",
-    "build-demo-cache": "node --disable-warning=ExperimentalWarning scripts/build-demo-cache.ts"
+    "build-demo-cache": "node --disable-warning=ExperimentalWarning scripts/build-demo-cache.ts",
+    "db:seed": "node --disable-warning=ExperimentalWarning scripts/seed-supabase.ts",
+    "db:reset": "node --disable-warning=ExperimentalWarning scripts/seed-supabase.ts --reset",
+    "db:push": "supabase db push"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
@@ -17,6 +20,8 @@
     "@mui/icons-material": "^9.5.0",
     "@mui/material": "^9.5.0",
     "@mui/material-nextjs": "^9.5.0",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.118.0",
     "next": "15.5.4",
     "openai": "^7.34.0",
     "react": "19.1.0",

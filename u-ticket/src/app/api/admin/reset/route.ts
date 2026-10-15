@@ -1,12 +1,14 @@
-import { resetState } from "@/lib/data";
+import { requireProfile } from "@/lib/auth";
 import { handle } from "@/lib/http";
+import { resetDemo } from "@/lib/reset";
 
 export const dynamic = "force-dynamic";
 
-/** POST ล้างข้อมูลเดโม (การจอง คอนที่สร้าง แต้ม) กลับเป็นค่าเริ่มต้น */
+/** POST ล้างข้อมูลเดโมใน Supabase กลับเป็นค่าตั้งต้น (แอดมินเท่านั้น) */
 export async function POST() {
-  return handle(() => {
-    resetState();
+  return handle(async () => {
+    await requireProfile(["admin"]);
+    await resetDemo();
     return { ok: true };
   });
 }

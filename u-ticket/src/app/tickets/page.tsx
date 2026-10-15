@@ -8,13 +8,14 @@ import { useUser } from "@/components/UserProvider";
 import { api, fmtDate, fmtDateTime, fmtTHB } from "@/lib/client";
 import type { Booking } from "@/lib/types";
 
-type Row = Booking & { concert: { id: string; title: string; artist: string; venue: string; date: string } | null };
+type Row = Booking & { checkedIn?: (string | null)[];  concert: { id: string; title: string; artist: string; venue: string; date: string } | null };
 
 export default function TicketsPage() {
   const { userId, user } = useUser();
   const [rows, setRows] = useState<Row[] | null>(null);
 
   useEffect(() => {
+    if (!userId) return;
     setRows(null);
     api<Row[]>(`/api/bookings?userId=${userId}`)
       .then(setRows)
@@ -59,6 +60,7 @@ export default function TicketsPage() {
                   dateVenue={`${b.concert ? fmtDate(b.concert.date) : ""} · ${b.concert?.venue ?? ""}`}
                   seat={it.label}
                   ticketId={`${b.code}-${i + 1}`}
+                  checkedInAt={b.checkedIn?.[i]}
                 />
               ))}
             </div>

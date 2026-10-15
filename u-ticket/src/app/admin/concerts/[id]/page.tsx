@@ -39,6 +39,7 @@ interface Stats {
   buyersByTier: Record<TierName, number>;
   blockedAttempts: number;
   riskyAccounts: number;
+  checkedIn: number;
 }
 
 export default function AdminConcertPage({ params }: { params: Promise<{ id: string }> }) {
@@ -148,7 +149,7 @@ export default function AdminConcertPage({ params }: { params: Promise<{ id: str
           icon={ConfirmationNumberOutlinedIcon}
           label="ขายแล้ว"
           value={`${s.ticketsSold.toLocaleString("th-TH")} ใบ`}
-          sub={`${fmtPct(s.sellThrough)} จาก ${s.capacity.toLocaleString("th-TH")} ที่${s.held ? ` · ล็อกอยู่ ${s.held}` : ""}`}
+          sub={`${fmtPct(s.sellThrough)} จาก ${s.capacity.toLocaleString("th-TH")} ที่${s.held ? ` · ล็อกอยู่ ${s.held}` : ""} · เช็คอินแล้ว ${s.checkedIn}`}
         />
         <Kpi icon={AccountBalanceOutlinedIcon} label="ผู้จัดได้รับ" value={fmtTHB(s.organizerPayout)} tone="ok" sub={`หักคอมมิชชัน ${fmtTHB(s.commission)}`} />
         <Kpi

@@ -1,15 +1,25 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { api, type ListUser } from "@/lib/client";
+import { api, type Account, type DemoAccount, type ListUser } from "@/lib/client";
 import { DEFAULT_CLOCK } from "@/lib/clock";
+import { browserClient } from "@/lib/supabase/browser";
 
 interface UserCtx {
-  users: ListUser[];
-  userId: string;
+  /** บัญชีที่ล็อกอินอยู่ (null = ยังไม่ล็อกอิน, undefined = กำลังโหลด) */
+  account: Account | null | undefined;
+  /** ข้อมูลผู้ซื้อ + Fan Score (เฉพาะบัญชีผู้ซื้อ) */
   user: ListUser | undefined;
-  setUserId: (id: string) => void;
-  /** โหลดรายชื่อ/Tier ใหม่ และเพิ่ม version ให้หน้าต่าง ๆ โหลดข้อมูลใหม่ */
+  /** id ของผู้ซื้อที่ล็อกอินอยู่ (ใช้เรียก API ของตัวเอง) */
+  userId: string;
+  /** บัญชีเดโมทั้งหมด (ว่างถ้าปิด DEMO_LOGIN) */
+  demoAccounts: DemoAccount[];
+  /** ผู้ซื้อเดโม (สำหรับ dropdown สลับบัญชี) */
+  users: DemoAccount[];
+  /** ล็อกอินบัญชีเดโมตาม id ในคลิกเดียว */
+  setUserId: (id: string) => Promise<void>;
+  logout: () => Promise<void>;
+  /** โหลดบัญชี/คะแนนใหม่ และเพิ่ม version ให้หน้าต่าง ๆ โหลดข้อมูลใหม่ */
   refresh: () => Promise<void>;
   version: number;
   warming: boolean;
@@ -19,58 +29,76 @@ interface UserCtx {
 }
 
 const Ctx = createContext<UserCtx | null>(null);
-const STORAGE_KEY = "uticket:userId";
 const PREWARM_KEY = "uticket:prewarmed";
 const CLOCK_KEY = "uticket:clock";
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
-  const [users, setUsers] = useState<ListUser[]>([]);
-  const [userId, setUserIdState] = useState("u01");
+  const [account, setAccount] = useState<Account | null | undefined>(undefined);
+  const [user, setUser] = useState<ListUser | undefined>(undefined);
+  const [demoAccounts, setDemoAccounts] = useState<DemoAccount[]>([]);
   const [version, setVersion] = useState(0);
   const [warming, setWarming] = useState(false);
   const [clock, setClockState] = useState<number>(DEFAULT_CLOCK);
 
-  const refresh = useCallback(async () => {
-    try {
-      setUsers(await api<ListUser[]>("/api/users"));
-    } catch {
-      /* แสดงผลเดิมต่อ */
-    }
-    setVersion((v) => v + 1);
+  const loadMe = useCallback(async () => {
+    const me = await api<{ account: Account | null; user?: ListUser }>("/api/me").catch(() => ({ account: null }) as { account: null; user?: ListUser });
+    setAccount(me.account);
+    setUser(me.user);
+    return me.account;
   }, []);
+
+  const refresh = useCallback(async () => {
+    await loadMe();
+    api<DemoAccount[]>("/api/users").then(setDemoAccounts).catch(() => {});
+    setVersion((v) => v + 1);
+  }, [loadMe]);
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) setUserIdState(saved);
       const savedClock = localStorage.getItem(CLOCK_KEY);
       if (savedClock !== null && Number.isFinite(Number(savedClock))) setClockState(Number(savedClock));
     } catch {}
+    api<DemoAccount[]>("/api/users").then(setDemoAccounts).catch(() => {});
 
     (async () => {
-      const list = await api<ListUser[]>("/api/users").catch(() => [] as ListUser[]);
-      setUsers(list);
-      // Pre-warm: ให้ AI ประเมิน trust ของทุกคนไว้ก่อน หน้า presale จะขึ้นผลทันที
+      const acc = await loadMe();
+      if (!acc) return;
+      // Pre-warm: ให้ AI ประเมิน trust ของผู้ซื้อทุกคนไว้ก่อน หน้า presale/ซื้อบัตรจะขึ้นผลทันที
       let warmed = false;
       try {
         warmed = sessionStorage.getItem(PREWARM_KEY) === "1";
       } catch {}
-      if (warmed || list.length === 0) return;
+      if (warmed) return;
       setWarming(true);
-      await Promise.allSettled(list.map((u) => api(`/api/trust/${u.id}`, { json: {} })));
+      await api("/api/prewarm", { json: {} }).catch(() => null);
       try {
         sessionStorage.setItem(PREWARM_KEY, "1");
       } catch {}
       setWarming(false);
-      await refresh();
+      await loadMe();
     })();
-  }, [refresh]);
 
-  const setUserId = useCallback((id: string) => {
-    setUserIdState(id);
-    try {
-      localStorage.setItem(STORAGE_KEY, id);
-    } catch {}
+    // ล็อกอิน/ล็อกเอาต์จากแท็บอื่นหรือหน้า login
+    const { data } = browserClient().auth.onAuthStateChange((event) => {
+      if (event === "SIGNED_IN" || event === "SIGNED_OUT") loadMe();
+    });
+    return () => data.subscription.unsubscribe();
+  }, [loadMe]);
+
+  const setUserId = useCallback(
+    async (id: string) => {
+      const target = demoAccounts.find((a) => a.id === id);
+      if (!target?.email) return;
+      await api("/api/auth/demo", { json: { email: target.email } });
+      // โหลดหน้าใหม่ทั้งหน้า เพื่อให้ทุกหน้า/cache ของ router ใช้บัญชีใหม่
+      window.location.reload();
+    },
+    [demoAccounts],
+  );
+
+  const logout = useCallback(async () => {
+    await browserClient().auth.signOut();
+    window.location.assign("/");
   }, []);
 
   const setClock = useCallback((offset: number) => {
@@ -81,8 +109,21 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const value = useMemo(
-    () => ({ users, userId, user: users.find((u) => u.id === userId), setUserId, refresh, version, warming, clock, setClock }),
-    [users, userId, setUserId, refresh, version, warming, clock, setClock],
+    () => ({
+      account,
+      user,
+      userId: user?.id ?? "",
+      demoAccounts,
+      users: demoAccounts.filter((a) => a.role === "buyer"),
+      setUserId,
+      logout,
+      refresh,
+      version,
+      warming,
+      clock,
+      setClock,
+    }),
+    [account, user, demoAccounts, setUserId, logout, refresh, version, warming, clock, setClock],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

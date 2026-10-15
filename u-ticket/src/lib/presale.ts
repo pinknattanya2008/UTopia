@@ -29,7 +29,7 @@ export async function simulatePresale(concertId: string) {
   const rows = users.map((u, i) => {
     const trust = trusts[i].value;
     const txs = getUserTransactions(u.id);
-    const s = computeScore(u, txs, trust.trustMultiplier, store.boosts.get(u.id) ?? 0);
+    const s = computeScore(u, txs, trust.trustMultiplier, u.presaleBoost);
     const flagged = isFlagged(trust.trustMultiplier, trust.isLikelyBot);
     const entry = openAt - tierInfo(s.tier).leadMinutes * 60_000;
     return {

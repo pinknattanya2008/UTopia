@@ -10,11 +10,13 @@ export default function ETicket({
   dateVenue,
   seat,
   ticketId,
+  checkedInAt,
 }: {
   eventName: string;
   dateVenue: string;
   seat: string;
   ticketId: string;
+  checkedInAt?: string | null;
 }) {
   return (
     <article className="relative flex overflow-hidden rounded-xl bg-[#0F1A30] text-white dark:bg-surface dark:ring-1 dark:ring-line" aria-label={`ตั๋ว ${eventName} ${seat}`}>
@@ -29,6 +31,11 @@ export default function ETicket({
           <p className="font-display text-xl font-bold leading-tight tracking-[-0.02em] sm:text-2xl">{eventName}</p>
           <p className="text-sm font-medium text-[#AEB8D0]">{dateVenue}</p>
           <p className="pt-1 text-sm font-semibold">{seat}</p>
+          {checkedInAt && (
+            <p className="inline-block rounded-md bg-[#45b883]/20 px-2 py-0.5 text-xs font-semibold text-[#7fe0ad]">
+              เช็คอินแล้ว {new Date(checkedInAt).toLocaleString("th-TH", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Bangkok" })}
+            </p>
+          )}
         </div>
       </div>
       <div className="flex w-32 shrink-0 flex-col items-center justify-center gap-2.5 border-l-2 border-dashed border-[#3A4766] p-3 sm:w-40">

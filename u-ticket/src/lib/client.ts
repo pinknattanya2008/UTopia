@@ -3,6 +3,32 @@ import type { AiSource, Mission, PublicUser, ScoreBreakdown, TierName, Transacti
 
 export type ListUser = PublicUser & { tier: TierName; finalScore: number };
 
+export type Role = "buyer" | "organizer" | "admin" | "staff";
+
+/** บัญชีที่ล็อกอินอยู่ */
+export interface Account {
+  id: string;
+  email: string | null;
+  role: Role;
+  organizerId: string | null;
+  organizerName: string | null;
+  displayName: string;
+  avatar: string;
+}
+
+/** บัญชีเดโมสำหรับหน้าล็อกอิน/ปุ่มสลับบัญชี */
+export interface DemoAccount {
+  id: string;
+  email: string | null;
+  role: Role;
+  displayName: string;
+  avatar: string;
+  tier: TierName | null;
+  finalScore: number | null;
+}
+
+export const ROLE_LABEL: Record<Role, string> = { buyer: "ผู้ซื้อ", organizer: "ผู้จัดงาน", admin: "แอดมิน", staff: "Staff หน้างาน" };
+
 export type ScoreDetail = ScoreBreakdown & {
   presaleBoost: number;
   user: PublicUser;

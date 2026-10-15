@@ -4,6 +4,7 @@
  * วิธีใช้:
  *   1) ใส่ OPENAI_API_KEY ใน .env.local แล้วรัน `npm run dev` (หรือ build + start)
  *   2) อีก terminal: `npm run build-demo-cache`  (เปลี่ยน server ด้วย BASE_URL=http://host:port)
+ *      สคริปต์ล็อกอินด้วยบัญชีเดโม (ต้องเปิด DEMO_LOGIN=1): แอดมินสำหรับ trust/explain/missions, ผู้ซื้อสำหรับ Concierge
  *   3) commit data/demo-cache.json แล้วเปิดแอปด้วย DEMO_OFFLINE=1 เมื่อเน็ตในงานมีปัญหา
  *
  * เก็บเฉพาะผลที่มาจาก AI จริง (source = "ai") ผลจาก fallback จะไม่ถูกบันทึก
@@ -16,10 +17,26 @@ const file = join(import.meta.dirname, "..", "data", "demo-cache.json");
 const SAMPLE_QUESTIONS = ["งบ 5,000 อยากเห็นเวทีชัด", "มีคนขายบัตรใน Facebook ถูกกว่า ซื้อดีไหม", "งบ 2,000 ไปกับเพื่อน"];
 const CONCIERGE_USERS = ["u01", "u19"];
 
+/** ล็อกอินบัญชีเดโมผ่าน /api/auth/demo แล้วคืน cookie ของ session */
+async function login(email: string): Promise<string> {
+  const res = await fetch(`${BASE}/api/auth/demo`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) throw new Error(`login ${email} → ${res.status} (เปิด DEMO_LOGIN=1 และรัน npm run db:seed แล้วหรือยัง)`);
+  return res.headers
+    .getSetCookie()
+    .map((c) => c.split(";")[0])
+    .join("; ");
+}
+
+let cookie = "";
+
 async function post<T>(path: string, body: unknown = {}): Promise<T> {
   const res = await fetch(BASE + path, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Cookie: cookie },
     body: JSON.stringify(body),
   });
   if (!res.ok) throw new Error(`${path} → ${res.status}`);
@@ -28,7 +45,10 @@ async function post<T>(path: string, body: unknown = {}): Promise<T> {
 
 type Src = { source: string };
 
-const users = (await fetch(`${BASE}/api/users`).then((r) => r.json())) as { id: string; displayName: string }[];
+const accounts = (await fetch(`${BASE}/api/users`).then((r) => r.json())) as { id: string; email: string; role: string; displayName: string }[];
+const users = accounts.filter((a) => a.role === "buyer");
+const emailOf = (id: string) => accounts.find((a) => a.id === id)?.email ?? "";
+cookie = await login(emailOf("admin"));
 console.log(`server ${BASE}: ${users.length} users`);
 
 const cache = JSON.parse(readFileSync(file, "utf8"));
@@ -76,8 +96,8 @@ for (const userId of aiCount > 0 ? CONCIERGE_USERS : []) {
   for (const q of SAMPLE_QUESTIONS) {
     const res = await fetch(`${BASE}/api/concierge`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, messages: [{ role: "user", content: q }] }),
+      headers: { "Content-Type": "application/json", Cookie: await login(emailOf(userId)) },
+      body: JSON.stringify({ messages: [{ role: "user", content: q }] }),
     });
     cache.concierge[`${userId}|${q}`] = await res.text();
   }

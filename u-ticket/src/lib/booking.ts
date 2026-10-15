@@ -1,22 +1,19 @@
 /**
  * ระบบขายบัตร: สิทธิ์การซื้อตาม Tier, ล็อกที่นั่ง, ชำระเงิน (จำลอง), สรุปยอดขาย
- * state อยู่ใน store (memory) และบันทึกลงไฟล์ระหว่าง dev ผ่าน saveState()
+ * ข้อมูลการจองอยู่ใน Supabase — ล็อกที่นั่ง/ชำระเงิน/ยกเลิก ทำผ่านฟังก์ชัน Postgres (ครบทั้งชุดหรือไม่ทำเลย)
+ * ตาราง seat_locks มี primary key (concert_id, seat_id) จึงจองที่นั่งเดียวกันซ้ำไม่ได้แม้มีหลาย server
  */
-import { getConcert, getRewards, getUser, getUsers, saveState, store } from "./data";
+import { CLOCK_PRESETS } from "./clock";
+import { getConcert, getRewards, getUser, getUsers, invalidate, presoldOf } from "./data";
+import { BookingError } from "./errors";
 import { getScore, getTrust } from "./fan";
+import { bookingToRow, rowToBooking, type BookingRow } from "./mappers";
 import { tierInfo, TIERS } from "./scoring";
+import { db, selectAll } from "./supabase/admin";
 import type { Booking, BookingItem, Concert, TierName, User } from "./types";
 import { HOLD_MINUTES, isValidSeat, MIN_TRUST_TO_BUY, PLANS, seatLabel, SERVICE_FEE_PER_TICKET } from "./venue";
-import { CLOCK_PRESETS } from "./clock";
 
-export class BookingError extends Error {
-  constructor(
-    message: string,
-    public status = 400,
-  ) {
-    super(message);
-  }
-}
+export { BookingError };
 
 // ---------------------------------------------------------------- เวลา & สิทธิ์
 
@@ -36,14 +33,21 @@ export interface AccessInfo {
   opensAt: string; // เวลาที่ผู้ใช้คนนี้เข้าซื้อได้
   now: string; // เวลาจำลองตอนนี้
   maxTickets: number;
-  ticketsUsed: number; // ที่ถือ/ซื้อไปแล้วในคอนนี้
+  ticketsUsed: number; // ที่ซื้อไปแล้วในคอนนี้
+}
+
+/** จำนวนบัตรที่ผู้ใช้ซื้อแล้วในคอนนี้ */
+async function ticketsUsed(concertId: string, userId: string) {
+  const { data, error } = await db().from("bookings").select("items").eq("concert_id", concertId).eq("user_id", userId).eq("status", "paid");
+  if (error) throw new Error(error.message);
+  return (data ?? []).reduce((n, b: { items: unknown[] }) => n + b.items.length, 0);
 }
 
 /**
  * ตรวจว่าผู้ใช้ซื้อบัตรคอนนี้ได้หรือยัง
  * @param clockOffset เวลาจำลอง (นาที) เทียบกับเวลาเปิดขายทั่วไป เช่น -60 = 1 ชม. ก่อนเปิดขาย
  */
-export function checkAccess(concert: Concert, user: User, clockOffset?: number): AccessInfo {
+export async function checkAccess(concert: Concert, user: User, clockOffset?: number): Promise<AccessInfo> {
   const { score } = getScore(user);
   const trust = getTrust(user).value;
   const presale = concert.plan === "pro";
@@ -51,9 +55,6 @@ export function checkAccess(concert: Concert, user: User, clockOffset?: number):
   const now = open + clampClock(clockOffset) * 60_000;
   const lead = presale ? tierInfo(score.tier).leadMinutes : 0;
   const opensAt = open - lead * 60_000;
-  const used = activeBookings(concert.id)
-    .filter((b) => b.userId === user.id)
-    .reduce((n, b) => n + b.items.length, 0);
 
   const base = {
     tier: score.tier,
@@ -63,7 +64,7 @@ export function checkAccess(concert: Concert, user: User, clockOffset?: number):
     opensAt: new Date(opensAt).toISOString(),
     now: new Date(now).toISOString(),
     maxTickets: concert.maxTicketsPerUser,
-    ticketsUsed: used,
+    ticketsUsed: await ticketsUsed(concert.id, user.id),
   };
   if (concert.status !== "published") {
     return { ...base, allowed: false, code: "not_published", message: "คอนเสิร์ตนี้ยังไม่เปิดขาย" };
@@ -88,55 +89,45 @@ export function checkAccess(concert: Concert, user: User, clockOffset?: number):
 }
 
 /** บันทึกบัญชีที่ AI กันไม่ให้ซื้อ (นับไม่ซ้ำต่อคอน) */
-export function recordBlocked(concertId: string, userId: string) {
-  const list = store.blocked.get(concertId) ?? [];
-  if (list.includes(userId)) return;
-  store.blocked.set(concertId, [...list, userId]);
-  saveState();
+export async function recordBlocked(concertId: string, userId: string) {
+  await db().from("blocked_attempts").upsert({ concert_id: concertId, user_id: userId }, { ignoreDuplicates: true });
 }
 
 // ---------------------------------------------------------------- Occupancy
 
-/** ปล่อยที่นั่งที่ล็อกไว้เกินเวลา */
-export function expireHolds() {
-  const now = Date.now();
-  let changed = false;
-  for (const b of store.bookings) {
-    if (b.status === "held" && Date.parse(b.holdExpiresAt) < now) {
-      b.status = "expired";
-      changed = true;
-    }
-  }
-  if (changed) saveState();
-}
+type LockRow = { seat_id: string; bookings: { status: string; user_id: string; hold_expires_at: string } };
+type ActiveRow = { items: BookingItem[]; status: string; hold_expires_at: string };
 
-function activeBookings(concertId: string) {
-  return store.bookings.filter((b) => b.concertId === concertId && (b.status === "held" || b.status === "paid"));
-}
+const isActive = (status: string, holdExpiresAt: string) =>
+  status === "paid" || (status === "held" && Date.parse(holdExpiresAt) > Date.now());
 
-/** สถานะที่นั่งทั้งงาน */
-function occupancy(concertId: string) {
-  expireHolds();
-  const presold = store.presold.get(concertId);
-  const sold = new Set(presold?.seats ?? []);
+/** สถานะที่นั่งทั้งงาน: ยอดขายตั้งต้น + ที่นั่งที่ล็อก/ขายแล้วใน DB (ล็อกที่หมดเวลาถือว่าว่าง) */
+async function occupancy(concert: Concert) {
+  const [locks, active] = await Promise.all([
+    selectAll<LockRow>((a, b) =>
+      db().from("seat_locks").select("seat_id, bookings!inner(status, user_id, hold_expires_at)").eq("concert_id", concert.id).range(a, b),
+    ),
+    selectAll<ActiveRow>((a, b) =>
+      db().from("bookings").select("items, status, hold_expires_at").eq("concert_id", concert.id).in("status", ["held", "paid"]).range(a, b),
+    ),
+  ]);
+  const presold = presoldOf(concert);
+  const sold = new Set(presold.seats);
   const held = new Map<string, string>(); // seatId → userId
-  const standing = new Map<string, number>(presold?.standing ?? []);
-  for (const b of activeBookings(concertId)) {
-    for (const it of b.items) {
-      if (it.seatId) {
-        if (b.status === "paid") sold.add(it.seatId);
-        else held.set(it.seatId, b.userId);
-      } else {
-        standing.set(it.sectionId, (standing.get(it.sectionId) ?? 0) + 1);
-      }
-    }
+  for (const l of locks) {
+    if (!isActive(l.bookings.status, l.bookings.hold_expires_at)) continue;
+    if (l.bookings.status === "paid") sold.add(l.seat_id);
+    else held.set(l.seat_id, l.bookings.user_id);
+  }
+  const standing = new Map<string, number>(presold.standing);
+  for (const b of active) {
+    if (!isActive(b.status, b.hold_expires_at)) continue;
+    for (const it of b.items) if (!it.seatId) standing.set(it.sectionId, (standing.get(it.sectionId) ?? 0) + 1);
   }
   return { sold, held, standing };
 }
 
-/** จำนวนที่ว่างต่อ section (สำหรับผังรวม) */
-export function sectionAvailability(concert: Concert) {
-  const occ = occupancy(concert.id);
+function availabilityFrom(concert: Concert, occ: Awaited<ReturnType<typeof occupancy>>) {
   const takenBySection = new Map<string, number>();
   for (const id of [...occ.sold, ...occ.held.keys()]) {
     const sec = id.slice(0, id.lastIndexOf("-"));
@@ -150,9 +141,14 @@ export function sectionAvailability(concert: Concert) {
   );
 }
 
+/** จำนวนที่ว่างต่อ section (สำหรับผังรวม) */
+export async function sectionAvailability(concert: Concert) {
+  return availabilityFrom(concert, await occupancy(concert));
+}
+
 /** สถานะที่นั่งราย section หรือทั้งงาน (sectionId = null) */
-export function sectionSeats(concert: Concert, sectionId: string | null, userId: string) {
-  const occ = occupancy(concert.id);
+export async function sectionSeats(concert: Concert, sectionId: string | null, userId: string) {
+  const occ = await occupancy(concert);
   const prefix = sectionId ? `${sectionId}-` : "";
   const sold: string[] = [];
   const held: string[] = [];
@@ -165,7 +161,6 @@ export function sectionSeats(concert: Concert, sectionId: string | null, userId:
 // ---------------------------------------------------------------- Hold / Confirm / Cancel
 
 export interface HoldRequest {
-  userId: string;
   concertId: string;
   seats?: string[]; // seat ids (seated)
   standing?: { sectionId: string; qty: number }[];
@@ -179,46 +174,68 @@ function newCode() {
   return `UT-${s}`;
 }
 
-export function holdSeats(req: HoldRequest): Booking {
+/** แปลง error จากฟังก์ชัน Postgres เป็นข้อความภาษาไทย */
+function dbError(err: { code?: string; message: string }, concert?: Concert): BookingError {
+  if (err.code === "23505") return new BookingError("มีคนจองที่นั่งบางที่ไปก่อนแล้ว กรุณาเลือกใหม่", 409);
+  const [tag, a, b] = err.message.split(":");
+  switch (tag) {
+    case "LIMIT":
+      return new BookingError(`ซื้อได้สูงสุด ${concert?.maxTicketsPerUser ?? "-"} ใบต่อบัญชี (ซื้อไปแล้ว ${a} ใบ)`);
+    case "STANDING": {
+      const name = concert?.sections.find((s) => s.id === a)?.name ?? a;
+      return new BookingError(`${name} เหลือ ${b} ใบ`, 409);
+    }
+    case "NOT_FOUND":
+      return new BookingError("ไม่พบรายการ", 404);
+    case "NOT_HELD":
+      return new BookingError(a === "expired" ? "หมดเวลาชำระเงิน ที่นั่งถูกปล่อยแล้ว" : "รายการนี้ชำระไม่ได้", 409);
+    case "EXPIRED":
+      return new BookingError("หมดเวลาชำระเงิน ที่นั่งถูกปล่อยแล้ว", 409);
+    case "POINTS":
+      return new BookingError("แต้มไม่พอสำหรับส่วนลดนี้");
+    case "BOOST_USED":
+      return new BookingError("ใช้ Presale Boost ในรอบนี้ไปแล้ว", 409);
+    default:
+      console.error(err);
+      return new BookingError("ทำรายการไม่สำเร็จ ลองใหม่อีกครั้ง", 500);
+  }
+}
+
+export async function holdSeats(userId: string, req: HoldRequest): Promise<Booking> {
   const concert = getConcert(req.concertId);
-  const user = getUser(req.userId);
+  const user = getUser(userId);
   if (!concert || !user) throw new BookingError("ไม่พบคอนเสิร์ตหรือผู้ใช้", 404);
 
-  // ล็อกใหม่แทนอันเดิมของผู้ใช้คนนี้ในงานเดียวกัน
-  for (const b of store.bookings) {
-    if (b.userId === user.id && b.concertId === concert.id && b.status === "held") b.status = "cancelled";
-  }
-
-  const access = checkAccess(concert, user, req.clock);
+  const access = await checkAccess(concert, user, req.clock);
   if (!access.allowed) {
-    if (access.code === "blocked_trust") recordBlocked(concert.id, user.id);
+    if (access.code === "blocked_trust") await recordBlocked(concert.id, user.id);
     throw new BookingError(access.message, 403);
   }
 
   const seats = [...new Set(req.seats ?? [])];
-  const standing = (req.standing ?? []).filter((s) => s.qty > 0);
-  const count = seats.length + standing.reduce((n, s) => n + Math.floor(s.qty), 0);
+  const standing = (req.standing ?? []).map((s) => ({ ...s, qty: Math.floor(s.qty) })).filter((s) => s.qty > 0);
+  const count = seats.length + standing.reduce((n, s) => n + s.qty, 0);
   if (count === 0) throw new BookingError("ยังไม่ได้เลือกที่นั่ง");
   if (access.ticketsUsed + count > concert.maxTicketsPerUser) {
-    throw new BookingError(`ซื้อได้สูงสุด ${concert.maxTicketsPerUser} ใบต่อบัญชี (มีอยู่แล้ว ${access.ticketsUsed} ใบ)`);
+    throw new BookingError(`ซื้อได้สูงสุด ${concert.maxTicketsPerUser} ใบต่อบัญชี (ซื้อไปแล้ว ${access.ticketsUsed} ใบ)`);
   }
 
-  const occ = occupancy(concert.id);
+  // ตรวจเบื้องต้นเพื่อแจ้งที่นั่งที่ไม่ว่างให้ชัด — ฐานข้อมูลตรวจซ้ำอีกชั้นตอนล็อก
+  const presold = presoldOf(concert);
   const zoneOf = (id: string) => concert.zones.find((z) => z.id === id);
   const items: BookingItem[] = [];
-
   for (const id of seats) {
     const section = concert.sections.find((s) => id.startsWith(`${s.id}-`) && isValidSeat(s, id));
     if (!section) throw new BookingError(`ที่นั่ง ${id} ไม่ถูกต้อง`);
-    if (occ.sold.has(id) || occ.held.has(id)) throw new BookingError(`ที่นั่ง ${id} มีคนจองแล้ว กรุณาเลือกใหม่`, 409);
+    if (presold.seats.has(id)) throw new BookingError(`ที่นั่ง ${id} มีคนจองแล้ว กรุณาเลือกใหม่`, 409);
     const zone = zoneOf(section.zoneId);
     items.push({ sectionId: section.id, zoneId: section.zoneId, seatId: id, label: seatLabel(zone, section, id), priceTHB: zone?.priceTHB ?? 0 });
   }
+  const standingCaps: { section_id: string; qty: number; available: number }[] = [];
   for (const s of standing) {
     const section = concert.sections.find((x) => x.id === s.sectionId && x.kind === "standing");
     if (!section) throw new BookingError("โซนยืนไม่ถูกต้อง");
-    const left = section.capacity - (occ.standing.get(section.id) ?? 0);
-    if (s.qty > left) throw new BookingError(`${section.name} เหลือ ${left} ใบ`, 409);
+    standingCaps.push({ section_id: section.id, qty: s.qty, available: section.capacity - (presold.standing.get(section.id) ?? 0) });
     const zone = zoneOf(section.zoneId);
     for (let i = 0; i < s.qty; i++) {
       items.push({ sectionId: section.id, zoneId: section.zoneId, label: seatLabel(zone, section), priceTHB: zone?.priceTHB ?? 0 });
@@ -243,9 +260,14 @@ export function holdSeats(req: HoldRequest): Booking {
     total: subtotal + serviceFee,
     organizerCommission: Math.round(subtotal * PLANS[concert.plan].commissionRate),
   };
-  store.bookings.push(booking);
-  saveState();
-  return booking;
+  const { data, error } = await db().rpc("place_hold", {
+    p_booking: bookingToRow(booking),
+    p_seats: seats,
+    p_standing: standingCaps,
+    p_max: concert.maxTicketsPerUser,
+  });
+  if (error) throw dbError(error, concert);
+  return rowToBooking(data as BookingRow);
 }
 
 /** ส่วนลดค่าบัตรจากรีวอร์ดประเภท discount (ชื่อ "ส่วนลดค่าบัตร N บาท") */
@@ -255,63 +277,70 @@ export function discountRewards() {
     .map((r) => ({ ...r, amountTHB: Number(r.name.match(/([\d,]+)\s*บาท/)?.[1]?.replace(/,/g, "") ?? 0) }));
 }
 
-export function getBooking(id: string, userId: string) {
-  expireHolds();
-  const b = store.bookings.find((x) => x.id === id);
-  if (!b || b.userId !== userId) throw new BookingError("ไม่พบรายการจอง", 404);
+export async function getBooking(id: string, userId: string): Promise<Booking> {
+  const { data, error } = await db().from("bookings").select("*").eq("id", id).eq("user_id", userId).maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) throw new BookingError("ไม่พบรายการจอง", 404);
+  const b = rowToBooking(data as BookingRow);
+  // แสดงสถานะหมดเวลาให้ถูกต้อง (DB เปลี่ยนสถานะจริงตอนมีคนล็อกครั้งถัดไป)
+  if (b.status === "held" && Date.parse(b.holdExpiresAt) < Date.now()) b.status = "expired";
   return b;
 }
 
-export function confirmBooking(id: string, userId: string, discountRewardId?: string): Booking {
-  const b = getBooking(id, userId);
-  if (b.status !== "held") throw new BookingError(b.status === "expired" ? "หมดเวลาชำระเงิน ที่นั่งถูกปล่อยแล้ว" : "รายการนี้ชำระไม่ได้", 409);
-  const user = getUser(userId)!;
+export async function confirmBooking(id: string, userId: string, discountRewardId?: string): Promise<Booking> {
+  const r = discountRewardId ? discountRewards().find((x) => x.id === discountRewardId) : undefined;
+  if (discountRewardId && !r) throw new BookingError("ส่วนลดไม่ถูกต้อง");
+  const { data, error } = await db().rpc("confirm_booking", {
+    p_id: id,
+    p_user: userId,
+    p_reward: r?.id ?? null,
+    p_discount: r?.amountTHB ?? 0,
+    p_cost: r?.costPoints ?? 0,
+  });
+  if (error) throw dbError(error);
+  if (r) invalidate(); // แต้มเปลี่ยน
+  return rowToBooking(data as BookingRow);
+}
 
-  if (discountRewardId) {
-    const r = discountRewards().find((x) => x.id === discountRewardId);
-    if (!r) throw new BookingError("ส่วนลดไม่ถูกต้อง");
-    if (user.points < r.costPoints) throw new BookingError("แต้มไม่พอสำหรับส่วนลดนี้");
-    user.points -= r.costPoints;
-    store.redemptions.push({ userId, rewardId: r.id, at: new Date().toISOString() });
-    b.discount = Math.min(r.amountTHB, b.subtotal);
-    b.discountRewardId = r.id;
+export async function cancelBooking(id: string, userId: string): Promise<Booking> {
+  const { data, error } = await db().rpc("cancel_booking", { p_id: id, p_user: userId });
+  if (error) throw dbError(error);
+  if (!data || !(data as BookingRow).id) throw new BookingError("ไม่พบรายการจอง", 404);
+  return rowToBooking(data as BookingRow);
+}
+
+/** บัตรที่ชำระแล้วของผู้ใช้ + เวลาที่เช็คอินของแต่ละใบ */
+export async function userBookings(userId: string) {
+  const { data, error } = await db().from("bookings").select("*").eq("user_id", userId).eq("status", "paid").order("paid_at", { ascending: false });
+  if (error) throw new Error(error.message);
+  const bookings = (data as BookingRow[]).map(rowToBooking);
+  const ids = bookings.map((b) => b.id);
+  const checkins = new Map<string, string>();
+  if (ids.length) {
+    const { data: rows } = await db().from("checkins").select("ticket_id, at").in("booking_id", ids);
+    for (const r of rows ?? []) checkins.set(r.ticket_id as string, r.at as string);
   }
-  b.total = b.subtotal - b.discount + b.serviceFee;
-  b.status = "paid";
-  b.paidAt = new Date().toISOString();
-  saveState();
-  return b;
-}
-
-export function cancelBooking(id: string, userId: string) {
-  const b = getBooking(id, userId);
-  if (b.status === "held") {
-    b.status = "cancelled";
-    saveState();
-  }
-  return b;
-}
-
-export function userBookings(userId: string) {
-  expireHolds();
-  return store.bookings
-    .filter((b) => b.userId === userId && b.status === "paid")
-    .sort((a, b) => (b.paidAt ?? "").localeCompare(a.paidAt ?? ""));
+  return bookings.map((b) => ({ ...b, checkedIn: b.items.map((_, i) => checkins.get(`${b.code}-${i + 1}`) ?? null) }));
 }
 
 // ---------------------------------------------------------------- สถิติสำหรับผู้จัด/แพลตฟอร์ม
 
-export function concertStats(concert: Concert) {
-  const avail = sectionAvailability(concert);
+export async function concertStats(concert: Concert) {
+  const [occ, bookingRows, blocked, checkins] = await Promise.all([
+    occupancy(concert),
+    selectAll<BookingRow>((a, b) => db().from("bookings").select("*").eq("concert_id", concert.id).in("status", ["held", "paid"]).range(a, b)),
+    db().from("blocked_attempts").select("user_id", { count: "exact", head: true }).eq("concert_id", concert.id),
+    db().from("checkins").select("ticket_id", { count: "exact", head: true }).eq("concert_id", concert.id),
+  ]);
+  const avail = availabilityFrom(concert, occ);
   const capacity = concert.sections.reduce((n, s) => n + s.capacity, 0);
   const available = Object.values(avail).reduce((n, a) => n + a.available, 0);
-  const paid = store.bookings.filter((b) => b.concertId === concert.id && b.status === "paid");
-  const heldCount = store.bookings
-    .filter((b) => b.concertId === concert.id && b.status === "held")
-    .reduce((n, b) => n + b.items.length, 0);
+  const bookings = bookingRows.map(rowToBooking);
+  const paid = bookings.filter((b) => b.status === "paid");
+  const heldCount = bookings.filter((b) => b.status === "held" && Date.parse(b.holdExpiresAt) > Date.now()).reduce((n, b) => n + b.items.length, 0);
 
   // ยอดขายตั้งต้น (presold) คิดราคาหน้าบัตรของโซนนั้น
-  const presold = store.presold.get(concert.id);
+  const presold = presoldOf(concert);
   const zonePrice = (zoneId: string) => concert.zones.find((z) => z.id === zoneId)?.priceTHB ?? 0;
   const zoneOfSection = (secId: string) => concert.sections.find((s) => s.id === secId)?.zoneId ?? "";
   const byZone = new Map(concert.zones.map((z) => [z.id, { sold: 0, gross: 0 }]));
@@ -322,8 +351,8 @@ export function concertStats(concert: Concert) {
       z.gross += n * zonePrice(zoneId);
     }
   };
-  for (const id of presold?.seats ?? []) addZone(zoneOfSection(id.slice(0, id.lastIndexOf("-"))), 1);
-  for (const [sec, n] of presold?.standing ?? []) addZone(zoneOfSection(sec), n);
+  for (const id of presold.seats) addZone(zoneOfSection(id.slice(0, id.lastIndexOf("-"))), 1);
+  for (const [sec, n] of presold.standing) addZone(zoneOfSection(sec), n);
   for (const b of paid) for (const it of b.items) addZone(it.zoneId, 1);
 
   const ticketsSold = [...byZone.values()].reduce((n, z) => n + z.sold, 0);
@@ -366,7 +395,8 @@ export function concertStats(concert: Concert) {
     sections: avail,
     ordersInApp: paid.length,
     buyersByTier,
-    blockedAttempts: store.blocked.get(concert.id)?.length ?? 0,
+    blockedAttempts: blocked.count ?? 0,
     riskyAccounts,
+    checkedIn: checkins.count ?? 0,
   };
 }
