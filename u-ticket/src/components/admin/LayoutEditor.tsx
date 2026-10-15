@@ -1,36 +1,21 @@
 "use client";
 
-import { memo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
+import RemoveIcon from "@mui/icons-material/Remove";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
-import OpenWithIcon from "@mui/icons-material/OpenWith";
-import EventSeatOutlinedIcon from "@mui/icons-material/EventSeatOutlined";
 import ImageOutlinedIcon from "@mui/icons-material/ImageOutlined";
 import HideImageOutlinedIcon from "@mui/icons-material/HideImageOutlined";
-import GridOnIcon from "@mui/icons-material/GridOn";
+import RotateLeftIcon from "@mui/icons-material/RotateLeft";
+import RotateRightIcon from "@mui/icons-material/RotateRight";
 import RestoreIcon from "@mui/icons-material/Restore";
-import PeopleOutlineIcon from "@mui/icons-material/PeopleOutlined";
 import type { MapRect, Section, Zone } from "@/lib/types";
 import { MAP } from "@/lib/theme";
-import {
-  MAP_H,
-  MAP_W,
-  MAX_ROWS,
-  MAX_SEATS_PER_ROW,
-  removedSet,
-  rotatePoint,
-  sectionCapacity,
-  seatLayout,
-} from "@/lib/venue";
+import { MAP_H, MAP_W, MAX_ROWS, MAX_SEATS_PER_ROW, removedSet, sectionBounds, sectionCapacity } from "@/lib/venue";
 
 type Background = { image: string; opacity: number } | null;
-type Selection = { kind: "section"; id: string } | { kind: "stage" } | null;
-type Drag =
-  | { type: "move"; target: "stage" | string; start: { x: number; y: number }; orig: MapRect }
-  | { type: "resize"; target: "stage" | string; orig: MapRect; rot: number }
-  | { type: "rotate"; id: string; center: { x: number; y: number } }
-  | { type: "paint"; id: string; remove: boolean; done: Set<string> };
+type Target = "stage" | string; // "stage" หรือ section id
 
 export interface LayoutPatch {
   sections?: Section[];
@@ -38,8 +23,32 @@ export interface LayoutPatch {
   background?: Background;
 }
 
+/** ทุกอย่างบนผังจัดตามกริด 10 หน่วย */
+const GRID = 10;
+const MIN_W = 40;
+const MIN_H = 30;
 const MAX_BG_CHARS = 1_900_000;
-const snapTo = (v: number, on: boolean, step = 5) => (on ? Math.round(v / step) * step : Math.round(v * 10) / 10);
+const snap = (v: number) => Math.round(v / GRID) * GRID;
+
+/** บังคับให้กรอบ (รวมส่วนที่หมุน) อยู่ในผังทั้งหมด */
+function clampInside(shape: MapRect, rotation = 0): MapRect {
+  const b = sectionBounds({ shape, rotation });
+  let dx = 0;
+  let dy = 0;
+  if (b.x < 0) dx = -b.x;
+  else if (b.x + b.w > MAP_W) dx = MAP_W - (b.x + b.w);
+  if (b.y < 0) dy = -b.y;
+  else if (b.y + b.h > MAP_H) dy = MAP_H - (b.y + b.h);
+  return { ...shape, x: Math.round(shape.x + dx), y: Math.round(shape.y + dy) };
+}
+
+/** ขนาดที่พอดีกับจำนวนแถว × ที่นั่ง (ช่องละ ~7 หน่วย) */
+function fitSize(s: Pick<Section, "rows" | "seatsPerRow">) {
+  return {
+    w: Math.min(MAP_W, Math.max(MIN_W, snap(s.seatsPerRow * 7 + 16))),
+    h: Math.min(MAP_H, Math.max(MIN_H, snap(s.rows * 7 + 16))),
+  };
+}
 
 /** ย่อรูปให้ไม่เกิน 1600px แล้วแปลงเป็น data URL (JPEG) ให้ขนาดไม่เกินที่ server รับ */
 async function compressImage(file: File): Promise<string> {
@@ -73,10 +82,86 @@ async function compressImage(file: File): Promise<string> {
   }
 }
 
+/** คู่ที่วางทับกัน (เทียบกรอบหลังหมุน, ยอมให้ชิดกันได้) */
+function findOverlaps(sections: Section[], stage: MapRect): string[] {
+  const boxes = [{ name: "เวที", b: stage }, ...sections.map((s) => ({ name: s.name, b: sectionBounds(s) }))];
+  const out: string[] = [];
+  for (let i = 0; i < boxes.length; i++) {
+    for (let j = i + 1; j < boxes.length; j++) {
+      const p = boxes[i].b;
+      const q = boxes[j].b;
+      const ox = Math.min(p.x + p.w, q.x + q.w) - Math.max(p.x, q.x);
+      const oy = Math.min(p.y + p.h, q.y + q.h) - Math.max(p.y, q.y);
+      if (ox > 2 && oy > 2) out.push(`${boxes[i].name} กับ ${boxes[j].name}`);
+    }
+  }
+  return out;
+}
+
 function nextId(prefix: string, used: string[]) {
   for (let i = 1; ; i++) if (!used.includes(`${prefix}${i}`)) return `${prefix}${i}`;
 }
 
+/** ช่องตัวเลข + ปุ่ม −/+ */
+function NumberStepper({
+  label,
+  value,
+  min,
+  max,
+  step = 1,
+  disabled,
+  onSet,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  disabled?: boolean;
+  onSet: (v: number) => void;
+}) {
+  return (
+    <label className="space-y-1 text-xs">
+      <span className="text-muted">{label}</span>
+      <div className="flex">
+        <button
+          type="button"
+          disabled={disabled || value <= min}
+          onClick={() => onSet(Math.max(min, value - step))}
+          className="grid w-8 shrink-0 place-items-center rounded-l-md border border-line hover:text-brand disabled:opacity-40"
+          aria-label={`ลด${label}`}
+        >
+          <RemoveIcon sx={{ fontSize: 14 }} />
+        </button>
+        <input
+          type="number"
+          min={min}
+          max={max}
+          value={value}
+          disabled={disabled}
+          onChange={(e) => onSet(Math.min(max, Math.max(min, Math.round(Number(e.target.value) || min))))}
+          className="w-full min-w-0 border-y border-line bg-background px-1 py-1.5 text-center text-sm tabular-nums focus:outline-none disabled:opacity-50"
+        />
+        <button
+          type="button"
+          disabled={disabled || value >= max}
+          onClick={() => onSet(Math.min(max, value + step))}
+          className="grid w-8 shrink-0 place-items-center rounded-r-md border border-line hover:text-brand disabled:opacity-40"
+          aria-label={`เพิ่ม${label}`}
+        >
+          <AddIcon sx={{ fontSize: 14 }} />
+        </button>
+      </div>
+    </label>
+  );
+}
+
+/**
+ * ตัวจัดผังแบบง่าย
+ * - บนผัง: กดเพื่อเลือก, ลากเพื่อย้าย (ล็อกกริด 10 หน่วย, อยู่ในกรอบเสมอ), ลูกศรบนคีย์บอร์ดเลื่อนทีละช่อง
+ * - ขนาด/หมุน/แถว/ที่นั่ง ปรับที่แผงด้านล่างด้วยปุ่มและช่องตัวเลข
+ * - ระหว่างลากอัปเดตเฉพาะในตัวแก้ไข แล้วค่อยส่งค่าให้ฟอร์มตอนปล่อย
+ */
 export default function LayoutEditor({
   zones,
   sections,
@@ -94,25 +179,34 @@ export default function LayoutEditor({
 }) {
   const svgRef = useRef<SVGSVGElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
-  const [sel, setSel] = useState<Selection>(null);
-  const [mode, setMode] = useState<"layout" | "seats">("layout");
-  const [snap, setSnap] = useState(true);
+  const [sel, setSel] = useState<Target | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const drag = useRef<Drag | null>(null);
+  // ตำแหน่งชั่วคราวระหว่างลาก
+  const [dragShape, setDragShape] = useState<{ target: Target; shape: MapRect } | null>(null);
+  const drag = useRef<{ target: Target; start: { x: number; y: number }; orig: MapRect; rot: number; moved: boolean } | null>(null);
 
-  const selected = sel?.kind === "section" ? sections.find((s) => s.id === sel.id) : undefined;
   const zoneOf = (id: string) => zones.find((z) => z.id === id);
+  const selected = sel && sel !== "stage" ? sections.find((s) => s.id === sel) : undefined;
+  const shapeOf = (t: Target) =>
+    dragShape?.target === t ? dragShape.shape : t === "stage" ? stage : sections.find((s) => s.id === t)?.shape;
 
+  // ---------------- อัปเดต
   const setSection = (id: string, patch: Partial<Section>) =>
     onChange({
       sections: sections.map((s) => {
         if (s.id !== id) return s;
         const next = { ...s, ...patch };
+        next.shape = clampInside(next.shape, next.rotation ?? 0);
         return { ...next, capacity: sectionCapacity(next) };
       }),
     });
 
-  // ---------------- pointer → พิกัดบนผัง
+  const commitShape = (t: Target, shape: MapRect) => {
+    if (t === "stage") onChange({ stage: clampInside(shape) });
+    else setSection(t, { shape });
+  };
+
+  // ---------------- ลากเพื่อย้าย
   const toMap = (clientX: number, clientY: number) => {
     const svg = svgRef.current!;
     const pt = svg.createSVGPoint();
@@ -122,125 +216,72 @@ export default function LayoutEditor({
     return { x: p.x, y: p.y };
   };
 
-  const shapeOf = (target: "stage" | string) => (target === "stage" ? stage : sections.find((s) => s.id === target)?.shape);
-  const applyShape = (target: "stage" | string, shape: MapRect) => {
-    if (target === "stage") onChange({ stage: shape });
-    else setSection(target, { shape });
-  };
-
-  const paintSeat = (d: Extract<Drag, { type: "paint" }>, seatId: string) => {
-    if (d.done.has(seatId)) return;
-    d.done.add(seatId);
-    const s = sections.find((x) => x.id === d.id);
-    if (!s) return;
-    const set = removedSet(s);
-    if (d.remove) set.add(seatId);
-    else set.delete(seatId);
-    if (s.rows * s.seatsPerRow - set.size < 1) return; // ต้องเหลืออย่างน้อย 1 ที่
-    onChange({
-      sections: sections.map((x) => (x.id === s.id ? { ...x, removedSeats: [...set], capacity: x.rows * x.seatsPerRow - set.size } : x)),
-    });
-  };
-
-  const onPointerDown = (e: React.PointerEvent) => {
+  const onPointerDown = (e: React.PointerEvent, t: Target) => {
+    e.stopPropagation();
+    setSel(t);
+    svgRef.current?.focus({ preventScroll: true });
     if (locked) return;
-    const el = e.target as Element;
-    const role = el.getAttribute("data-ed");
-    const id = el.getAttribute("data-id") ?? "";
-    const p = toMap(e.clientX, e.clientY);
-
-    if (mode === "seats") {
-      const seat = el.getAttribute("data-eseat");
-      const sid = el.getAttribute("data-sid");
-      if (seat && sid) {
-        const s = sections.find((x) => x.id === sid)!;
-        const d: Drag = { type: "paint", id: sid, remove: !removedSet(s).has(seat), done: new Set() };
-        drag.current = d;
-        setSel({ kind: "section", id: sid });
-        svgRef.current?.setPointerCapture(e.pointerId);
-        paintSeat(d, seat);
-      }
-      return;
-    }
-
-    if (!role) {
-      setSel(null);
-      return;
-    }
-    const target = role.startsWith("stage") ? "stage" : id;
-    setSel(target === "stage" ? { kind: "stage" } : { kind: "section", id });
-    const orig = shapeOf(target);
+    const orig = shapeOf(t);
     if (!orig) return;
-    if (role.endsWith("body")) drag.current = { type: "move", target, start: p, orig };
-    else if (role.endsWith("resize"))
-      drag.current = { type: "resize", target, orig, rot: target === "stage" ? 0 : (sections.find((s) => s.id === id)?.rotation ?? 0) };
-    else if (role === "rotate") drag.current = { type: "rotate", id, center: { x: orig.x + orig.w / 2, y: orig.y + orig.h / 2 } };
+    const rot = t === "stage" ? 0 : (sections.find((s) => s.id === t)?.rotation ?? 0);
+    drag.current = { target: t, start: toMap(e.clientX, e.clientY), orig, rot, moved: false };
     svgRef.current?.setPointerCapture(e.pointerId);
-    e.preventDefault();
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
     const d = drag.current;
     if (!d) return;
     const p = toMap(e.clientX, e.clientY);
-    if (d.type === "paint") {
-      const el = document.elementFromPoint(e.clientX, e.clientY);
-      const seat = el?.getAttribute("data-eseat");
-      if (seat && el?.getAttribute("data-sid") === d.id) paintSeat(d, seat);
-      return;
-    }
-    if (d.type === "move") {
-      const nx = snapTo(d.orig.x + p.x - d.start.x, snap);
-      const ny = snapTo(d.orig.y + p.y - d.start.y, snap);
-      applyShape(d.target, {
-        ...d.orig,
-        x: Math.min(MAP_W - d.orig.w / 2, Math.max(-d.orig.w / 2, nx)),
-        y: Math.min(MAP_H - d.orig.h / 2, Math.max(-d.orig.h / 2, ny)),
-      });
-    } else if (d.type === "resize") {
-      // คำนวณในกรอบก่อนหมุน: มุมซ้ายบนคงที่
-      const c = { x: d.orig.x + d.orig.w / 2, y: d.orig.y + d.orig.h / 2 };
-      const local = rotatePoint(p.x, p.y, c.x, c.y, -d.rot);
-      applyShape(d.target, {
-        ...d.orig,
-        w: Math.min(MAP_W, Math.max(30, snapTo(local.x - d.orig.x, snap))),
-        h: Math.min(MAP_H, Math.max(24, snapTo(local.y - d.orig.y, snap))),
-      });
-    } else if (d.type === "rotate") {
-      let deg = (Math.atan2(p.y - d.center.y, p.x - d.center.x) * 180) / Math.PI + 90;
-      if (deg > 180) deg -= 360;
-      setSection(d.id, { rotation: snap ? Math.round(deg / 5) * 5 : Math.round(deg) });
-    }
+    const dx = p.x - d.start.x;
+    const dy = p.y - d.start.y;
+    if (!d.moved && Math.hypot(dx, dy) < 4) return; // กันคลิกเฉย ๆ แล้วขยับ
+    d.moved = true;
+    setDragShape({ target: d.target, shape: clampInside({ ...d.orig, x: snap(d.orig.x + dx), y: snap(d.orig.y + dy) }, d.rot) });
   };
 
-  const endDrag = (e: React.PointerEvent) => {
+  const onPointerUp = (e: React.PointerEvent) => {
+    const d = drag.current;
     drag.current = null;
     if (svgRef.current?.hasPointerCapture(e.pointerId)) svgRef.current.releasePointerCapture(e.pointerId);
+    if (d?.moved && dragShape) commitShape(d.target, dragShape.shape);
+    setDragShape(null);
   };
 
-  // ---------------- toolbar actions
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (!sel || locked) return;
+    const step = e.shiftKey ? GRID * 5 : GRID;
+    const delta = ({ ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] } as Record<string, number[]>)[e.key];
+    if (!delta) return;
+    e.preventDefault();
+    const shape = shapeOf(sel);
+    if (shape) commitShape(sel, { ...shape, x: shape.x + delta[0], y: shape.y + delta[1] });
+  };
+
+  // ---------------- เพิ่ม / สำเนา / ลบ
   function addSection(kind: "seated" | "standing") {
     const id = nextId(kind === "seated" ? "S" : "GA", sections.map((s) => s.id));
     const zoneId = zones[0]?.id ?? "";
     const base: Section =
       kind === "seated"
-        ? { id, zoneId, name: id, kind, rows: 8, seatsPerRow: 14, capacity: 0, shape: { x: 320, y: 260, w: 160, h: 100 }, rotation: 0 }
+        ? { id, zoneId, name: id, kind, rows: 10, seatsPerRow: 16, capacity: 0, shape: { x: 330, y: 260, w: 140, h: 90 }, rotation: 0 }
         : { id, zoneId, name: id, kind, rows: 0, seatsPerRow: 0, capacity: 300, shape: { x: 320, y: 260, w: 160, h: 90 }, rotation: 0 };
+    if (kind === "seated") base.shape = { ...base.shape, ...fitSize(base) };
     onChange({ sections: [...sections, { ...base, capacity: sectionCapacity(base) }] });
-    setSel({ kind: "section", id });
-    setMode("layout");
+    setSel(id);
   }
 
   function duplicate() {
     if (!selected) return;
     const id = nextId(selected.id.replace(/\d+$/, "") || "S", sections.map((s) => s.id));
-    const copy: Section = { ...selected, id, name: id, shape: { ...selected.shape, x: selected.shape.x + 20, y: selected.shape.y + 20 } };
-    delete copy.removedSeats;
-    if (selected.removedSeats?.length) {
-      copy.removedSeats = selected.removedSeats.map((sid) => `${id}${sid.slice(sid.lastIndexOf("-"))}`);
-    }
+    const copy: Section = {
+      ...selected,
+      id,
+      name: id,
+      removedSeats: selected.removedSeats?.map((sid) => `${id}${sid.slice(sid.lastIndexOf("-"))}`),
+      shape: clampInside({ ...selected.shape, x: selected.shape.x + 20, y: selected.shape.y + 20 }, selected.rotation ?? 0),
+    };
     onChange({ sections: [...sections, { ...copy, capacity: sectionCapacity(copy) }] });
-    setSel({ kind: "section", id });
+    setSel(id);
   }
 
   function remove() {
@@ -262,47 +303,24 @@ export default function LayoutEditor({
   const btn =
     "flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-xs transition hover:border-brand hover:text-brand disabled:pointer-events-none disabled:opacity-40";
   const input =
-    "w-full rounded-lg border border-line bg-background px-2 py-1.5 text-sm focus:border-brand focus:outline-none disabled:opacity-50";
+    "w-full rounded-md border border-line bg-background px-2 py-1.5 text-sm focus:border-brand focus:outline-none disabled:opacity-50";
+
+  const selShape = sel ? shapeOf(sel) : undefined;
+  const stageShape = shapeOf("stage")!;
 
   return (
     <div className="space-y-3">
-      {/* Toolbar */}
+      {/* แถบเครื่องมือ */}
       <div className="flex flex-wrap items-center gap-1.5">
-        <div className="flex overflow-hidden rounded-md border border-line text-xs">
-          <button
-            type="button"
-            onClick={() => setMode("layout")}
-            className={`flex items-center gap-1 px-2.5 py-1.5 ${mode === "layout" ? "bg-brand font-semibold text-white" : "text-muted"}`}
-          >
-            <OpenWithIcon fontSize="inherit" /> จัดวาง
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("seats")}
-            disabled={locked}
-            className={`flex items-center gap-1 px-2.5 py-1.5 disabled:opacity-40 ${mode === "seats" ? "bg-brand font-semibold text-white" : "text-muted"}`}
-          >
-            <EventSeatOutlinedIcon fontSize="inherit" /> แก้ที่นั่ง
-          </button>
-        </div>
         <button type="button" className={btn} onClick={() => addSection("seated")} disabled={locked || sections.length >= 40}>
-          <AddIcon fontSize="inherit" /> ที่นั่ง
+          <AddIcon fontSize="inherit" /> โซนที่นั่ง
         </button>
         <button type="button" className={btn} onClick={() => addSection("standing")} disabled={locked || sections.length >= 40}>
-          <PeopleOutlineIcon fontSize="inherit" /> โซนยืน
+          <AddIcon fontSize="inherit" /> โซนยืน
         </button>
-        <button type="button" className={btn} onClick={duplicate} disabled={locked || !selected}>
-          <ContentCopyIcon fontSize="inherit" /> สำเนา
-        </button>
-        <button type="button" className={`${btn} hover:!border-danger hover:!text-danger`} onClick={remove} disabled={locked || !selected || sections.length <= 1}>
-          <DeleteOutlineIcon fontSize="inherit" /> ลบ
-        </button>
-        <button type="button" className={`${btn} ${snap ? "border-brand/60 text-brand" : ""}`} onClick={() => setSnap((v) => !v)}>
-          <GridOnIcon fontSize="inherit" /> Snap {snap ? "เปิด" : "ปิด"}
-        </button>
-        <span className="mx-1 hidden h-5 w-px bg-line sm:block" />
+        <span className="mx-1 h-5 w-px bg-line" />
         <button type="button" className={btn} onClick={() => fileRef.current?.click()} disabled={locked}>
-          <ImageOutlinedIcon fontSize="inherit" /> {background ? "เปลี่ยนรูปผัง" : "วางรูปผัง"}
+          <ImageOutlinedIcon fontSize="inherit" /> {background ? "เปลี่ยนรูปผัง" : "วางรูปผังสถานที่"}
         </button>
         {background && (
           <>
@@ -316,7 +334,7 @@ export default function LayoutEditor({
                 value={background.opacity}
                 onChange={(e) => onChange({ background: { ...background, opacity: Number(e.target.value) } })}
                 className="w-20 accent-[var(--brand)]"
-                aria-label="ความโปร่งใสรูปผัง"
+                aria-label="ความชัดของรูปผัง"
               />
             </label>
             <button type="button" className={btn} onClick={() => onChange({ background: null })} disabled={locked}>
@@ -335,33 +353,32 @@ export default function LayoutEditor({
           }}
         />
       </div>
-      {error && <p className="rounded-lg bg-danger/10 p-2 text-xs text-danger">{error}</p>}
+      {error && <p className="rounded-md bg-danger/10 p-2 text-xs text-danger">{error}</p>}
 
-      {/* Canvas */}
+      {/* ผัง */}
       <div className="overflow-hidden rounded-lg border border-line">
         <svg
           ref={svgRef}
           viewBox={`0 0 ${MAP_W} ${MAP_H}`}
-          className={`aspect-[4/3] h-auto w-full touch-none select-none bg-[var(--map-bg)] ${mode === "seats" ? "cursor-crosshair" : ""}`}
-          onPointerDown={onPointerDown}
+          className="aspect-[4/3] h-auto w-full touch-none select-none bg-[var(--map-bg)] outline-none"
+          onPointerDown={() => setSel(null)}
           onPointerMove={onPointerMove}
-          onPointerUp={endDrag}
-          onPointerCancel={endDrag}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          onKeyDown={onKeyDown}
+          tabIndex={0}
           role="application"
-          aria-label="ตัวแก้ไขผังสถานที่"
+          aria-label="ตัวจัดผังสถานที่"
         >
-          {/* เส้นกริด */}
           <defs>
-            <pattern id="ed-grid" width={20} height={20} patternUnits="userSpaceOnUse">
-              <path d="M 20 0 L 0 0 0 20" fill="none" stroke={MAP.grid} strokeOpacity={0.6} strokeWidth={1} />
+            <pattern id="ed-grid" width={GRID * 2} height={GRID * 2} patternUnits="userSpaceOnUse">
+              <path d={`M ${GRID * 2} 0 L 0 0 0 ${GRID * 2}`} fill="none" stroke={MAP.grid} strokeWidth={1} />
             </pattern>
           </defs>
-          <rect x={0} y={0} width={MAP_W} height={MAP_H} fill="url(#ed-grid)" />
+          <rect width={MAP_W} height={MAP_H} fill="url(#ed-grid)" />
           {background && (
             <image
               href={background.image}
-              x={0}
-              y={0}
               width={MAP_W}
               height={MAP_H}
               preserveAspectRatio="xMidYMid meet"
@@ -371,52 +388,89 @@ export default function LayoutEditor({
           )}
 
           {/* เวที */}
-          <g>
+          <g onPointerDown={(e) => onPointerDown(e, "stage")} className={locked ? "" : "cursor-move"}>
             <rect
-              data-ed="stage-body"
-              x={stage.x}
-              y={stage.y}
-              width={stage.w}
-              height={stage.h}
-              rx={10}
+              x={stageShape.x}
+              y={stageShape.y}
+              width={stageShape.w}
+              height={stageShape.h}
+              rx={8}
               fill={MAP.stage}
-              stroke={sel?.kind === "stage" ? MAP.ink : "none"}
+              stroke={sel === "stage" ? MAP.ink : "none"}
               strokeWidth={3}
-              className={mode === "layout" && !locked ? "cursor-move" : ""}
             />
-            <text x={stage.x + stage.w / 2} y={stage.y + stage.h / 2 + 7} textAnchor="middle" fontSize={20} fontWeight={700} fill={MAP.stageText} pointerEvents="none">
+            <text
+              x={stageShape.x + stageShape.w / 2}
+              y={stageShape.y + stageShape.h / 2 + 6}
+              textAnchor="middle"
+              fontSize={18}
+              fontWeight={700}
+              fill={MAP.stageText}
+              pointerEvents="none"
+            >
               STAGE
             </text>
-            {sel?.kind === "stage" && mode === "layout" && !locked && (
-              <rect data-ed="stage-resize" x={stage.x + stage.w - 7} y={stage.y + stage.h - 7} width={14} height={14} rx={3} fill="#fff" stroke={MAP.ink} className="cursor-nwse-resize" />
-            )}
           </g>
 
-          {sections.map((s) => (
-            <EditorSection
-              key={s.id}
-              section={s}
-              color={zoneOf(s.zoneId)?.color ?? "#999"}
-              stage={stage}
-              selected={sel?.kind === "section" && sel.id === s.id}
-              mode={mode}
-              locked={locked}
-            />
-          ))}
+          {/* section เป็นบล็อก: ชื่อ + ขนาด + จำนวนที่ (ไม่วาดที่นั่งทีละจุด จะได้ลื่น) */}
+          {sections.map((s) => {
+            const { x, y, w, h } = shapeOf(s.id)!;
+            const rot = s.rotation ?? 0;
+            const c = zoneOf(s.zoneId)?.color ?? "#999";
+            const isSel = sel === s.id;
+            return (
+              <g
+                key={s.id}
+                transform={rot ? `rotate(${rot} ${x + w / 2} ${y + h / 2})` : undefined}
+                onPointerDown={(e) => onPointerDown(e, s.id)}
+                className={locked ? "" : "cursor-move"}
+              >
+                <rect
+                  x={x}
+                  y={y}
+                  width={w}
+                  height={h}
+                  rx={6}
+                  fill={c}
+                  fillOpacity={s.kind === "standing" ? 0.35 : 0.22}
+                  stroke={isSel ? MAP.ink : c}
+                  strokeWidth={isSel ? 3 : 1.5}
+                  strokeDasharray={s.kind === "standing" ? "6 4" : undefined}
+                />
+                {/* แถว A อยู่ด้านบนของบล็อก */}
+                {s.kind === "seated" && <line x1={x + 6} y1={y + 5} x2={x + w - 6} y2={y + 5} stroke={c} strokeWidth={3} pointerEvents="none" />}
+                <text x={x + w / 2} y={y + h / 2 - 2} textAnchor="middle" fontSize={14} fontWeight={700} fill={MAP.ink} pointerEvents="none">
+                  {s.name}
+                </text>
+                <text x={x + w / 2} y={y + h / 2 + 14} textAnchor="middle" fontSize={10} fill={MAP.inkMuted} pointerEvents="none">
+                  {s.kind === "seated"
+                    ? `${s.rows}×${s.seatsPerRow} · ${s.capacity.toLocaleString("th-TH")} ที่`
+                    : `ยืน · ${s.capacity.toLocaleString("th-TH")} ที่`}
+                </text>
+              </g>
+            );
+          })}
         </svg>
       </div>
+      {(() => {
+        const overlaps = findOverlaps(sections, stage);
+        return overlaps.length ? (
+          <p className="rounded-md bg-danger/10 px-3 py-2 text-xs text-danger">
+            มีโซนวางทับกัน: {overlaps.slice(0, 4).join(", ")}
+            {overlaps.length > 4 && ` และอีก ${overlaps.length - 4} คู่`} — ลากแยกออกจากกันก่อนเผยแพร่
+          </p>
+        ) : null;
+      })()}
       <p className="text-xs text-muted">
-        {mode === "layout"
-          ? "ลาก section/เวทีเพื่อย้าย · จุดขาวมุมขวาล่าง = ปรับขนาด · จุดกลมด้านบน = หมุน (ด้านบนของกรอบคือแถว A ควรหันเข้าหาเวที)"
-          : "กดหรือลากบนที่นั่งเพื่อเอาออก (ทำทางเดิน/รูปทรงพิเศษ) · กดซ้ำที่จุดโปร่งเพื่อคืนที่นั่ง"}
+        กดเพื่อเลือก แล้วลากเพื่อย้าย · ลูกศรบนคีย์บอร์ดเลื่อนทีละช่อง (Shift = 5 ช่อง) · เส้นหนาด้านบนของบล็อกคือแถว A ควรหันเข้าหาเวที
       </p>
 
-      {/* รายการ section (เลือกง่ายบนมือถือ) */}
+      {/* รายการ section */}
       <div className="flex flex-wrap gap-1.5">
         <button
           type="button"
-          onClick={() => setSel({ kind: "stage" })}
-          className={`rounded-full border px-2.5 py-0.5 text-xs ${sel?.kind === "stage" ? "border-brand text-brand" : "border-line text-muted"}`}
+          onClick={() => setSel("stage")}
+          className={`rounded-md border px-2.5 py-0.5 text-xs ${sel === "stage" ? "border-brand text-brand" : "border-line text-muted"}`}
         >
           เวที
         </button>
@@ -424,9 +478,9 @@ export default function LayoutEditor({
           <button
             key={s.id}
             type="button"
-            onClick={() => setSel({ kind: "section", id: s.id })}
-            className={`flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs ${
-              sel?.kind === "section" && sel.id === s.id ? "border-brand text-brand" : "border-line text-muted"
+            onClick={() => setSel(s.id)}
+            className={`flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs ${
+              sel === s.id ? "border-brand text-brand" : "border-line text-muted"
             }`}
           >
             <span className="h-2 w-2 rounded-full" style={{ backgroundColor: zoneOf(s.zoneId)?.color }} />
@@ -435,11 +489,19 @@ export default function LayoutEditor({
         ))}
       </div>
 
-      {/* คุณสมบัติของสิ่งที่เลือก */}
-      {selected && (
-        <div className="grid gap-3 rounded-lg border border-line bg-surface-2/50 p-3 sm:grid-cols-4">
+      {/* แผงตั้งค่าของสิ่งที่เลือก */}
+      {sel === "stage" && (
+        <div className="grid gap-3 rounded-lg border border-line p-3 sm:grid-cols-4">
+          <p className="text-sm font-semibold sm:col-span-4">เวที</p>
+          <NumberStepper label="กว้าง" value={stageShape.w} min={MIN_W} max={MAP_W} step={GRID} disabled={locked} onSet={(v) => commitShape("stage", { ...stageShape, w: v })} />
+          <NumberStepper label="สูง" value={stageShape.h} min={MIN_H} max={200} step={GRID} disabled={locked} onSet={(v) => commitShape("stage", { ...stageShape, h: v })} />
+        </div>
+      )}
+
+      {selected && selShape && (
+        <div className="grid gap-3 rounded-lg border border-line p-3 sm:grid-cols-4">
           <label className="space-y-1 text-xs sm:col-span-2">
-            <span className="text-muted">ชื่อ section (รหัส {selected.id})</span>
+            <span className="text-muted">ชื่อ (รหัส {selected.id})</span>
             <input className={input} value={selected.name} disabled={locked} onChange={(e) => setSection(selected.id, { name: e.target.value })} />
           </label>
           <label className="space-y-1 text-xs">
@@ -463,7 +525,7 @@ export default function LayoutEditor({
                   selected.id,
                   e.target.value === "standing"
                     ? { kind: "standing", rows: 0, seatsPerRow: 0, capacity: Math.max(1, selected.capacity), removedSeats: undefined }
-                    : { kind: "seated", rows: 8, seatsPerRow: 14 },
+                    : { kind: "seated", rows: 10, seatsPerRow: 16 },
                 )
               }
             >
@@ -471,165 +533,71 @@ export default function LayoutEditor({
               <option value="standing">ยืน</option>
             </select>
           </label>
+
           {selected.kind === "seated" ? (
             <>
-              <label className="space-y-1 text-xs">
-                <span className="text-muted">จำนวนแถว (สูงสุด {MAX_ROWS})</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={MAX_ROWS}
-                  className={input}
-                  disabled={locked}
-                  value={selected.rows}
-                  onChange={(e) => setSection(selected.id, { rows: Math.min(MAX_ROWS, Math.max(1, Number(e.target.value) || 1)) })}
-                />
-              </label>
-              <label className="space-y-1 text-xs">
-                <span className="text-muted">ที่นั่งต่อแถว (สูงสุด {MAX_SEATS_PER_ROW})</span>
-                <input
-                  type="number"
-                  min={1}
-                  max={MAX_SEATS_PER_ROW}
-                  className={input}
-                  disabled={locked}
-                  value={selected.seatsPerRow}
-                  onChange={(e) =>
-                    setSection(selected.id, { seatsPerRow: Math.min(MAX_SEATS_PER_ROW, Math.max(1, Number(e.target.value) || 1)) })
-                  }
-                />
-              </label>
+              <NumberStepper label="จำนวนแถว" value={selected.rows} min={1} max={MAX_ROWS} disabled={locked} onSet={(v) => setSection(selected.id, { rows: v })} />
+              <NumberStepper
+                label="ที่นั่งต่อแถว"
+                value={selected.seatsPerRow}
+                min={1}
+                max={MAX_SEATS_PER_ROW}
+                disabled={locked}
+                onSet={(v) => setSection(selected.id, { seatsPerRow: v })}
+              />
             </>
           ) : (
-            <label className="space-y-1 text-xs sm:col-span-2">
-              <span className="text-muted">ความจุ (บัตรยืน)</span>
-              <input
-                type="number"
-                min={1}
-                className={input}
-                disabled={locked}
+            <div className="sm:col-span-2">
+              <NumberStepper
+                label="ความจุ (บัตรยืน)"
                 value={selected.capacity}
-                onChange={(e) => setSection(selected.id, { capacity: Math.max(1, Number(e.target.value) || 1) })}
+                min={1}
+                max={20_000}
+                step={50}
+                disabled={locked}
+                onSet={(v) => setSection(selected.id, { capacity: v })}
               />
-            </label>
+            </div>
           )}
-          <label className="space-y-1 text-xs sm:col-span-2">
-            <span className="text-muted">หมุน {selected.rotation ?? 0}°</span>
-            <input
-              type="range"
-              min={-180}
-              max={180}
-              step={1}
-              disabled={locked}
-              value={selected.rotation ?? 0}
-              onChange={(e) => setSection(selected.id, { rotation: Number(e.target.value) })}
-              className="w-full accent-[var(--brand)]"
-            />
-          </label>
-          <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:col-span-4">
-            <span className="text-muted">
-              ความจุ <span className="font-semibold text-foreground">{selected.capacity.toLocaleString("th-TH")}</span> ที่
-              {selected.kind === "seated" && removedSet(selected).size > 0 && ` · เอาออก ${removedSet(selected).size} ที่`}
-              {" · "}ตำแหน่ง {Math.round(selected.shape.x)},{Math.round(selected.shape.y)} ขนาด {Math.round(selected.shape.w)}×
-              {Math.round(selected.shape.h)}
+          <NumberStepper label="กว้าง" value={selShape.w} min={MIN_W} max={MAP_W} step={GRID} disabled={locked} onSet={(v) => setSection(selected.id, { shape: { ...selShape, w: v } })} />
+          <NumberStepper label="สูง" value={selShape.h} min={MIN_H} max={MAP_H} step={GRID} disabled={locked} onSet={(v) => setSection(selected.id, { shape: { ...selShape, h: v } })} />
+
+          <div className="flex flex-wrap items-center gap-1.5 sm:col-span-4">
+            <span className="mr-1 text-xs text-muted">หมุน {selected.rotation ?? 0}°</span>
+            <button type="button" className={btn} disabled={locked} onClick={() => setSection(selected.id, { rotation: Math.max(-180, (selected.rotation ?? 0) - 15) })}>
+              <RotateLeftIcon fontSize="inherit" /> 15°
+            </button>
+            <button type="button" className={btn} disabled={locked || !selected.rotation} onClick={() => setSection(selected.id, { rotation: 0 })}>
+              ตรง 0°
+            </button>
+            <button type="button" className={btn} disabled={locked} onClick={() => setSection(selected.id, { rotation: Math.min(180, (selected.rotation ?? 0) + 15) })}>
+              <RotateRightIcon fontSize="inherit" /> 15°
+            </button>
+            {selected.kind === "seated" && (
+              <button type="button" className={btn} disabled={locked} onClick={() => setSection(selected.id, { shape: { ...selShape, ...fitSize(selected) } })}>
+                ขนาดพอดีที่นั่ง
+              </button>
+            )}
+            <span className="ml-auto flex gap-1.5">
+              <button type="button" className={btn} onClick={duplicate} disabled={locked || sections.length >= 40}>
+                <ContentCopyIcon fontSize="inherit" /> ทำสำเนา
+              </button>
+              <button type="button" className={`${btn} hover:!border-danger hover:!text-danger`} onClick={remove} disabled={locked || sections.length <= 1}>
+                <DeleteOutlineIcon fontSize="inherit" /> ลบ
+              </button>
             </span>
-            {selected.kind === "seated" && removedSet(selected).size > 0 && (
+          </div>
+
+          {selected.kind === "seated" && removedSet(selected).size > 0 && (
+            <p className="flex flex-wrap items-center gap-2 text-xs text-muted sm:col-span-4">
+              มีที่นั่งที่เอาออกไว้ {removedSet(selected).size} ที่ (ทางเดิน)
               <button type="button" className={btn} disabled={locked} onClick={() => setSection(selected.id, { removedSeats: undefined })}>
                 <RestoreIcon fontSize="inherit" /> คืนที่นั่งทั้งหมด
               </button>
-            )}
-          </div>
+            </p>
+          )}
         </div>
       )}
     </div>
   );
 }
-
-/** section เดียวในตัวแก้ไข — memo ไว้ ลาก section อื่นจะไม่ render ที่นั่งของ section นี้ใหม่ */
-const EditorSection = memo(function EditorSection({
-  section: s,
-  color,
-  stage,
-  selected,
-  mode,
-  locked,
-}: {
-  section: Section;
-  color: string;
-  stage: MapRect;
-  selected: boolean;
-  mode: "layout" | "seats";
-  locked: boolean;
-}) {
-  const { x, y, w, h } = s.shape;
-  const rot = s.rotation ?? 0;
-  const cx = x + w / 2;
-  const cy = y + h / 2;
-  const { seats, r } = seatLayout(s, stage, { includeRemoved: true });
-  const editable = !locked && mode === "layout";
-  return (
-    <g>
-      <g transform={rot ? `rotate(${rot} ${cx} ${cy})` : undefined}>
-        <rect
-          data-ed={editable ? "body" : undefined}
-          data-id={s.id}
-          x={x}
-          y={y}
-          width={w}
-          height={h}
-          rx={8}
-          fill={color}
-          fillOpacity={s.kind === "standing" ? 0.45 : 0.14}
-          stroke={selected ? MAP.ink : color}
-          strokeWidth={selected ? 2.5 : 1.2}
-          strokeDasharray={s.kind === "standing" ? "6 4" : undefined}
-          className={editable ? "cursor-move" : ""}
-        />
-        {s.kind === "seated" && (
-          <text x={cx} y={y - 3} textAnchor="middle" fontSize={8} fill={color} pointerEvents="none" opacity={0.9}>
-            แถว A
-          </text>
-        )}
-        {selected && editable && (
-          <>
-            <line x1={cx} y1={y} x2={cx} y2={y - 22} stroke={MAP.ink} strokeWidth={1.5} pointerEvents="none" />
-            <circle data-ed="rotate" data-id={s.id} cx={cx} cy={y - 26} r={7} fill="#fff" stroke={MAP.ink} strokeWidth={2} className="cursor-grab" />
-            <rect data-ed="resize" data-id={s.id} x={x + w - 7} y={y + h - 7} width={14} height={14} rx={3} fill="#fff" stroke={MAP.ink} strokeWidth={2} className="cursor-nwse-resize" />
-          </>
-        )}
-      </g>
-      {seats.map((seat) =>
-        seat.removed ? (
-          <circle
-            key={seat.id}
-            data-eseat={mode === "seats" ? seat.id : undefined}
-            data-sid={s.id}
-            cx={seat.cx}
-            cy={seat.cy}
-            r={r}
-            fill={mode === "seats" ? "transparent" : "none"}
-            stroke={color}
-            strokeOpacity={mode === "seats" ? 0.6 : 0.15}
-            strokeWidth={r * 0.3}
-            pointerEvents={mode === "seats" ? "all" : "none"}
-          />
-        ) : (
-          <circle
-            key={seat.id}
-            data-eseat={mode === "seats" ? seat.id : undefined}
-            data-sid={s.id}
-            cx={seat.cx}
-            cy={seat.cy}
-            r={r}
-            fill={color}
-            opacity={0.9}
-            pointerEvents={mode === "seats" ? "all" : "none"}
-          />
-        ),
-      )}
-      <text x={cx} y={cy + 5} textAnchor="middle" fontSize={14} fontWeight={700} fill={MAP.ink} pointerEvents="none" stroke={MAP.bg} strokeWidth={4} paintOrder="stroke">
-        {s.name}
-      </text>
-    </g>
-  );
-});
