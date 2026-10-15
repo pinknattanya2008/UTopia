@@ -37,7 +37,7 @@ export default function FanScoreCard() {
         <div className="relative mt-2 h-3 rounded-full bg-line">
           <div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} />
           {[40, 60, 80].map((v) => (
-            <span key={v} className="absolute top-0 h-3 w-0.5 bg-white" style={{ left: `${v}%` }} />
+            <span key={v} className="absolute top-0 h-3 w-0.5 bg-surface" style={{ left: `${v}%` }} />
           ))}
         </div>
         <div className="mt-1 flex justify-between text-[10px] text-muted">

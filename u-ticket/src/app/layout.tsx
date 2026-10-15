@@ -4,6 +4,7 @@ import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { UserProvider } from "@/components/UserProvider";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 const plexThai = IBM_Plex_Sans_Thai({
   variable: "--font-thai",
@@ -19,12 +20,19 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#fffaf5",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fafafa" },
+    { media: "(prefers-color-scheme: dark)", color: "#111113" },
+  ],
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="th">
+    <html lang="th" suppressHydrationWarning>
+      <head>
+        {/* ตั้งธีมก่อนหน้าแสดงผล กันหน้ากะพริบ */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className={`${plexThai.variable} font-sans antialiased`}>
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
         <UserProvider>

@@ -1,4 +1,4 @@
-import { TIER_COLOR } from "@/lib/theme";
+import { MAP, TIER_COLOR } from "@/lib/theme";
 import type { TierName } from "@/lib/types";
 
 const COLOR: Record<TierName, string> = TIER_COLOR;
@@ -15,7 +15,7 @@ export default function ScoreGauge({ score, tier }: { score: number; tier: TierN
   return (
     <div className="relative mx-auto w-full max-w-[260px]">
       <svg viewBox="0 0 200 112" className="w-full" role="img" aria-label={`Fan Score ${score} จาก 100`}>
-        <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="#ececef" strokeWidth="16" strokeLinecap="round" />
+        <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke={MAP.track} strokeWidth="16" strokeLinecap="round" />
         <path
           d="M20 100 A80 80 0 0 1 180 100"
           fill="none"
@@ -27,7 +27,7 @@ export default function ScoreGauge({ score, tier }: { score: number; tier: TierN
           style={{ transition: "stroke-dashoffset 1s ease-out, stroke 0.5s" }}
         />
         {[40, 60, 80].map((v) => (
-          <line key={v} {...tick(v)} stroke="#ffffff" strokeWidth="3" />
+          <line key={v} {...tick(v)} stroke="var(--surface)" strokeWidth="3" />
         ))}
       </svg>
       <div className="absolute inset-x-0 bottom-0 text-center">

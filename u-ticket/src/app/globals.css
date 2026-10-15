@@ -2,29 +2,83 @@
 @layer theme, base, mui, components, utilities;
 @import "tailwindcss";
 
-/* ธีม: ขาวครีม + ส้มโทนนุ่ม */
+/* dark: ใช้ได้ทั้งเมื่อผู้ใช้เลือกโหมดมืด และเมื่อเครื่องตั้งโหมดมืด (ถ้ายังไม่ได้เลือกเอง) */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+ * ธีม: พื้นเทาเป็นกลาง + ส้มเป็นสีเน้นสีเดียว มี 2 ชุด (สว่าง/มืด)
+ * html[data-theme] ตั้งจากสคริปต์ใน layout.tsx ก่อนหน้าแสดงผล (light | dark ตามที่เลือก หรือตามเครื่อง)
+ */
 :root {
   --background: #fafafa;
   --foreground: #232326;
+  --surface: #ffffff;
+  --surface-2: #f4f4f5;
+  --line: #e4e4e7;
+  --muted: #6b6b73;
+  --brand: #ee6c1f;
+  --brand-dark: #d95d12;
+  --brand-soft: #fff0e3;
+  --danger: #e0484d;
+  --ok: #2f9e5b;
+  --selection: #ffe0c9;
+
+  /* สีใน SVG (ผังที่นั่ง, เกจ, ภาพจำลอง) — อ่านผ่าน src/lib/theme.ts */
+  --map-bg: #fafafa;
+  --map-grid: #e4e4e7;
+  --map-sold: #e4e4e7;
+  --map-sold-stroke: #d4d4d8;
+  --map-ink: #232326;
+  --map-ink-muted: #6b6b73;
+  --map-label-bg: #ffffff;
+  --map-selected: #232326;
+  --map-selected-ring: #ffffff;
+  --map-screen: #7cb4f0;
+  --map-track: #ececef;
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --background: #111113;
+  --foreground: #ececef;
+  --surface: #19191c;
+  --surface-2: #232327;
+  --line: #2e2e33;
+  --muted: #9b9ba4;
+  --brand: #f27b33;
+  --brand-dark: #e36a22;
+  --brand-soft: #34231a;
+  --danger: #f0646a;
+  --ok: #45b878;
+  --selection: #5a3520;
+
+  --map-bg: #151517;
+  --map-grid: #2e2e33;
+  --map-sold: #2f2f35;
+  --map-sold-stroke: #3d3d44;
+  --map-ink: #ececef;
+  --map-ink-muted: #9b9ba4;
+  --map-label-bg: #19191c;
+  --map-selected: #ffffff;
+  --map-selected-ring: #111113;
+  --map-screen: #4f7fb8;
+  --map-track: #2a2a2f;
+  color-scheme: dark;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-surface: #ffffff;
-  --color-surface-2: #f4f4f5;
-  --color-line: #e4e4e7;
-  --color-muted: #6b6b73;
-  --color-brand: #ee6c1f;
-  --color-brand-dark: #d95d12;
-  --color-brand-soft: #fff0e3;
-  --color-danger: #e0484d;
-  --color-ok: #2f9e5b;
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-muted: var(--muted);
+  --color-brand: var(--brand);
+  --color-brand-dark: var(--brand-dark);
+  --color-brand-soft: var(--brand-soft);
+  --color-danger: var(--danger);
+  --color-ok: var(--ok);
   --font-sans: var(--font-thai), ui-sans-serif, system-ui, sans-serif;
-}
-
-html {
-  color-scheme: light;
 }
 
 body {
@@ -33,7 +87,7 @@ body {
 }
 
 ::selection {
-  background: #ffe0c9;
+  background: var(--selection);
 }
 
 @keyframes fade-up {

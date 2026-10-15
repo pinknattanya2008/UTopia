@@ -1,18 +1,23 @@
-/** สีที่ใช้ใน SVG (ผังที่นั่ง, เกจ, ภาพจำลอง) — ให้ตรงกับธีมใน globals.css (เทาเป็นกลาง + ส้ม) */
+/**
+ * สีที่ใช้ใน SVG (ผังที่นั่ง, เกจ, ภาพจำลอง) — อ้าง CSS variables ใน globals.css
+ * จึงเปลี่ยนตามธีมสว่าง/มืดเอง (SVG fill/stroke รองรับ var())
+ */
 export const MAP = {
-  bg: "#fafafa",
-  grid: "#e4e4e7",
-  stage: "#ee6c1f",
+  bg: "var(--map-bg)",
+  grid: "var(--map-grid)",
+  stage: "var(--brand)",
   stageText: "#ffffff",
-  sold: "#e4e4e7",
-  soldStroke: "#d4d4d8",
-  ink: "#232326",
-  inkMuted: "#6b6b73",
-  labelBg: "#ffffff",
-  selected: "#232326",
-  focus: "#ee6c1f",
-  screen: "#7cb4f0",
-  danger: "#e0484d",
+  sold: "var(--map-sold)",
+  soldStroke: "var(--map-sold-stroke)",
+  ink: "var(--map-ink)",
+  inkMuted: "var(--map-ink-muted)",
+  labelBg: "var(--map-label-bg)",
+  selected: "var(--map-selected)",
+  selectedRing: "var(--map-selected-ring)",
+  focus: "var(--brand)",
+  screen: "var(--map-screen)",
+  track: "var(--map-track)",
+  danger: "var(--danger)",
 };
 
 export const TIER_COLOR = {
@@ -21,3 +26,9 @@ export const TIER_COLOR = {
   Silver: "#94a3b8",
   General: "#a1a1aa",
 } as const;
+
+export type ThemeChoice = "light" | "dark" | "system";
+export const THEME_KEY = "uticket:theme";
+
+/** สคริปต์ตั้ง data-theme ก่อนหน้าแสดงผล (กันหน้ากะพริบสีผิด) — ใส่ใน <head> */
+export const THEME_INIT_SCRIPT = `(function(){try{var c=localStorage.getItem("${THEME_KEY}");var d=c==="dark"||((!c||c==="system")&&matchMedia("(prefers-color-scheme: dark)").matches);document.documentElement.dataset.theme=d?"dark":"light"}catch(e){document.documentElement.dataset.theme="light"}})()`;

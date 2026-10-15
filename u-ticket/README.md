@@ -121,7 +121,10 @@ data/           users / transactions / concerts / rewards / demo-cache (.json)
 - **ยังไม่มีระบบล็อกอิน:** ผู้จัดเป็นบัญชีจำลอง `Lunar Live Entertainment` ใครเปิด `/admin` ก็เข้าได้
 
 ### ธีม
-พื้นขาว/เทาเป็นกลาง + ส้มเป็นสีเน้นสีเดียว (ไม่มี gradient, เงา หรือ blur ประดับ) — สีหลักอยู่ที่ `src/app/globals.css` (`--color-brand`, `--color-surface`, `--color-line` ฯลฯ) และสีใน SVG (ผังที่นั่ง/เกจ/ภาพจำลอง) อยู่ที่ `src/lib/theme.ts` เปลี่ยนสองไฟล์นี้ก็เปลี่ยนธีมทั้งแอป
+พื้นเทาเป็นกลาง + ส้มเป็นสีเน้นสีเดียว มี **โหมดสว่างและมืด** — ปุ่มใน Navbar วนเป็น ตามเครื่อง → สว่าง → มืด (จำค่าไว้ใน localStorage, สคริปต์ใน `<head>` ตั้งธีมก่อนหน้าแสดงผลจึงไม่กะพริบ)
+- สีทั้งหมดเป็น CSS variables ใน `src/app/globals.css` (`:root` = สว่าง, `[data-theme="dark"]` = มืด)
+- สีใน SVG (ผังที่นั่ง/เกจ/ภาพจำลอง) อ้างตัวแปรเดียวกันผ่าน `src/lib/theme.ts` จึงเปลี่ยนตามธีมเอง
+- ใช้ `dark:` ของ Tailwind ได้ (ผูกกับ `data-theme="dark"`)
 
 ### Icons
 UI ใช้ **MUI icons** แทน emoji ทั้งหมด (import ทีละไฟล์ เช่น `@mui/icons-material/CreditCard`) และห่อด้วย `AppRouterCacheProvider` (`enableCssLayer`) ให้ Tailwind utilities override style ของ MUI ได้

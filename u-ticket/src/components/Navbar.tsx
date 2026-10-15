@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import BusinessCenterOutlinedIcon from "@mui/icons-material/BusinessCenterOutlined";
 import { useUser } from "./UserProvider";
+import ThemeToggle from "./ThemeToggle";
 import TierBadge from "./TierBadge";
 import UserAvatar from "./UserAvatar";
 
@@ -44,9 +45,12 @@ export default function Navbar() {
             </span>
             <span className="rounded-md bg-surface-2 px-2 py-0.5 text-xs font-semibold text-muted">Organizer</span>
           </Link>
-          <Link href="/" className="ml-auto flex items-center gap-1 text-sm text-muted hover:text-brand">
-            <StorefrontOutlinedIcon fontSize="small" /> ไปหน้าผู้ซื้อ
-          </Link>
+          <div className="ml-auto flex items-center gap-3">
+            <Link href="/" className="flex items-center gap-1 text-sm text-muted hover:text-brand">
+              <StorefrontOutlinedIcon fontSize="small" /> ไปหน้าผู้ซื้อ
+            </Link>
+            <ThemeToggle />
+          </div>
           <nav className="flex w-full gap-1 text-sm">
             {ADMIN_LINKS.map((l) => {
               const active = l.exact ? pathname === l.href : pathname.startsWith(l.href);
@@ -85,6 +89,7 @@ export default function Navbar() {
           <BusinessCenterOutlinedIcon fontSize="inherit" /> สำหรับผู้จัดงาน
         </Link>
         <div className="ml-auto flex items-center gap-2">
+          <ThemeToggle />
           {user && <UserAvatar name={user.displayName} color={user.avatar} size="sm" />}
           <label className="sr-only" htmlFor="user-select">
             เลือกผู้ใช้จำลอง

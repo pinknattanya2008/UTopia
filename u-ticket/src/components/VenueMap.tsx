@@ -62,7 +62,7 @@ export default function VenueMap({
             tabIndex={clickable ? 0 : undefined}
             aria-label={`${zone?.name ?? ""} ${s.name}${a ? ` ว่าง ${a.available} ที่` : ""}`}
             aria-pressed={onSelect ? isSel : undefined}
-            className={clickable ? "cursor-pointer outline-none [&:focus-visible>rect]:stroke-[#3a2a1e]" : ""}
+            className={clickable ? "cursor-pointer outline-none [&:focus-visible>rect]:stroke-[var(--map-ink)]" : ""}
           >
             <rect
               x={x}

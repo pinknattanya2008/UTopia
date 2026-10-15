@@ -315,7 +315,7 @@ export default function LayoutEditor({
                 step={0.05}
                 value={background.opacity}
                 onChange={(e) => onChange({ background: { ...background, opacity: Number(e.target.value) } })}
-                className="w-20 accent-[#ee6c1f]"
+                className="w-20 accent-[var(--brand)]"
                 aria-label="ความโปร่งใสรูปผัง"
               />
             </label>
@@ -342,7 +342,7 @@ export default function LayoutEditor({
         <svg
           ref={svgRef}
           viewBox={`0 0 ${MAP_W} ${MAP_H}`}
-          className={`aspect-[4/3] h-auto w-full touch-none select-none bg-[#fafafa] ${mode === "seats" ? "cursor-crosshair" : ""}`}
+          className={`aspect-[4/3] h-auto w-full touch-none select-none bg-[var(--map-bg)] ${mode === "seats" ? "cursor-crosshair" : ""}`}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={endDrag}
@@ -523,7 +523,7 @@ export default function LayoutEditor({
               disabled={locked}
               value={selected.rotation ?? 0}
               onChange={(e) => setSection(selected.id, { rotation: Number(e.target.value) })}
-              className="w-full accent-[#ee6c1f]"
+              className="w-full accent-[var(--brand)]"
             />
           </label>
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:col-span-4">
@@ -627,7 +627,7 @@ const EditorSection = memo(function EditorSection({
           />
         ),
       )}
-      <text x={cx} y={cy + 5} textAnchor="middle" fontSize={14} fontWeight={700} fill={MAP.ink} pointerEvents="none" stroke="#fff" strokeWidth={4} paintOrder="stroke">
+      <text x={cx} y={cy + 5} textAnchor="middle" fontSize={14} fontWeight={700} fill={MAP.ink} pointerEvents="none" stroke={MAP.bg} strokeWidth={4} paintOrder="stroke">
         {s.name}
       </text>
     </g>

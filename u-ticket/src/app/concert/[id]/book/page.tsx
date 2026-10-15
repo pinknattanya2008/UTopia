@@ -234,10 +234,10 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
               </span>
             ))}
             <span className="flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-xs text-muted">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#e4e4e7]" /> ไม่ว่าง
+              <span className="h-2.5 w-2.5 rounded-full bg-[var(--map-sold)]" /> ไม่ว่าง
             </span>
             <span className="flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-xs text-muted">
-              <span className="h-2.5 w-2.5 rounded-full bg-foreground ring-2 ring-white" /> ที่คุณเลือก
+              <span className="h-2.5 w-2.5 rounded-full bg-[var(--map-selected)] ring-2 ring-surface" /> ที่คุณเลือก
             </span>
           </div>
         </div>

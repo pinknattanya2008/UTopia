@@ -38,7 +38,7 @@ export default function ConnectWallet() {
         setTimeout(() => setState("done"), 900);
       }}
       disabled={state === "connecting"}
-      className="flex items-center gap-2 rounded-lg border border-brand/40 bg-white px-5 py-3 font-semibold text-brand transition hover:bg-brand-soft disabled:opacity-70"
+      className="flex items-center gap-2 rounded-lg border border-brand/40 bg-surface px-5 py-3 font-semibold text-brand transition hover:bg-brand-soft disabled:opacity-70"
     >
       {state === "connecting" ? (
         "กำลังเชื่อมต่อ…"

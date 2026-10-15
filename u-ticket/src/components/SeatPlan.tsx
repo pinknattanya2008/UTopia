@@ -240,7 +240,7 @@ export default function SeatPlan({
             const p = seatIndex.get(id);
             if (!p) return null;
             const r = radius.get(p.section.id) ?? 2;
-            return <circle key={id} cx={p.seat.cx} cy={p.seat.cy} r={r * 1.15} fill={MAP.selected} stroke="#fff" strokeWidth={r * 0.3} />;
+            return <circle key={id} cx={p.seat.cx} cy={p.seat.cy} r={r * 1.15} fill={MAP.selected} stroke={MAP.selectedRing} strokeWidth={r * 0.3} />;
           })}
           {focus && (
             <circle
@@ -332,13 +332,13 @@ export default function SeatPlan({
             onClick={fn}
             aria-label={label}
             title={label}
-            className="grid h-9 w-9 place-items-center rounded-md border border-line bg-white/90 text-foreground hover:border-brand hover:text-brand"
+            className="grid h-9 w-9 place-items-center rounded-md border border-line bg-surface text-foreground hover:border-brand hover:text-brand"
           >
             <Icon fontSize="small" />
           </button>
         ))}
       </div>
-      <p className="pointer-events-none absolute bottom-2 left-2 rounded-lg bg-white/90 px-2 py-1 text-[11px] text-muted">
+      <p className="pointer-events-none absolute bottom-2 left-2 rounded-lg bg-surface px-2 py-1 text-[11px] text-muted">
         {seatMode ? "กดที่นั่งเพื่อเลือก · ลากเพื่อเลื่อน" : "กดที่โซนเพื่อซูมเข้าไปเลือกที่นั่ง"} · ซูม {zoom.toFixed(1)}x
       </p>
     </div>
