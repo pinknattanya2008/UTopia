@@ -28,7 +28,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <UserProvider>
           <Navbar />
           <main className="mx-auto max-w-6xl px-4 pb-16 pt-6">{children}</main>
-          <footer className="border-t border-line py-6 text-center text-xs text-muted">
+          <footer className="border-t border-line px-4 py-6 text-center text-xs text-muted">
             U-Ticket · U-Hackathon 2026 Track 1: AI · ข้อมูลทั้งหมดเป็นข้อมูลจำลอง
           </footer>
         </UserProvider>

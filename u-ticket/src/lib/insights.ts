@@ -241,7 +241,18 @@ function fallbackMissions(user: User, s: ScoreBreakdown, trust: TrustAssessment)
             prio: s.diversity,
           },
   ];
-  return pool.sort((a, b) => a.prio - b.prio).map((m) => ({
+  if (t < 0.9) {
+    // คะแนนถูกลดจาก trust — ภารกิจแรกคือกลับมาใช้งานจริงเพื่อคืน trust
+    pool.push({
+      title: "กลับมาใช้จ่ายจริง 14 วัน ไม่โอนวน",
+      description: "หยุดโอนเงินไปกลับหรือทำรายการซ้ำ ๆ ใช้ U-Card กับร้านที่ใช้ชีวิตประจำวันแทน ระบบจะประเมินความน่าเชื่อถือใหม่",
+      targetCount: 14,
+      scoreImpact: `คืน Trust ×1.0 ได้สูงสุด +${round1(s.baseScore - s.finalScore)} คะแนน`,
+      category: "consistency",
+      prio: -1,
+    });
+  }
+  return pool.sort((a, b) => a.prio - b.prio).slice(0, 3).map((m) => ({
     title: m.title,
     description: m.description,
     targetCount: m.targetCount,
