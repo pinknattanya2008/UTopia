@@ -6,7 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "node --disable-warning=ExperimentalWarning scripts/seed.ts",
+    "check-scores": "node --disable-warning=ExperimentalWarning scripts/check-scores.ts",
+    "build-demo-cache": "node --disable-warning=ExperimentalWarning scripts/build-demo-cache.ts"
   },
   "dependencies": {
     "next": "15.5.4",
@@ -25,5 +28,6 @@
     "eslint-config-next": "15.5.4",
     "tailwindcss": "^4",
     "typescript": "^5"
-  }
+  },
+  "type": "module"
 }

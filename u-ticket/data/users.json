@@ -1,0 +1,314 @@
+[
+ {
+  "id": "u01",
+  "displayName": "มายด์",
+  "avatar": "🎧",
+  "persona": "true_fan",
+  "uCenterPackage": "Gold",
+  "joinedAt": "2026-03-20",
+  "points": 1450,
+  "fanSignals": {
+   "pastConcertsAttended": 5,
+   "artistQuizScore": 92
+  }
+ },
+ {
+  "id": "u02",
+  "displayName": "แพรวา",
+  "avatar": "🌸",
+  "persona": "true_fan",
+  "uCenterPackage": "Silver",
+  "joinedAt": "2026-04-19",
+  "points": 747,
+  "fanSignals": {
+   "pastConcertsAttended": 4,
+   "artistQuizScore": 85
+  }
+ },
+ {
+  "id": "u03",
+  "displayName": "ต้นกล้า",
+  "avatar": "🌱",
+  "persona": "true_fan",
+  "uCenterPackage": "Platinum",
+  "joinedAt": "2025-12-20",
+  "points": 914,
+  "fanSignals": {
+   "pastConcertsAttended": 6,
+   "artistQuizScore": 78
+  }
+ },
+ {
+  "id": "u04",
+  "displayName": "แบม",
+  "avatar": "🎤",
+  "persona": "true_fan",
+  "uCenterPackage": "Bronze",
+  "joinedAt": "2026-05-19",
+  "points": 632,
+  "fanSignals": {
+   "pastConcertsAttended": 3,
+   "artistQuizScore": 88
+  }
+ },
+ {
+  "id": "u05",
+  "displayName": "จูน",
+  "avatar": "🌙",
+  "persona": "true_fan",
+  "uCenterPackage": "Silver",
+  "joinedAt": "2026-06-18",
+  "points": 785,
+  "fanSignals": {
+   "pastConcertsAttended": 2,
+   "artistQuizScore": 95
+  }
+ },
+ {
+  "id": "u06",
+  "displayName": "ฟ้าใส",
+  "avatar": "☁️",
+  "persona": "true_fan",
+  "uCenterPackage": "Gold",
+  "joinedAt": "2026-02-18",
+  "points": 715,
+  "fanSignals": {
+   "pastConcertsAttended": 4,
+   "artistQuizScore": 70
+  }
+ },
+ {
+  "id": "u07",
+  "displayName": "ก้อง",
+  "avatar": "🧢",
+  "persona": "regular",
+  "uCenterPackage": "Bronze",
+  "joinedAt": "2026-03-30",
+  "points": 414,
+  "fanSignals": {
+   "pastConcertsAttended": 1,
+   "artistQuizScore": 45
+  }
+ },
+ {
+  "id": "u08",
+  "displayName": "นุ่น",
+  "avatar": "🍵",
+  "persona": "regular",
+  "uCenterPackage": "None",
+  "joinedAt": "2026-05-09",
+  "points": 496,
+  "fanSignals": {
+   "pastConcertsAttended": 0,
+   "artistQuizScore": 38
+  }
+ },
+ {
+  "id": "u09",
+  "displayName": "เจมส์",
+  "avatar": "🏀",
+  "persona": "regular",
+  "uCenterPackage": "Silver",
+  "joinedAt": "2025-09-11",
+  "points": 480,
+  "fanSignals": {
+   "pastConcertsAttended": 2,
+   "artistQuizScore": 52
+  }
+ },
+ {
+  "id": "u10",
+  "displayName": "ปิ่น",
+  "avatar": "🎀",
+  "persona": "regular",
+  "uCenterPackage": "None",
+  "joinedAt": "2026-07-18",
+  "points": 372,
+  "fanSignals": {
+   "pastConcertsAttended": 1,
+   "artistQuizScore": 30
+  }
+ },
+ {
+  "id": "u11",
+  "displayName": "บอส",
+  "avatar": "💼",
+  "persona": "regular",
+  "uCenterPackage": "Gold",
+  "joinedAt": "2025-10-16",
+  "points": 347,
+  "fanSignals": {
+   "pastConcertsAttended": 0,
+   "artistQuizScore": 25
+  }
+ },
+ {
+  "id": "u12",
+  "displayName": "มิว",
+  "avatar": "🐱",
+  "persona": "regular",
+  "uCenterPackage": "Bronze",
+  "joinedAt": "2026-06-08",
+  "points": 450,
+  "fanSignals": {
+   "pastConcertsAttended": 2,
+   "artistQuizScore": 66
+  }
+ },
+ {
+  "id": "u13",
+  "displayName": "ต่อ",
+  "avatar": "🚲",
+  "persona": "regular",
+  "uCenterPackage": "None",
+  "joinedAt": "2026-08-02",
+  "points": 467,
+  "fanSignals": {
+   "pastConcertsAttended": 0,
+   "artistQuizScore": 41
+  }
+ },
+ {
+  "id": "u14",
+  "displayName": "ใบเตย",
+  "avatar": "🍃",
+  "persona": "regular",
+  "uCenterPackage": "Silver",
+  "joinedAt": "2026-03-10",
+  "points": 500,
+  "fanSignals": {
+   "pastConcertsAttended": 1,
+   "artistQuizScore": 58
+  }
+ },
+ {
+  "id": "u15",
+  "displayName": "น้ำหวาน",
+  "avatar": "🍯",
+  "persona": "new_user",
+  "uCenterPackage": "Bronze",
+  "joinedAt": "2026-10-04",
+  "points": 440,
+  "fanSignals": {
+   "pastConcertsAttended": 1,
+   "artistQuizScore": 74
+  }
+ },
+ {
+  "id": "u16",
+  "displayName": "ไอซ์",
+  "avatar": "🧊",
+  "persona": "new_user",
+  "uCenterPackage": "None",
+  "joinedAt": "2026-10-06",
+  "points": 268,
+  "fanSignals": {
+   "pastConcertsAttended": 0,
+   "artistQuizScore": 60
+  }
+ },
+ {
+  "id": "u17",
+  "displayName": "ปั้น",
+  "avatar": "🎨",
+  "persona": "new_user",
+  "uCenterPackage": "None",
+  "joinedAt": "2026-10-08",
+  "points": 344,
+  "fanSignals": {
+   "pastConcertsAttended": 0,
+   "artistQuizScore": 48
+  }
+ },
+ {
+  "id": "u18",
+  "displayName": "ออม",
+  "avatar": "🐷",
+  "persona": "new_user",
+  "uCenterPackage": "Bronze",
+  "joinedAt": "2026-10-09",
+  "points": 280,
+  "fanSignals": {
+   "pastConcertsAttended": 2,
+   "artistQuizScore": 81
+  }
+ },
+ {
+  "id": "u19",
+  "displayName": "ShopKing99",
+  "avatar": "👑",
+  "persona": "farmer",
+  "uCenterPackage": "Silver",
+  "joinedAt": "2026-07-13",
+  "points": 1207,
+  "fanSignals": {
+   "pastConcertsAttended": 0,
+   "artistQuizScore": 8
+  }
+ },
+ {
+  "id": "u20",
+  "displayName": "PointHunter",
+  "avatar": "🎯",
+  "persona": "farmer",
+  "uCenterPackage": "Bronze",
+  "joinedAt": "2026-07-20",
+  "points": 1216,
+  "fanSignals": {
+   "pastConcertsAttended": 0,
+   "artistQuizScore": 12
+  }
+ },
+ {
+  "id": "u21",
+  "displayName": "FlashBuyer",
+  "avatar": "⚡",
+  "persona": "farmer",
+  "uCenterPackage": "None",
+  "joinedAt": "2026-05-29",
+  "points": 1144,
+  "fanSignals": {
+   "pastConcertsAttended": 0,
+   "artistQuizScore": 15
+  }
+ },
+ {
+  "id": "u22",
+  "displayName": "LuckyDraw88",
+  "avatar": "🎰",
+  "persona": "farmer",
+  "uCenterPackage": "Bronze",
+  "joinedAt": "2026-06-28",
+  "points": 1233,
+  "fanSignals": {
+   "pastConcertsAttended": 0,
+   "artistQuizScore": 5
+  }
+ },
+ {
+  "id": "u23",
+  "displayName": "tkt_bot_7781",
+  "avatar": "🤖",
+  "persona": "bot",
+  "uCenterPackage": "None",
+  "joinedAt": "2026-08-17",
+  "points": 1156,
+  "fanSignals": {
+   "pastConcertsAttended": 0,
+   "artistQuizScore": 0
+  }
+ },
+ {
+  "id": "u24",
+  "displayName": "auto_seat_02",
+  "avatar": "🦾",
+  "persona": "bot",
+  "uCenterPackage": "None",
+  "joinedAt": "2026-09-01",
+  "points": 1243,
+  "fanSignals": {
+   "pastConcertsAttended": 0,
+   "artistQuizScore": 0
+  }
+ }
+]

@@ -1,0 +1,32 @@
+[
+ {
+  "id": "r1",
+  "name": "ส่วนลดค่าบัตร 300 บาท",
+  "costPoints": 300,
+  "type": "discount"
+ },
+ {
+  "id": "r2",
+  "name": "ส่วนลดค่าบัตร 800 บาท",
+  "costPoints": 700,
+  "type": "discount"
+ },
+ {
+  "id": "r3",
+  "name": "Presale Boost (+5 คะแนน รอบนี้)",
+  "costPoints": 500,
+  "type": "presale_boost"
+ },
+ {
+  "id": "r4",
+  "name": "สมาชิกแฟนคลับ NOVA LUNE 1 ปี",
+  "costPoints": 1200,
+  "type": "fan_membership"
+ },
+ {
+  "id": "r5",
+  "name": "เสื้อทัวร์ลิมิเต็ด",
+  "costPoints": 900,
+  "type": "merch"
+ }
+]
