@@ -84,7 +84,7 @@ export default function AdminPage() {
 
       <section className="rounded-xl border border-line bg-surface p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <h2 className="font-bold">รายได้ U-Ticket (2 ทาง)</h2>
+          <h2 className="font-bold">รายได้ U Ticket (2 ทาง)</h2>
           <p className="text-2xl font-bold tabular-nums text-brand">{fmtTHB(t.platformRevenue)}</p>
         </div>
         <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-line" aria-hidden>

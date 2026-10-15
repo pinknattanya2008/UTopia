@@ -1,4 +1,4 @@
-# 🎫 U-Ticket — ใช้ทุกวัน ได้บัตรก่อนใคร
+# U Ticket — ใช้ทุกวัน ได้บัตรก่อนใคร
 
 แอปกดบัตรคอนเสิร์ตบนกระเป๋า **U-topia** ที่ให้สิทธิ์ presale กับคนที่ใช้ U-topia บ่อยและสม่ำเสมอ (**นับความถี่ ไม่นับยอดเงิน**) และใช้ AI คัดบอทกับคนปั๊มแต้มออก
 
@@ -120,11 +120,14 @@ data/           users / transactions / concerts / rewards / demo-cache (.json)
 - **การเก็บข้อมูล:** คอนที่สร้าง การจอง และแต้ม เก็บใน memory และบันทึกลง `data/runtime-state.json` ระหว่าง dev (gitignored) — บน Vercel จะหายเมื่อ instance ใหม่ขึ้น ปุ่ม "ล้างข้อมูลเดโม" ที่ `/admin` รีเซ็ตทั้งหมด
 - **ยังไม่มีระบบล็อกอิน:** ผู้จัดเป็นบัญชีจำลอง `Lunar Live Entertainment` ใครเปิด `/admin` ก็เข้าได้
 
-### ธีม
-พื้นเทาเป็นกลาง + ส้มเป็นสีเน้นสีเดียว มี **โหมดสว่างและมืด** — ปุ่มใน Navbar วนเป็น ตามเครื่อง → สว่าง → มืด (จำค่าไว้ใน localStorage, สคริปต์ใน `<head>` ตั้งธีมก่อนหน้าแสดงผลจึงไม่กะพริบ)
-- สีทั้งหมดเป็น CSS variables ใน `src/app/globals.css` (`:root` = สว่าง, `[data-theme="dark"]` = มืด)
-- สีใน SVG (ผังที่นั่ง/เกจ/ภาพจำลอง) อ้างตัวแปรเดียวกันผ่าน `src/lib/theme.ts` จึงเปลี่ยนตามธีมเอง
-- ใช้ `dark:` ของ Tailwind ได้ (ผูกกับ `data-theme="dark"`)
+### แบรนด์และธีม
+ตามไฟล์ออกแบบโลโก้ (`../Logo on dark and light-html`, `../App icon, small sizes, digital ticket-html`):
+- **โลโก้** `src/components/Logo.tsx` — สัญลักษณ์ตัว U + รอยบากแบบตั๋ว + จุดน้ำเงิน, ตัวหนังสือ "**U** Ticket" ฟอนต์ Sora · ตัว U ใช้ `currentColor` จึงเป็นกรมท่าบนพื้นสว่างและขาวบนพื้นมืดเอง
+- **App icon** `src/app/icon.svg` (favicon), `src/app/apple-icon.tsx` (PNG 180px สร้างด้วย `next/og`), `src/app/manifest.ts`
+- **ตั๋วดิจิทัล** `src/components/ETicket.tsx` — การ์ดกรมท่า, เส้นปรุ + รอยบาก, QR บนพื้นขาว (หน้า "บัตรของฉัน" และหน้าชำระเงินสำเร็จ)
+- **สี:** กรมท่า `#0F1A30` + พื้นเทาอมฟ้า `#F4F6FB` / เส้น `#DCE2F0` + น้ำเงิน `#4F7BFF` เป็นสีเน้นสีเดียว · โหมดมืดใช้กรมท่าเป็นพื้น ตัวหนังสือรอง `#AEB8D0`
+- **ฟอนต์:** Sora สำหรับโลโก้และตัวละตินในหัวข้อ, IBM Plex Sans Thai สำหรับภาษาไทยและเนื้อหา
+- **โหมดสว่าง/มืด:** ปุ่มใน Navbar วน ตามเครื่อง → สว่าง → มืด (จำค่าไว้, สคริปต์ใน `<head>` ตั้งธีมก่อนแสดงผลจึงไม่กะพริบ) · สีทั้งหมดเป็น CSS variables ใน `src/app/globals.css` (`:root` = สว่าง, `[data-theme="dark"]` = มืด) และ SVG อ้างตัวแปรเดียวกันผ่าน `src/lib/theme.ts`
 
 ### Icons
 UI ใช้ **MUI icons** แทน emoji ทั้งหมด (import ทีละไฟล์ เช่น `@mui/icons-material/CreditCard`) และห่อด้วย `AppRouterCacheProvider` (`enableCssLayer`) ให้ Tailwind utilities override style ของ MUI ได้

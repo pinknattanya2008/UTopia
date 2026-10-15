@@ -28,7 +28,7 @@
     "name": "Zone B",
     "priceTHB": 3500,
     "view": "ชั้น 2 มุมเฉียง เห็นจอใหญ่ชัด",
-    "color": "#3aa7e0",
+    "color": "#14b8a6",
     "capacity": 2500
    },
    {
@@ -36,7 +36,7 @@
     "name": "Zone C",
     "priceTHB": 1800,
     "view": "ชั้นบน ไกลเวที เน้นบรรยากาศ",
-    "color": "#9b7bea",
+    "color": "#8e7cff",
     "capacity": 4000
    }
   ],
@@ -259,7 +259,7 @@
     "name": "Balcony",
     "priceTHB": 1500,
     "view": "ชั้นลอย มองภาพรวมทั้งเวที",
-    "color": "#9b7bea",
+    "color": "#8e7cff",
     "capacity": 520
    }
   ],
@@ -384,7 +384,7 @@
     "name": "General Standing",
     "priceTHB": 2500,
     "view": "ยืนโซนหลัง พื้นที่กว้าง",
-    "color": "#3aa7e0",
+    "color": "#14b8a6",
     "capacity": 1500
    },
    {

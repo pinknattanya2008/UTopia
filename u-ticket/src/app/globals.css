@@ -6,63 +6,63 @@
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
 /*
- * ธีม: พื้นเทาเป็นกลาง + ส้มเป็นสีเน้นสีเดียว มี 2 ชุด (สว่าง/มืด)
- * html[data-theme] ตั้งจากสคริปต์ใน layout.tsx ก่อนหน้าแสดงผล (light | dark ตามที่เลือก หรือตามเครื่อง)
+ * ธีมตามแบรนด์ U Ticket (ไฟล์ออกแบบโลโก้): กรมท่า #0F1A30 + พื้นเทาอมฟ้า + น้ำเงิน #4F7BFF เป็นสีเน้นสีเดียว
+ * มี 2 ชุด (สว่าง/มืด) — html[data-theme] ตั้งจากสคริปต์ใน layout.tsx ก่อนหน้าแสดงผล
  */
 :root {
-  --background: #fafafa;
-  --foreground: #232326;
+  --background: #f4f6fb;
+  --foreground: #0f1a30;
   --surface: #ffffff;
-  --surface-2: #f4f4f5;
-  --line: #e4e4e7;
-  --muted: #6b6b73;
-  --brand: #ee6c1f;
-  --brand-dark: #d95d12;
-  --brand-soft: #fff0e3;
-  --danger: #e0484d;
-  --ok: #2f9e5b;
-  --selection: #ffe0c9;
+  --surface-2: #eef1f8;
+  --line: #dce2f0;
+  --muted: #5b6784;
+  --brand: #4f7bff;
+  --brand-dark: #3a63e6;
+  --brand-soft: #e9eeff;
+  --danger: #e5484d;
+  --ok: #2f9e6b;
+  --selection: #cfdcff;
 
   /* สีใน SVG (ผังที่นั่ง, เกจ, ภาพจำลอง) — อ่านผ่าน src/lib/theme.ts */
-  --map-bg: #fafafa;
-  --map-grid: #e4e4e7;
-  --map-sold: #e4e4e7;
-  --map-sold-stroke: #d4d4d8;
-  --map-ink: #232326;
-  --map-ink-muted: #6b6b73;
+  --map-bg: #f4f6fb;
+  --map-grid: #dce2f0;
+  --map-sold: #dce2f0;
+  --map-sold-stroke: #c7d0e4;
+  --map-ink: #0f1a30;
+  --map-ink-muted: #5b6784;
   --map-label-bg: #ffffff;
-  --map-selected: #232326;
+  --map-selected: #0f1a30;
   --map-selected-ring: #ffffff;
-  --map-screen: #7cb4f0;
-  --map-track: #ececef;
+  --map-screen: #8fa9ff;
+  --map-track: #e3e8f3;
   color-scheme: light;
 }
 
 [data-theme="dark"] {
-  --background: #111113;
-  --foreground: #ececef;
-  --surface: #19191c;
-  --surface-2: #232327;
-  --line: #2e2e33;
-  --muted: #9b9ba4;
-  --brand: #f27b33;
-  --brand-dark: #e36a22;
-  --brand-soft: #34231a;
-  --danger: #f0646a;
-  --ok: #45b878;
-  --selection: #5a3520;
+  --background: #0f1a30;
+  --foreground: #f4f6fb;
+  --surface: #15223d;
+  --surface-2: #1c2b4b;
+  --line: #2a3a5e;
+  --muted: #aeb8d0;
+  --brand: #4f7bff;
+  --brand-dark: #3a63e6;
+  --brand-soft: #1e2f5c;
+  --danger: #f06469;
+  --ok: #45b883;
+  --selection: #2b4590;
 
-  --map-bg: #151517;
-  --map-grid: #2e2e33;
-  --map-sold: #2f2f35;
-  --map-sold-stroke: #3d3d44;
-  --map-ink: #ececef;
-  --map-ink-muted: #9b9ba4;
-  --map-label-bg: #19191c;
+  --map-bg: #0c1528;
+  --map-grid: #2a3a5e;
+  --map-sold: #24324f;
+  --map-sold-stroke: #34456b;
+  --map-ink: #f4f6fb;
+  --map-ink-muted: #aeb8d0;
+  --map-label-bg: #15223d;
   --map-selected: #ffffff;
-  --map-selected-ring: #111113;
-  --map-screen: #4f7fb8;
-  --map-track: #2a2a2f;
+  --map-selected-ring: #0f1a30;
+  --map-screen: #3e5fc0;
+  --map-track: #24324f;
   color-scheme: dark;
 }
 
@@ -79,6 +79,16 @@
   --color-danger: var(--danger);
   --color-ok: var(--ok);
   --font-sans: var(--font-thai), ui-sans-serif, system-ui, sans-serif;
+  /* Sora สำหรับโลโก้/หัวข้อ (ตัวละติน) — ตัวไทยตกไปที่ IBM Plex Sans Thai */
+  --font-display: var(--font-sora), var(--font-thai), ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+  }
 }
 
 body {

@@ -9,7 +9,7 @@ import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useUser } from "@/components/UserProvider";
 import Stepper from "@/components/Stepper";
-import TicketQR from "@/components/TicketQR";
+import ETicket from "@/components/ETicket";
 import { api, fmtDate, fmtTHB } from "@/lib/client";
 import type { Booking, Reward } from "@/lib/types";
 
@@ -96,18 +96,15 @@ export default function CheckoutPage({ params }: { params: Promise<{ bookingId: 
             รหัสการจอง <span className="font-mono font-semibold text-foreground">{b.code}</span> · ชำระ {fmtTHB(b.total)}
           </p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-4">
           {b.items.map((it, i) => (
-            <div key={i} className="flex gap-3 rounded-lg border border-line bg-surface p-3">
-              <TicketQR value={`${b.code}-${i}`} size={80} />
-              <div className="min-w-0 text-sm">
-                <p className="font-semibold">{data.concert?.artist}</p>
-                <p className="text-muted">{it.label}</p>
-                <p className="mt-1 font-mono text-xs text-muted">
-                  {b.code}-{i + 1}
-                </p>
-              </div>
-            </div>
+            <ETicket
+              key={i}
+              eventName={data.concert?.title ?? ""}
+              dateVenue={`${data.concert ? fmtDate(data.concert.date) : ""} · ${data.concert?.venue ?? ""}`}
+              seat={it.label}
+              ticketId={`${b.code}-${i + 1}`}
+            />
           ))}
         </div>
         <div className="flex flex-wrap justify-center gap-3">

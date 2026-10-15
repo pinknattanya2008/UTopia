@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import BusinessCenterOutlinedIcon from "@mui/icons-material/BusinessCenterOutlined";
 import { useUser } from "./UserProvider";
+import Logo from "./Logo";
 import ThemeToggle from "./ThemeToggle";
 import TierBadge from "./TierBadge";
 import UserAvatar from "./UserAvatar";
@@ -39,10 +40,7 @@ export default function Navbar() {
       <header className="sticky top-0 z-40 border-b border-line bg-background/90">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
           <Link href="/admin" className="flex items-center gap-2 text-lg font-bold">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white">U</span>
-            <span>
-              U<span className="text-brand">-Ticket</span>
-            </span>
+            <Logo size={30} />
             <span className="rounded-md bg-surface-2 px-2 py-0.5 text-xs font-semibold text-muted">Organizer</span>
           </Link>
           <div className="ml-auto flex items-center gap-3">
@@ -76,10 +74,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-40 border-b border-line bg-background/90">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
         <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white">U</span>
-          <span>
-            U<span className="text-brand">-Ticket</span>
-          </span>
+          <Logo size={30} />
         </Link>
 
         <Link

@@ -3,9 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
-import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
-import EventOutlinedIcon from "@mui/icons-material/EventOutlined";
-import TicketQR from "@/components/TicketQR";
+import ETicket from "@/components/ETicket";
 import { useUser } from "@/components/UserProvider";
 import { api, fmtDate, fmtDateTime, fmtTHB } from "@/lib/client";
 import type { Booking } from "@/lib/types";
@@ -38,41 +36,35 @@ export default function TicketsPage() {
           </Link>
         </div>
       ) : (
-        rows.map((b) => (
-          <section key={b.id} className="overflow-hidden rounded-xl border border-line bg-surface">
-            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-surface-2 px-4 py-3">
+        <div className="space-y-8">
+          {rows.map((b) => (
+          <section key={b.id} className="space-y-3">
+            <div className="flex flex-wrap items-end justify-between gap-2 border-b border-line pb-2">
               <div>
-                <p className="font-bold">{b.concert?.title}</p>
-                <p className="flex flex-wrap gap-x-3 text-xs text-muted">
-                  <span className="flex items-center gap-1">
-                    <EventOutlinedIcon fontSize="inherit" /> {b.concert && fmtDate(b.concert.date)}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <PlaceOutlinedIcon fontSize="inherit" /> {b.concert?.venue}
-                  </span>
+                <h2 className="font-bold">{b.concert?.title}</h2>
+                <p className="text-xs text-muted">
+                  {b.concert && fmtDate(b.concert.date)} · {b.concert?.venue}
                 </p>
               </div>
               <p className="text-right text-xs text-muted">
-                <span className="font-mono text-sm font-semibold text-foreground">{b.code}</span>
-                <br />
-                ชำระ {fmtTHB(b.total)} · {b.paidAt && fmtDateTime(b.paidAt)}
+                รหัสจอง <span className="font-mono text-sm font-semibold text-foreground">{b.code}</span> · ชำระ {fmtTHB(b.total)}
+                {b.paidAt && ` · ${fmtDateTime(b.paidAt)}`}
               </p>
             </div>
-            <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 lg:grid-cols-2">
               {b.items.map((it, i) => (
-                <div key={i} className="flex items-center gap-3 rounded-lg border border-dashed border-line p-3">
-                  <TicketQR value={`${b.code}-${i}`} size={72} />
-                  <div className="min-w-0 text-sm">
-                    <p className="font-semibold">{it.label}</p>
-                    <p className="font-mono text-xs text-muted">
-                      {b.code}-{i + 1}
-                    </p>
-                  </div>
-                </div>
+                <ETicket
+                  key={i}
+                  eventName={b.concert?.title ?? ""}
+                  dateVenue={`${b.concert ? fmtDate(b.concert.date) : ""} · ${b.concert?.venue ?? ""}`}
+                  seat={it.label}
+                  ticketId={`${b.code}-${i + 1}`}
+                />
               ))}
             </div>
           </section>
-        ))
+          ))}
+        </div>
       )}
     </div>
   );

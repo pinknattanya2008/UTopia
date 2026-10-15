@@ -105,7 +105,7 @@ export function withZoneCapacity(zones: Zone[], sections: Section[]): Zone[] {
 
 // ---------------------------------------------------------------- Templates
 
-export const ZONE_COLORS = ["#f2557a", "#f5a524", "#3aa7e0", "#9b7bea", "#2fb57f", "#ff8a4c"];
+export const ZONE_COLORS = ["#f2557a", "#f5a524", "#14b8a6", "#8e7cff", "#2fb57f", "#ff8a4c"];
 
 type SectionSeed = Omit<Section, "capacity"> & { capacity?: number };
 
