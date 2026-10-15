@@ -14,8 +14,12 @@ export default function ChatBox() {
   const [busy, setBusy] = useState(false);
   const endRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => setMessages([]), [userId]);
-  useEffect(() => endRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), [messages]);
+  useEffect(() => {
+    setMessages([]);
+  }, [userId]);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }, [messages]);
 
   async function send(text: string) {
     const content = text.trim();
