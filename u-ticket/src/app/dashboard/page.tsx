@@ -1,20 +1,40 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { SvgIconComponent } from "@mui/icons-material";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
+import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
+import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
+import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
+import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import TrackChangesIcon from "@mui/icons-material/TrackChanges";
+import UserAvatar from "@/components/UserAvatar";
 import MissionCard from "@/components/MissionCard";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 import ScoreGauge from "@/components/ScoreGauge";
 import TierBadge from "@/components/TierBadge";
 import TrustBadge from "@/components/TrustBadge";
 import { useUser } from "@/components/UserProvider";
-import { api, fmtDateTime, fmtTHB, SOURCE_LABEL, type ExplainResponse, type MissionsResponse, type ScoreDetail } from "@/lib/client";
+import {
+  api,
+  fmtDateTime,
+  fmtTHB,
+  SOURCE_LABEL,
+  type ExplainResponse,
+  type MissionsResponse,
+  type ScoreDetail,
+} from "@/lib/client";
 import type { Transaction } from "@/lib/types";
 
-const TX_LABEL: Record<Transaction["type"], string> = {
-  card_purchase: "💳 U-Card",
-  upay_transfer: "💸 U-Pay",
-  swap: "🔁 Swap",
-  self_transfer: "↪️ โอนเข้ากระเป๋าตัวเอง",
+const TX_LABEL: Record<Transaction["type"], { label: string; Icon: SvgIconComponent }> = {
+  card_purchase: { label: "U-Card", Icon: CreditCardIcon },
+  upay_transfer: { label: "U-Pay", Icon: SendOutlinedIcon },
+  swap: { label: "Swap", Icon: SwapHorizIcon },
+  self_transfer: {
+    label: "โอนเข้ากระเป๋าตัวเอง",
+    Icon: AccountBalanceWalletOutlinedIcon,
+  },
 };
 
 export default function DashboardPage() {
@@ -37,7 +57,9 @@ export default function DashboardPage() {
         const d = await api<ScoreDetail>(`/api/score/${userId}`);
         if (!alive) return;
         setDetail(d);
-        const m = await api<MissionsResponse>(`/api/missions/${userId}`, { json: {} });
+        const m = await api<MissionsResponse>(`/api/missions/${userId}`, {
+          json: {},
+        });
         if (alive) setMissions(m);
       } catch {
         if (alive) setError(true);
@@ -53,7 +75,10 @@ export default function DashboardPage() {
     try {
       setExplain(await api<ExplainResponse>(`/api/explain/${userId}`, { json: {} }));
     } catch {
-      setExplain({ explanation: "AI กำลังยุ่ง ลองใหม่อีกครั้ง", source: "fallback" });
+      setExplain({
+        explanation: "AI กำลังยุ่ง ลองใหม่อีกครั้ง",
+        source: "fallback",
+      });
     }
     setExplaining(false);
   }
@@ -72,11 +97,12 @@ export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <section className="flex flex-wrap items-center gap-3">
-        <span className="grid h-14 w-14 place-items-center rounded-2xl bg-surface-2 text-3xl">{d.user.avatar}</span>
+        <UserAvatar name={d.user.displayName} color={d.user.avatar} size="lg" />
         <div>
           <h1 className="text-2xl font-bold">{d.user.displayName}</h1>
           <p className="text-sm text-muted">
-            U-center {d.user.uCenterPackage} · สมาชิกตั้งแต่ {d.user.joinedAt} · แต้ม {d.user.points.toLocaleString("th-TH")}
+            U-center {d.user.uCenterPackage} · สมาชิกตั้งแต่ {d.user.joinedAt} · แต้ม{" "}
+            {d.user.points.toLocaleString("th-TH")}
           </p>
         </div>
       </section>
@@ -86,8 +112,8 @@ export default function DashboardPage() {
           <ScoreGauge score={d.finalScore} tier={d.tier} />
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
             <TierBadge tier={d.tier} size="lg" />
-            <span className="rounded-full bg-orange-500/15 px-3 py-1 text-sm font-semibold text-orange-300">
-              🔥 streak {d.currentStreakDays} วัน
+            <span className="flex items-center gap-1 rounded-full bg-orange-500/15 px-3 py-1 text-sm font-semibold text-orange-300">
+              <LocalFireDepartmentIcon fontSize="inherit" /> streak {d.currentStreakDays} วัน
             </span>
           </div>
           <p className="mt-3 text-sm text-muted">
@@ -95,7 +121,8 @@ export default function DashboardPage() {
             {d.nextTier && (
               <>
                 <br />
-                อีก <span className="font-semibold text-brand">{d.nextTier.pointsNeeded}</span> คะแนนจะขึ้น {d.nextTier.tier}
+                อีก <span className="font-semibold text-brand">{d.nextTier.pointsNeeded}</span> คะแนนจะขึ้น{" "}
+                {d.nextTier.tier}
               </>
             )}
           </p>
@@ -123,9 +150,15 @@ export default function DashboardPage() {
             <button
               onClick={askExplain}
               disabled={explaining}
-              className="w-full rounded-xl bg-brand py-2.5 font-bold text-black transition hover:bg-brand-dark disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand py-2.5 font-bold text-black transition hover:bg-brand-dark disabled:opacity-60"
             >
-              {explaining ? "AI กำลังคิด…" : "✨ AI อธิบายคะแนน"}
+              {explaining ? (
+                "AI กำลังคิด…"
+              ) : (
+                <>
+                  <AutoAwesomeIcon fontSize="small" /> AI อธิบายคะแนน
+                </>
+              )}
             </button>
             {explain && (
               <div className="animate-fade-up mt-3">
@@ -142,7 +175,9 @@ export default function DashboardPage() {
 
       <section>
         <div className="mb-3 flex items-baseline justify-between gap-2">
-          <h2 className="text-lg font-bold">🎯 AI Missions สำหรับคุณ</h2>
+          <h2 className="flex items-center gap-1.5 text-lg font-bold">
+            <TrackChangesIcon className="text-brand" /> AI Missions สำหรับคุณ
+          </h2>
           {missions && <span className="text-xs text-muted">{SOURCE_LABEL[missions.source]}</span>}
         </div>
         {missions ? (
@@ -163,17 +198,23 @@ export default function DashboardPage() {
       <section>
         <h2 className="mb-3 text-lg font-bold">ธุรกรรมล่าสุด</h2>
         <div className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
-          {d.recentTransactions.map((t) => (
-            <div key={t.id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
-              <div className="min-w-0">
-                <p className="truncate font-medium">
-                  {TX_LABEL[t.type]} {t.merchant ? `· ${t.merchant}` : t.counterpartyId ? `→ ${t.counterpartyId}` : ""}
-                </p>
-                <p className="text-xs text-muted">{fmtDateTime(t.timestamp)}</p>
+          {d.recentTransactions.map((t) => {
+            const { label, Icon } = TX_LABEL[t.type];
+            return (
+              <div key={t.id} className="flex items-center justify-between gap-3 px-4 py-2.5 text-sm">
+                <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-surface-2 text-muted">
+                  <Icon fontSize="small" />
+                </span>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">
+                    {label} {t.merchant ? `· ${t.merchant}` : t.counterpartyId ? `ถึง ${t.counterpartyId}` : ""}
+                  </p>
+                  <p className="text-xs text-muted">{fmtDateTime(t.timestamp)}</p>
+                </div>
+                <span className="shrink-0 tabular-nums">{fmtTHB(t.amountTHB)}</span>
               </div>
-              <span className="shrink-0 tabular-nums">{fmtTHB(t.amountTHB)}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </section>
     </div>

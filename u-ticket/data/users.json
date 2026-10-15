@@ -2,7 +2,7 @@
  {
   "id": "u01",
   "displayName": "มายด์",
-  "avatar": "🎧",
+  "avatar": "#f59e0b",
   "persona": "true_fan",
   "uCenterPackage": "Gold",
   "joinedAt": "2026-03-20",
@@ -15,7 +15,7 @@
  {
   "id": "u02",
   "displayName": "แพรวา",
-  "avatar": "🌸",
+  "avatar": "#ec4899",
   "persona": "true_fan",
   "uCenterPackage": "Silver",
   "joinedAt": "2026-04-19",
@@ -28,7 +28,7 @@
  {
   "id": "u03",
   "displayName": "ต้นกล้า",
-  "avatar": "🌱",
+  "avatar": "#22c55e",
   "persona": "true_fan",
   "uCenterPackage": "Platinum",
   "joinedAt": "2025-12-20",
@@ -41,7 +41,7 @@
  {
   "id": "u04",
   "displayName": "แบม",
-  "avatar": "🎤",
+  "avatar": "#a855f7",
   "persona": "true_fan",
   "uCenterPackage": "Bronze",
   "joinedAt": "2026-05-19",
@@ -54,7 +54,7 @@
  {
   "id": "u05",
   "displayName": "จูน",
-  "avatar": "🌙",
+  "avatar": "#6366f1",
   "persona": "true_fan",
   "uCenterPackage": "Silver",
   "joinedAt": "2026-06-18",
@@ -67,7 +67,7 @@
  {
   "id": "u06",
   "displayName": "ฟ้าใส",
-  "avatar": "☁️",
+  "avatar": "#0ea5e9",
   "persona": "true_fan",
   "uCenterPackage": "Gold",
   "joinedAt": "2026-02-18",
@@ -80,7 +80,7 @@
  {
   "id": "u07",
   "displayName": "ก้อง",
-  "avatar": "🧢",
+  "avatar": "#14b8a6",
   "persona": "regular",
   "uCenterPackage": "Bronze",
   "joinedAt": "2026-03-30",
@@ -93,7 +93,7 @@
  {
   "id": "u08",
   "displayName": "นุ่น",
-  "avatar": "🍵",
+  "avatar": "#84cc16",
   "persona": "regular",
   "uCenterPackage": "None",
   "joinedAt": "2026-05-09",
@@ -106,7 +106,7 @@
  {
   "id": "u09",
   "displayName": "เจมส์",
-  "avatar": "🏀",
+  "avatar": "#f97316",
   "persona": "regular",
   "uCenterPackage": "Silver",
   "joinedAt": "2025-09-11",
@@ -119,7 +119,7 @@
  {
   "id": "u10",
   "displayName": "ปิ่น",
-  "avatar": "🎀",
+  "avatar": "#e11d48",
   "persona": "regular",
   "uCenterPackage": "None",
   "joinedAt": "2026-07-18",
@@ -132,7 +132,7 @@
  {
   "id": "u11",
   "displayName": "บอส",
-  "avatar": "💼",
+  "avatar": "#64748b",
   "persona": "regular",
   "uCenterPackage": "Gold",
   "joinedAt": "2025-10-16",
@@ -145,7 +145,7 @@
  {
   "id": "u12",
   "displayName": "มิว",
-  "avatar": "🐱",
+  "avatar": "#8b5cf6",
   "persona": "regular",
   "uCenterPackage": "Bronze",
   "joinedAt": "2026-06-08",
@@ -158,7 +158,7 @@
  {
   "id": "u13",
   "displayName": "ต่อ",
-  "avatar": "🚲",
+  "avatar": "#06b6d4",
   "persona": "regular",
   "uCenterPackage": "None",
   "joinedAt": "2026-08-02",
@@ -171,7 +171,7 @@
  {
   "id": "u14",
   "displayName": "ใบเตย",
-  "avatar": "🍃",
+  "avatar": "#10b981",
   "persona": "regular",
   "uCenterPackage": "Silver",
   "joinedAt": "2026-03-10",
@@ -184,7 +184,7 @@
  {
   "id": "u15",
   "displayName": "น้ำหวาน",
-  "avatar": "🍯",
+  "avatar": "#eab308",
   "persona": "new_user",
   "uCenterPackage": "Bronze",
   "joinedAt": "2026-10-04",
@@ -197,7 +197,7 @@
  {
   "id": "u16",
   "displayName": "ไอซ์",
-  "avatar": "🧊",
+  "avatar": "#3b82f6",
   "persona": "new_user",
   "uCenterPackage": "None",
   "joinedAt": "2026-10-06",
@@ -210,7 +210,7 @@
  {
   "id": "u17",
   "displayName": "ปั้น",
-  "avatar": "🎨",
+  "avatar": "#d946ef",
   "persona": "new_user",
   "uCenterPackage": "None",
   "joinedAt": "2026-10-08",
@@ -223,7 +223,7 @@
  {
   "id": "u18",
   "displayName": "ออม",
-  "avatar": "🐷",
+  "avatar": "#f43f5e",
   "persona": "new_user",
   "uCenterPackage": "Bronze",
   "joinedAt": "2026-10-09",
@@ -236,7 +236,7 @@
  {
   "id": "u19",
   "displayName": "ShopKing99",
-  "avatar": "👑",
+  "avatar": "#ca8a04",
   "persona": "farmer",
   "uCenterPackage": "Silver",
   "joinedAt": "2026-07-13",
@@ -249,7 +249,7 @@
  {
   "id": "u20",
   "displayName": "PointHunter",
-  "avatar": "🎯",
+  "avatar": "#0891b2",
   "persona": "farmer",
   "uCenterPackage": "Bronze",
   "joinedAt": "2026-07-20",
@@ -262,7 +262,7 @@
  {
   "id": "u21",
   "displayName": "FlashBuyer",
-  "avatar": "⚡",
+  "avatar": "#7c3aed",
   "persona": "farmer",
   "uCenterPackage": "None",
   "joinedAt": "2026-05-29",
@@ -275,7 +275,7 @@
  {
   "id": "u22",
   "displayName": "LuckyDraw88",
-  "avatar": "🎰",
+  "avatar": "#db2777",
   "persona": "farmer",
   "uCenterPackage": "Bronze",
   "joinedAt": "2026-06-28",
@@ -288,7 +288,7 @@
  {
   "id": "u23",
   "displayName": "tkt_bot_7781",
-  "avatar": "🤖",
+  "avatar": "#475569",
   "persona": "bot",
   "uCenterPackage": "None",
   "joinedAt": "2026-08-17",
@@ -301,7 +301,7 @@
  {
   "id": "u24",
   "displayName": "auto_seat_02",
-  "avatar": "🦾",
+  "avatar": "#0d9488",
   "persona": "bot",
   "uCenterPackage": "None",
   "joinedAt": "2026-09-01",

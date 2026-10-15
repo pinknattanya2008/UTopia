@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_Thai } from "next/font/google";
+import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import { UserProvider } from "@/components/UserProvider";
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="th">
       <body className={`${plexThai.variable} font-sans antialiased`}>
+        <AppRouterCacheProvider options={{ enableCssLayer: true }}>
         <UserProvider>
           <Navbar />
           <main className="mx-auto max-w-6xl px-4 pb-16 pt-6">{children}</main>
@@ -32,6 +34,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             U-Ticket · U-Hackathon 2026 Track 1: AI · ข้อมูลทั้งหมดเป็นข้อมูลจำลอง
           </footer>
         </UserProvider>
+        </AppRouterCacheProvider>
       </body>
     </html>
   );

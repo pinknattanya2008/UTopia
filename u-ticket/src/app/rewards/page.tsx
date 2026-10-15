@@ -1,11 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { SvgIconComponent } from "@mui/icons-material";
+import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
+import RocketLaunchOutlinedIcon from "@mui/icons-material/RocketLaunchOutlined";
+import CardMembershipIcon from "@mui/icons-material/CardMembership";
+import CheckroomIcon from "@mui/icons-material/Checkroom";
+import RedeemIcon from "@mui/icons-material/Redeem";
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutlined";
+import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlined";
 import { useUser } from "@/components/UserProvider";
 import { api } from "@/lib/client";
 import type { Reward } from "@/lib/types";
 
-const ICON: Record<Reward["type"], string> = { discount: "🏷️", presale_boost: "🚀", fan_membership: "🌙", merch: "👕" };
+const ICON: Record<Reward["type"], SvgIconComponent> = {
+  discount: LocalOfferOutlinedIcon,
+  presale_boost: RocketLaunchOutlinedIcon,
+  fan_membership: CardMembershipIcon,
+  merch: CheckroomIcon,
+};
 
 type RewardsRes = { rewards: Reward[]; points: number; redeemed: { rewardId: string; at: string }[] };
 
@@ -38,7 +51,9 @@ export default function RewardsPage() {
     <div className="space-y-6">
       <section className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">🎁 แลกแต้ม</h1>
+          <h1 className="flex items-center gap-2 text-2xl font-bold">
+            <RedeemIcon className="text-brand" /> แลกแต้ม
+          </h1>
           <p className="text-sm text-muted">แต้มได้จากธุรกรรมที่ผ่านการตรวจของ AI ว่าเป็นการใช้งานจริงเท่านั้น</p>
         </div>
         <div className="rounded-2xl border border-brand/40 bg-brand/10 px-5 py-3 text-right">
@@ -48,8 +63,8 @@ export default function RewardsPage() {
       </section>
 
       {toast && (
-        <p className={`animate-fade-up rounded-xl border p-3 text-sm ${toast.ok ? "border-ok/40 bg-ok/10 text-ok" : "border-danger/40 bg-danger/10 text-danger"}`}>
-          {toast.ok ? "✓ " : "✕ "}
+        <p className={`animate-fade-up flex items-center gap-2 rounded-xl border p-3 text-sm ${toast.ok ? "border-ok/40 bg-ok/10 text-ok" : "border-danger/40 bg-danger/10 text-danger"}`}>
+          {toast.ok ? <CheckCircleOutlineIcon fontSize="small" /> : <ErrorOutlineIcon fontSize="small" />}
           {toast.text}
         </p>
       )}
@@ -58,9 +73,12 @@ export default function RewardsPage() {
         {data?.rewards.map((r) => {
           const enough = data.points >= r.costPoints;
           const count = data.redeemed.filter((x) => x.rewardId === r.id).length;
+          const Icon = ICON[r.type];
           return (
             <div key={r.id} className="flex flex-col rounded-2xl border border-line bg-surface p-5">
-              <p className="text-3xl">{ICON[r.type]}</p>
+              <span className="grid h-12 w-12 place-items-center rounded-xl bg-brand/15 text-brand">
+                <Icon />
+              </span>
               <h2 className="mt-2 font-semibold">{r.name}</h2>
               <p className="mt-1 text-sm text-muted">
                 {r.costPoints.toLocaleString("th-TH")} แต้ม{count > 0 && ` · แลกแล้ว ${count} ครั้ง`}

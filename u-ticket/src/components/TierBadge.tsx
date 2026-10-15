@@ -1,4 +1,4 @@
-import { tierInfo } from "@/lib/scoring";
+import TierIcon from "./TierIcon";
 import type { TierName } from "@/lib/types";
 
 const STYLE: Record<TierName, string> = {
@@ -9,11 +9,10 @@ const STYLE: Record<TierName, string> = {
 };
 
 export default function TierBadge({ tier, size = "md" }: { tier: TierName; size?: "sm" | "md" | "lg" }) {
-  const info = tierInfo(tier);
   const sz = size === "sm" ? "text-xs px-2 py-0.5" : size === "lg" ? "text-base px-3 py-1" : "text-sm px-2.5 py-0.5";
   return (
     <span className={`inline-flex items-center gap-1 rounded-full font-semibold ring-1 whitespace-nowrap ${STYLE[tier]} ${sz}`}>
-      <span aria-hidden>{info.emoji}</span>
+      <TierIcon tier={tier} className="text-[1.15em]" />
       {tier}
     </span>
   );

@@ -1,4 +1,6 @@
 import { notFound } from "next/navigation";
+import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
+import EventOutlinedIcon from "@mui/icons-material/EventOutlined";
 import PresaleTimeline from "@/components/PresaleTimeline";
 import { getConcert } from "@/lib/data";
 import { fmtDate, fmtTHB } from "@/lib/client";
@@ -13,8 +15,13 @@ export default async function ConcertPage({ params }: { params: Promise<{ id: st
       <section>
         <p className="text-sm text-brand">{concert.artist}</p>
         <h1 className="text-2xl font-bold sm:text-3xl">{concert.title}</h1>
-        <p className="mt-1 text-muted">
-          📍 {concert.venue} · 📅 {fmtDate(concert.date)} 19:00 น.
+        <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-muted">
+          <span className="flex items-center gap-1">
+            <PlaceOutlinedIcon fontSize="small" /> {concert.venue}
+          </span>
+          <span className="flex items-center gap-1">
+            <EventOutlinedIcon fontSize="small" /> {fmtDate(concert.date)} 19:00 น.
+          </span>
         </p>
       </section>
 

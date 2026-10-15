@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
 import { useUser } from "./UserProvider";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -55,7 +56,7 @@ export default function ChatBox() {
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {messages.length === 0 && (
           <div className="py-6 text-center text-muted">
-            <p className="text-4xl">🎫</p>
+            <ConfirmationNumberOutlinedIcon className="text-5xl text-brand" fontSize="inherit" />
             <p className="mt-2">
               สวัสดี{user ? ` ${user.displayName}` : ""}! บอกงบและสิ่งที่อยากได้ แล้ว Concierge จะช่วยเลือกโซนให้
             </p>

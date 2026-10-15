@@ -32,11 +32,11 @@ export const UCENTER_SCORE: Record<UCenterPackage, number> = {
   Diamond: 100,
 };
 
-export const TIERS: { name: TierName; min: number; leadMinutes: number; emoji: string; label: string }[] = [
-  { name: "Diamond", min: 80, leadMinutes: 120, emoji: "💎", label: "เข้าคิวก่อน 2 ชั่วโมง" },
-  { name: "Gold", min: 60, leadMinutes: 60, emoji: "🥇", label: "เข้าคิวก่อน 1 ชั่วโมง" },
-  { name: "Silver", min: 40, leadMinutes: 30, emoji: "🥈", label: "เข้าคิวก่อน 30 นาที" },
-  { name: "General", min: 0, leadMinutes: 0, emoji: "🎟️", label: "เปิดขายทั่วไป" },
+export const TIERS: { name: TierName; min: number; leadMinutes: number; label: string }[] = [
+  { name: "Diamond", min: 80, leadMinutes: 120, label: "เข้าคิวก่อน 2 ชั่วโมง" },
+  { name: "Gold", min: 60, leadMinutes: 60, label: "เข้าคิวก่อน 1 ชั่วโมง" },
+  { name: "Silver", min: 40, leadMinutes: 30, label: "เข้าคิวก่อน 30 นาที" },
+  { name: "General", min: 0, leadMinutes: 0, label: "เปิดขายทั่วไป" },
 ];
 
 export function tierFor(finalScore: number): TierName {

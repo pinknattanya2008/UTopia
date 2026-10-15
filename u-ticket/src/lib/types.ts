@@ -5,7 +5,7 @@ export type Persona = "true_fan" | "regular" | "new_user" | "farmer" | "bot";
 export interface User {
   id: string; // "u01"
   displayName: string; // "มายด์"
-  avatar: string; // emoji หรือ URL
+  avatar: string; // สีพื้นหลังของ avatar (hex) — แสดงเป็นวงกลมพร้อมอักษรแรกของชื่อ
   persona: Persona; // ใช้ใน seed/เดโมเท่านั้น ห้ามส่งให้ AI หรือ client
   uCenterPackage: UCenterPackage;
   joinedAt: string; // ISO date

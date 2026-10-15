@@ -1,3 +1,7 @@
+import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
+import WarningAmberIcon from "@mui/icons-material/WarningAmber";
+import SmartToyOutlinedIcon from "@mui/icons-material/SmartToyOutlined";
+import FlagOutlinedIcon from "@mui/icons-material/FlagOutlined";
 import { SOURCE_LABEL } from "@/lib/client";
 import type { AiSource, TrustAssessment } from "@/lib/types";
 
@@ -5,20 +9,21 @@ import type { AiSource, TrustAssessment } from "@/lib/types";
 export default function TrustBadge({ trust, source }: { trust: TrustAssessment; source: AiSource }) {
   const level = trust.isLikelyBot || trust.trustMultiplier < 0.6 ? "bad" : trust.trustMultiplier < 0.9 ? "warn" : "ok";
   const style = {
-    ok: { box: "border-ok/40 bg-ok/10", text: "text-ok", icon: "🛡️", title: "การใช้งานจริง น่าเชื่อถือ" },
-    warn: { box: "border-brand/40 bg-brand/10", text: "text-brand", icon: "⚠️", title: "พบพฤติกรรมน่าสงสัยบางส่วน" },
+    ok: { box: "border-ok/40 bg-ok/10", text: "text-ok", Icon: VerifiedUserOutlinedIcon, title: "การใช้งานจริง น่าเชื่อถือ" },
+    warn: { box: "border-brand/40 bg-brand/10", text: "text-brand", Icon: WarningAmberIcon, title: "พบพฤติกรรมน่าสงสัยบางส่วน" },
     bad: {
       box: "border-danger/50 bg-danger/10",
       text: "text-danger",
-      icon: trust.isLikelyBot ? "🤖" : "🚩",
+      Icon: trust.isLikelyBot ? SmartToyOutlinedIcon : FlagOutlinedIcon,
       title: trust.isLikelyBot ? "เข้าข่ายบอท" : "ตรวจพบการปั๊มแต้ม",
     },
   }[level];
   return (
     <div className={`rounded-2xl border p-4 ${style.box}`}>
       <div className="flex items-center justify-between gap-2">
-        <p className={`font-semibold ${style.text}`}>
-          {style.icon} {style.title}
+        <p className={`flex items-center gap-1.5 font-semibold ${style.text}`}>
+          <style.Icon fontSize="small" />
+          {style.title}
         </p>
         <span className={`rounded-full px-2.5 py-0.5 text-sm font-bold tabular-nums ring-1 ring-current ${style.text}`}>
           Trust ×{trust.trustMultiplier.toFixed(2)}

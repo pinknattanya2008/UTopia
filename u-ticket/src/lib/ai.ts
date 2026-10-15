@@ -21,6 +21,12 @@ export function aiEnabled() {
   return Boolean(process.env.OPENAI_API_KEY) && !isOffline();
 }
 
+/** UI ใช้ MUI icons แทน emoji — ตัด emoji ที่ AI อาจส่งมาออก */
+const EMOJI_RE = /[\p{Extended_Pictographic}\u{1F1E6}-\u{1F1FF}\u{FE0F}\u{200D}\u{20E3}]/gu;
+export function stripEmoji(text: string): string {
+  return text.replace(EMOJI_RE, "").replace(/[ \t]{2,}/g, " ");
+}
+
 let _client: OpenAI | null = null;
 function client(): OpenAI {
   // สร้างเมื่อใช้งานจริงเท่านั้น — ถ้าไม่มี key แอปยังเปิดได้
@@ -71,7 +77,7 @@ export async function assessTrust(payload: unknown): Promise<TrustAssessment | n
   return {
     ...out,
     trustMultiplier: Math.min(1, Math.max(0, out.trustMultiplier)),
-    reasons: out.reasons.slice(0, 3),
+    reasons: out.reasons.slice(0, 3).map((r) => stripEmoji(r).trim()),
   };
 }
 
@@ -82,7 +88,13 @@ export async function generateMissions(payload: unknown): Promise<Mission[] | nu
     zodTextFormat(MissionsSchema, "missions"),
   );
   if (!out || out.missions.length === 0) return null;
-  return out.missions.slice(0, 3).map((m) => ({ ...m, targetCount: Math.max(1, Math.round(m.targetCount)) }));
+  return out.missions.slice(0, 3).map((m) => ({
+    ...m,
+    title: stripEmoji(m.title).trim(),
+    description: stripEmoji(m.description).trim(),
+    scoreImpact: stripEmoji(m.scoreImpact).trim(),
+    targetCount: Math.max(1, Math.round(m.targetCount)),
+  }));
 }
 
 export async function explainScore(payload: unknown): Promise<string | null> {
@@ -93,7 +105,7 @@ export async function explainScore(payload: unknown): Promise<string | null> {
     input: JSON.stringify(payload),
   });
   if (res.status !== "completed" || !res.output_text.trim()) return null;
-  return res.output_text.trim();
+  return stripEmoji(res.output_text).trim();
 }
 
 export async function summarizePresale(payload: unknown): Promise<string | null> {
@@ -102,7 +114,7 @@ export async function summarizePresale(payload: unknown): Promise<string | null>
     payload,
     zodTextFormat(SummarySchema, "presale_summary"),
   );
-  return out?.summary.trim() || null;
+  return out ? stripEmoji(out.summary).trim() || null : null;
 }
 
 /** Concierge แบบ streaming: คืน async iterator ของข้อความทีละส่วน */
@@ -117,6 +129,6 @@ export async function* streamConcierge(
     input: messages,
   });
   for await (const event of stream) {
-    if (event.type === "response.output_text.delta") yield event.delta;
+    if (event.type === "response.output_text.delta") yield stripEmoji(event.delta);
   }
 }

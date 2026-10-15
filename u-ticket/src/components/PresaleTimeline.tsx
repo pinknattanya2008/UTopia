@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { useUser } from "./UserProvider";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import TierBadge from "./TierBadge";
 import { fmtTime } from "@/lib/client";
 import { TIERS } from "@/lib/scoring";
@@ -30,8 +32,8 @@ export default function PresaleTimeline({ salesOpenAt }: { salesOpenAt: string }
                   {t.label}
                 </p>
                 {mine && user && (
-                  <p className="mt-2 text-sm font-semibold text-brand">
-                    ← รอบของ {user.displayName} (Fan Score {user.finalScore.toFixed(1)})
+                  <p className="mt-2 flex items-center gap-1 text-sm font-semibold text-brand">
+                    <ArrowBackIcon fontSize="inherit" /> รอบของ {user.displayName} (Fan Score {user.finalScore.toFixed(1)})
                   </p>
                 )}
               </div>
@@ -39,8 +41,8 @@ export default function PresaleTimeline({ salesOpenAt }: { salesOpenAt: string }
           );
         })}
       </ol>
-      <Link href="/dashboard" className="block rounded-2xl bg-brand py-3 text-center font-bold text-black hover:bg-brand-dark">
-        เพิ่ม Fan Score ให้ได้รอบที่เร็วขึ้น →
+      <Link href="/dashboard" className="flex items-center justify-center gap-1 rounded-2xl bg-brand py-3 font-bold text-black hover:bg-brand-dark">
+        เพิ่ม Fan Score ให้ได้รอบที่เร็วขึ้น <ArrowForwardIcon fontSize="small" />
       </Link>
     </div>
   );

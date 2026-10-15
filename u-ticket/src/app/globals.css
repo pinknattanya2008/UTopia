@@ -1,3 +1,5 @@
+/* MUI (emotion) อยู่ใน layer "mui" ให้ Tailwind utilities override ได้ */
+@layer theme, base, mui, components, utilities;
 @import "tailwindcss";
 
 :root {

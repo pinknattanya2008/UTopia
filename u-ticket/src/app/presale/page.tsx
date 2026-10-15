@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import PlayArrowIcon from "@mui/icons-material/PlayArrow";
+import ReplayIcon from "@mui/icons-material/Replay";
+import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import QueueTable, { type QueueRowView } from "@/components/QueueTable";
 import TierBadge from "@/components/TierBadge";
 import { useUser } from "@/components/UserProvider";
@@ -72,9 +76,19 @@ export default function PresalePage() {
         <button
           onClick={simulate}
           disabled={phase === "loading" || phase === "baseline"}
-          className="rounded-2xl bg-brand px-6 py-4 text-lg font-bold text-black shadow-[0_0_40px_-10px] shadow-brand transition hover:bg-brand-dark disabled:opacity-60"
+          className="flex items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-4 text-lg font-bold text-black shadow-[0_0_40px_-10px] shadow-brand transition hover:bg-brand-dark disabled:opacity-60"
         >
-          {phase === "idle" || phase === "error" ? "▶ จำลองเปิดขาย presale" : phase === "final" ? "↻ จำลองอีกครั้ง" : "กำลังจัดคิว…"}
+          {phase === "idle" || phase === "error" ? (
+            <>
+              <PlayArrowIcon /> จำลองเปิดขาย presale
+            </>
+          ) : phase === "final" ? (
+            <>
+              <ReplayIcon /> จำลองอีกครั้ง
+            </>
+          ) : (
+            "กำลังจัดคิว…"
+          )}
         </button>
       </section>
 
@@ -101,7 +115,7 @@ export default function PresalePage() {
               }`}
             >
               <p className="mb-1 flex items-center gap-2 text-xs font-semibold text-brand">
-                ✨ สรุปจาก AI
+                <AutoAwesomeIcon fontSize="inherit" /> สรุปจาก AI
                 {phase === "final" && <span className="font-normal text-muted">· {SOURCE_LABEL[data.summarySource]}</span>}
               </p>
               {phase === "final" ? (
@@ -109,7 +123,9 @@ export default function PresalePage() {
               ) : (
                 <p className="text-muted">ถ้าเรียงตามจำนวนธุรกรรมอย่างเดียว บัญชีปั๊มแต้มและบอทจะได้คิวแรก ๆ…</p>
               )}
-              {phase === "final" && data.notice && <p className="mt-2 text-xs text-muted">ℹ️ {data.notice}</p>}
+              {phase === "final" && data.notice && <p className="mt-2 flex items-center gap-1 text-xs text-muted">
+                  <InfoOutlinedIcon fontSize="inherit" /> {data.notice}
+                </p>}
             </div>
             <div className="rounded-2xl border border-danger/40 bg-danger/10 p-4">
               <p className="text-xs font-semibold text-danger">บอท/ปั๊มแต้มที่ถูกคัดออก</p>
@@ -147,7 +163,7 @@ export default function PresalePage() {
 
       {phase === "idle" && (
         <div className="rounded-2xl border border-dashed border-line p-10 text-center text-muted">
-          กดปุ่ม <span className="font-semibold text-brand">▶ จำลองเปิดขาย presale</span> เพื่อดู AI จัดคิวสด ๆ
+          กดปุ่ม <span className="font-semibold text-brand">จำลองเปิดขาย presale</span> เพื่อดู AI จัดคิวสด ๆ
         </div>
       )}
     </div>

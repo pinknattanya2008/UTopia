@@ -4,7 +4,7 @@
 
 > U-Hackathon 2026 · Track 1: AI — สเปกเต็มอยู่ที่ [`../docs/U-Ticket_Build_Spec.md`](../docs/U-Ticket_Build_Spec.md), ไอเดียและพิชที่ [`../docs/U-Ticket_Idea.md`](../docs/U-Ticket_Idea.md)
 
-**Stack:** Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · OpenAI Node SDK (Responses API) + zod · ข้อมูลจำลองใน JSON
+**Stack:** Next.js 15 (App Router) · TypeScript · Tailwind CSS v4 · MUI Icons (`@mui/icons-material`) · OpenAI Node SDK (Responses API) + zod · ข้อมูลจำลองใน JSON
 
 ---
 
@@ -88,6 +88,11 @@ data/           users / transactions / concerts / rewards / demo-cache (.json)
 - เรียก OpenAI จาก API route ฝั่ง server เท่านั้น key ไม่เคยถูกส่งไป client
 - `.env*.local` อยู่ใน `.gitignore`, มีแค่ `.env.example` ที่ไม่มีค่า key
 - ฟิลด์ `persona` ไม่ถูกส่งให้ AI หรือ client
+
+### Icons
+UI ใช้ **MUI icons** แทน emoji ทั้งหมด (import ทีละไฟล์ เช่น `@mui/icons-material/CreditCard`) และห่อด้วย `AppRouterCacheProvider` (`enableCssLayer`) ให้ Tailwind utilities override style ของ MUI ได้
+- avatar ผู้ใช้เป็นวงกลมสี + อักษรแรกของชื่อ (`components/UserAvatar.tsx`) ฟิลด์ `avatar` ใน `users.json` เก็บสี
+- prompt ทุกตัวสั่ง "ห้ามใช้ emoji" และ `stripEmoji()` ใน `lib/ai.ts` ตัด emoji ที่ AI อาจส่งมาออกอีกชั้น
 
 ### Guardrail ของ Trust
 ผล AI ถูก clamp เป็น 0–1 และปรับให้สอดคล้องกับหลักฐานจากกฎ: ถ้าไม่มี flag เลย trust ≥ 0.8 (กัน AI กล่าวหาเกินข้อมูล), ถ้ามี flag ≥ 2 ข้อ trust ≤ 0.45

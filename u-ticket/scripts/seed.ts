@@ -80,34 +80,34 @@ type Spec = {
 
 const SPECS: Spec[] = [
   // true_fan (6)
-  { id: "u01", displayName: "มายด์", avatar: "🎧", persona: "true_fan", pkg: "Gold", concerts: 5, quiz: 92, joinedDaysAgo: 210 },
-  { id: "u02", displayName: "แพรวา", avatar: "🌸", persona: "true_fan", pkg: "Silver", concerts: 4, quiz: 85, joinedDaysAgo: 180 },
-  { id: "u03", displayName: "ต้นกล้า", avatar: "🌱", persona: "true_fan", pkg: "Platinum", concerts: 6, quiz: 78, joinedDaysAgo: 300 },
-  { id: "u04", displayName: "แบม", avatar: "🎤", persona: "true_fan", pkg: "Bronze", concerts: 3, quiz: 88, joinedDaysAgo: 150 },
-  { id: "u05", displayName: "จูน", avatar: "🌙", persona: "true_fan", pkg: "Silver", concerts: 2, quiz: 95, joinedDaysAgo: 120 },
-  { id: "u06", displayName: "ฟ้าใส", avatar: "☁️", persona: "true_fan", pkg: "Gold", concerts: 4, quiz: 70, joinedDaysAgo: 240 },
+  { id: "u01", displayName: "มายด์", avatar: "#f59e0b", persona: "true_fan", pkg: "Gold", concerts: 5, quiz: 92, joinedDaysAgo: 210 },
+  { id: "u02", displayName: "แพรวา", avatar: "#ec4899", persona: "true_fan", pkg: "Silver", concerts: 4, quiz: 85, joinedDaysAgo: 180 },
+  { id: "u03", displayName: "ต้นกล้า", avatar: "#22c55e", persona: "true_fan", pkg: "Platinum", concerts: 6, quiz: 78, joinedDaysAgo: 300 },
+  { id: "u04", displayName: "แบม", avatar: "#a855f7", persona: "true_fan", pkg: "Bronze", concerts: 3, quiz: 88, joinedDaysAgo: 150 },
+  { id: "u05", displayName: "จูน", avatar: "#6366f1", persona: "true_fan", pkg: "Silver", concerts: 2, quiz: 95, joinedDaysAgo: 120 },
+  { id: "u06", displayName: "ฟ้าใส", avatar: "#0ea5e9", persona: "true_fan", pkg: "Gold", concerts: 4, quiz: 70, joinedDaysAgo: 240 },
   // regular (8)
-  { id: "u07", displayName: "ก้อง", avatar: "🧢", persona: "regular", pkg: "Bronze", concerts: 1, quiz: 45, joinedDaysAgo: 200 },
-  { id: "u08", displayName: "นุ่น", avatar: "🍵", persona: "regular", pkg: "None", concerts: 0, quiz: 38, joinedDaysAgo: 160 },
-  { id: "u09", displayName: "เจมส์", avatar: "🏀", persona: "regular", pkg: "Silver", concerts: 2, quiz: 52, joinedDaysAgo: 400 },
-  { id: "u10", displayName: "ปิ่น", avatar: "🎀", persona: "regular", pkg: "None", concerts: 1, quiz: 30, joinedDaysAgo: 90 },
-  { id: "u11", displayName: "บอส", avatar: "💼", persona: "regular", pkg: "Gold", concerts: 0, quiz: 25, joinedDaysAgo: 365 },
-  { id: "u12", displayName: "มิว", avatar: "🐱", persona: "regular", pkg: "Bronze", concerts: 2, quiz: 66, joinedDaysAgo: 130 },
-  { id: "u13", displayName: "ต่อ", avatar: "🚲", persona: "regular", pkg: "None", concerts: 0, quiz: 41, joinedDaysAgo: 75 },
-  { id: "u14", displayName: "ใบเตย", avatar: "🍃", persona: "regular", pkg: "Silver", concerts: 1, quiz: 58, joinedDaysAgo: 220 },
+  { id: "u07", displayName: "ก้อง", avatar: "#14b8a6", persona: "regular", pkg: "Bronze", concerts: 1, quiz: 45, joinedDaysAgo: 200 },
+  { id: "u08", displayName: "นุ่น", avatar: "#84cc16", persona: "regular", pkg: "None", concerts: 0, quiz: 38, joinedDaysAgo: 160 },
+  { id: "u09", displayName: "เจมส์", avatar: "#f97316", persona: "regular", pkg: "Silver", concerts: 2, quiz: 52, joinedDaysAgo: 400 },
+  { id: "u10", displayName: "ปิ่น", avatar: "#e11d48", persona: "regular", pkg: "None", concerts: 1, quiz: 30, joinedDaysAgo: 90 },
+  { id: "u11", displayName: "บอส", avatar: "#64748b", persona: "regular", pkg: "Gold", concerts: 0, quiz: 25, joinedDaysAgo: 365 },
+  { id: "u12", displayName: "มิว", avatar: "#8b5cf6", persona: "regular", pkg: "Bronze", concerts: 2, quiz: 66, joinedDaysAgo: 130 },
+  { id: "u13", displayName: "ต่อ", avatar: "#06b6d4", persona: "regular", pkg: "None", concerts: 0, quiz: 41, joinedDaysAgo: 75 },
+  { id: "u14", displayName: "ใบเตย", avatar: "#10b981", persona: "regular", pkg: "Silver", concerts: 1, quiz: 58, joinedDaysAgo: 220 },
   // new_user (4) — สมัคร 7–12 วันก่อน
-  { id: "u15", displayName: "น้ำหวาน", avatar: "🍯", persona: "new_user", pkg: "Bronze", concerts: 1, quiz: 74, joinedDaysAgo: 12 },
-  { id: "u16", displayName: "ไอซ์", avatar: "🧊", persona: "new_user", pkg: "None", concerts: 0, quiz: 60, joinedDaysAgo: 10 },
-  { id: "u17", displayName: "ปั้น", avatar: "🎨", persona: "new_user", pkg: "None", concerts: 0, quiz: 48, joinedDaysAgo: 8 },
-  { id: "u18", displayName: "ออม", avatar: "🐷", persona: "new_user", pkg: "Bronze", concerts: 2, quiz: 81, joinedDaysAgo: 7 },
+  { id: "u15", displayName: "น้ำหวาน", avatar: "#eab308", persona: "new_user", pkg: "Bronze", concerts: 1, quiz: 74, joinedDaysAgo: 12 },
+  { id: "u16", displayName: "ไอซ์", avatar: "#3b82f6", persona: "new_user", pkg: "None", concerts: 0, quiz: 60, joinedDaysAgo: 10 },
+  { id: "u17", displayName: "ปั้น", avatar: "#d946ef", persona: "new_user", pkg: "None", concerts: 0, quiz: 48, joinedDaysAgo: 8 },
+  { id: "u18", displayName: "ออม", avatar: "#f43f5e", persona: "new_user", pkg: "Bronze", concerts: 2, quiz: 81, joinedDaysAgo: 7 },
   // farmer (4)
-  { id: "u19", displayName: "ShopKing99", avatar: "👑", persona: "farmer", pkg: "Silver", concerts: 0, quiz: 8, joinedDaysAgo: 95 },
-  { id: "u20", displayName: "PointHunter", avatar: "🎯", persona: "farmer", pkg: "Bronze", concerts: 0, quiz: 12, joinedDaysAgo: 88 },
-  { id: "u21", displayName: "FlashBuyer", avatar: "⚡", persona: "farmer", pkg: "None", concerts: 0, quiz: 15, joinedDaysAgo: 140 },
-  { id: "u22", displayName: "LuckyDraw88", avatar: "🎰", persona: "farmer", pkg: "Bronze", concerts: 0, quiz: 5, joinedDaysAgo: 110 },
+  { id: "u19", displayName: "ShopKing99", avatar: "#ca8a04", persona: "farmer", pkg: "Silver", concerts: 0, quiz: 8, joinedDaysAgo: 95 },
+  { id: "u20", displayName: "PointHunter", avatar: "#0891b2", persona: "farmer", pkg: "Bronze", concerts: 0, quiz: 12, joinedDaysAgo: 88 },
+  { id: "u21", displayName: "FlashBuyer", avatar: "#7c3aed", persona: "farmer", pkg: "None", concerts: 0, quiz: 15, joinedDaysAgo: 140 },
+  { id: "u22", displayName: "LuckyDraw88", avatar: "#db2777", persona: "farmer", pkg: "Bronze", concerts: 0, quiz: 5, joinedDaysAgo: 110 },
   // bot (2)
-  { id: "u23", displayName: "tkt_bot_7781", avatar: "🤖", persona: "bot", pkg: "None", concerts: 0, quiz: 0, joinedDaysAgo: 60 },
-  { id: "u24", displayName: "auto_seat_02", avatar: "🦾", persona: "bot", pkg: "None", concerts: 0, quiz: 0, joinedDaysAgo: 45 },
+  { id: "u23", displayName: "tkt_bot_7781", avatar: "#475569", persona: "bot", pkg: "None", concerts: 0, quiz: 0, joinedDaysAgo: 60 },
+  { id: "u24", displayName: "auto_seat_02", avatar: "#0d9488", persona: "bot", pkg: "None", concerts: 0, quiz: 0, joinedDaysAgo: 45 },
 ];
 
 // ---------- Transaction builders ----------

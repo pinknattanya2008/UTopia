@@ -134,7 +134,7 @@ function fallbackExplanation(user: User, s: ScoreBreakdown, trust: TrustAssessme
   const info = tierInfo(s.tier);
   const next = nextTier(s.finalScore);
   const parts = [
-    `${user.displayName} อยู่ Tier ${info.emoji} ${s.tier} ด้วย Fan Score ${s.finalScore} คะแนน (${info.label})`,
+    `${user.displayName} อยู่ Tier ${s.tier} ด้วย Fan Score ${s.finalScore} คะแนน (${info.label})`,
     `จุดแข็งคือ${COMPONENT_LABEL[best.k]} (${best.v}/100) ส่วนที่ควรพัฒนาคือ${COMPONENT_LABEL[worst.k]} (${worst.v}/100)`,
   ];
   if (next) {
@@ -208,7 +208,7 @@ function fallbackMissions(user: User, s: ScoreBreakdown, trust: TrustAssessment)
     },
     {
       title: "ใช้ U-topia ต่อเนื่อง 7 วัน",
-      description: "มีธุรกรรมอย่างน้อยวันละ 1 รายการ เช่น ค่าเดินทาง BTS/MRT เพื่อสร้าง streak 🔥",
+      description: "มีธุรกรรมอย่างน้อยวันละ 1 รายการ เช่น ค่าเดินทาง BTS/MRT เพื่อสร้าง streak ต่อเนื่อง",
       targetCount: 7,
       scoreImpact: impact(streakGain),
       category: "consistency",

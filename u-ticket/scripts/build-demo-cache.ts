@@ -60,7 +60,7 @@ for (let i = 0; i < users.length; i += 6) {
       if (e.source === "ai") cache.explain[u.id] = e.explanation;
       const m = await post<Src & { missions: unknown[] }>(`/api/missions/${u.id}`);
       if (m.source === "ai") cache.missions[u.id] = m.missions;
-      process.stdout.write(`${u.id}${e.source === "ai" && m.source === "ai" ? "✓" : "·"} `);
+      process.stdout.write(`${u.id}${e.source === "ai" && m.source === "ai" ? "+" : "."} `);
     }),
   );
 }
@@ -88,4 +88,4 @@ cache.generatedAt = new Date().toISOString();
 cache.model = process.env.OPENAI_MODEL ?? "gpt-5.4-mini";
 writeFileSync(file, JSON.stringify(cache, null, 1) + "\n");
 console.log(`saved → ${file}`);
-if (aiCount === 0) console.warn("⚠️ ไม่มีผลจาก AI เลย — ตรวจว่า server มี OPENAI_API_KEY และไม่ได้ตั้ง DEMO_OFFLINE=1");
+if (aiCount === 0) console.warn("WARN: ไม่มีผลจาก AI เลย — ตรวจว่า server มี OPENAI_API_KEY และไม่ได้ตั้ง DEMO_OFFLINE=1");

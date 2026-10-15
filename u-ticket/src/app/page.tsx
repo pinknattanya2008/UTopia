@@ -1,4 +1,11 @@
 import Link from "next/link";
+import NightsStayOutlinedIcon from "@mui/icons-material/NightsStayOutlined";
+import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
+import EventOutlinedIcon from "@mui/icons-material/EventOutlined";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
+import CreditCardIcon from "@mui/icons-material/CreditCard";
+import SmartToyOutlinedIcon from "@mui/icons-material/SmartToyOutlined";
+import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
 import ConnectWallet from "@/components/ConnectWallet";
 import TierBadge from "@/components/TierBadge";
 import { getConcert } from "@/lib/data";
@@ -41,15 +48,20 @@ export default function Home() {
               <br />
               LUNE
             </p>
-            <span className="absolute left-3 top-3 rounded-full bg-black/60 px-2 py-0.5 text-xs">🌙 World Tour 2026</span>
+            <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-xs">
+              <NightsStayOutlinedIcon fontSize="inherit" /> World Tour 2026
+            </span>
           </div>
           <div className="space-y-3 p-5 sm:p-6">
             <h3 className="text-xl font-bold group-hover:text-brand">{concert.title}</h3>
-            <p className="text-sm text-muted">
-              📍 {concert.venue}
-              <br />
-              📅 {fmtDate(concert.date)} · 19:00 น.
-            </p>
+            <div className="space-y-1 text-sm text-muted">
+              <p className="flex items-center gap-1.5">
+                <PlaceOutlinedIcon fontSize="small" /> {concert.venue}
+              </p>
+              <p className="flex items-center gap-1.5">
+                <EventOutlinedIcon fontSize="small" /> {fmtDate(concert.date)} · 19:00 น.
+              </p>
+            </div>
             <p className="text-sm">
               เปิดขายทั่วไป {fmtDate(concert.salesOpenAt)} 12:00 น. · บัตรเริ่มต้น{" "}
               <span className="font-semibold text-brand">{fmtTHB(minPrice)}</span>
@@ -61,7 +73,9 @@ export default function Home() {
                 </span>
               ))}
             </div>
-            <span className="inline-block font-semibold text-brand">ดูโซนและรอบ presale →</span>
+            <span className="inline-flex items-center gap-1 font-semibold text-brand">
+              ดูโซนและรอบ presale <ArrowForwardIcon fontSize="small" />
+            </span>
           </div>
         </Link>
       </section>
@@ -70,12 +84,14 @@ export default function Home() {
         <h2 className="mb-4 text-xl font-bold">ทำงานอย่างไร</h2>
         <div className="grid gap-3 sm:grid-cols-3">
           {[
-            { icon: "💳", title: "ใช้ U-topia ทุกวัน", body: "รูด U-Card ซื้อกาแฟ จ่ายค่าเดินทาง โอนด้วย U-Pay ทุกรายการนับเป็น Fan Score" },
-            { icon: "🤖", title: "AI คัดบอทและคนปั๊มแต้ม", body: "ตรวจการโอนวน รายการถี่แบบเครื่องจักร และยอดพุ่งก่อนเปิดขาย แล้วลด Trust Multiplier" },
-            { icon: "🎟️", title: "แฟนตัวจริงได้กดก่อน", body: "เปิดขายเป็นรอบตาม Tier: Diamond → Gold → Silver → ทั่วไป แลกแต้มเป็นส่วนลดได้" },
+            { Icon: CreditCardIcon, title: "ใช้ U-topia ทุกวัน", body: "รูด U-Card ซื้อกาแฟ จ่ายค่าเดินทาง โอนด้วย U-Pay ทุกรายการนับเป็น Fan Score" },
+            { Icon: SmartToyOutlinedIcon, title: "AI คัดบอทและคนปั๊มแต้ม", body: "ตรวจการโอนวน รายการถี่แบบเครื่องจักร และยอดพุ่งก่อนเปิดขาย แล้วลด Trust Multiplier" },
+            { Icon: ConfirmationNumberOutlinedIcon, title: "แฟนตัวจริงได้กดก่อน", body: "เปิดขายเป็นรอบตาม Tier: Diamond → Gold → Silver → ทั่วไป แลกแต้มเป็นส่วนลดได้" },
           ].map((s) => (
             <div key={s.title} className="rounded-2xl border border-line bg-surface p-5">
-              <p className="text-3xl">{s.icon}</p>
+              <span className="grid h-12 w-12 place-items-center rounded-xl bg-brand/15 text-brand">
+                <s.Icon />
+              </span>
               <h3 className="mt-2 font-semibold">{s.title}</h3>
               <p className="mt-1 text-sm text-muted">{s.body}</p>
             </div>

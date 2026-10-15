@@ -56,7 +56,7 @@ const checks: [string, boolean][] = [
 ];
 let ok = true;
 for (const [label, pass] of checks) {
-  console.log(`${pass ? "✅" : "❌"} ${label}`);
+  console.log(`${pass ? "[PASS]" : "[FAIL]"} ${label}`);
   ok &&= pass;
 }
 process.exit(ok ? 0 : 1);

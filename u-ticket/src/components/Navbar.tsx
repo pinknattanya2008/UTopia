@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useUser } from "./UserProvider";
 import TierBadge from "./TierBadge";
+import UserAvatar from "./UserAvatar";
 
 const LINKS = [
   { href: "/", label: "หน้าแรก" },
@@ -34,6 +35,7 @@ export default function Navbar() {
         </Link>
 
         <div className="ml-auto flex items-center gap-2">
+          {user && <UserAvatar name={user.displayName} color={user.avatar} size="sm" />}
           <label className="sr-only" htmlFor="user-select">
             เลือกผู้ใช้จำลอง
           </label>
@@ -46,7 +48,7 @@ export default function Navbar() {
             {users.length === 0 && <option value={userId}>กำลังโหลด…</option>}
             {users.map((u) => (
               <option key={u.id} value={u.id}>
-                {u.avatar} {u.displayName} · {u.tier}
+                {u.displayName} · {u.tier}
               </option>
             ))}
           </select>
