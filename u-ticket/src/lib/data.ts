@@ -2,6 +2,7 @@ import usersJson from "../../data/users.json";
 import transactionsJson from "../../data/transactions.json";
 import concertsJson from "../../data/concerts.json";
 import rewardsJson from "../../data/rewards.json";
+import demoCacheJson from "../../data/demo-cache.json";
 import type { Concert, Mission, PublicUser, Reward, Transaction, TrustAssessment, User, AiSource } from "./types";
 
 /**
@@ -17,6 +18,7 @@ interface Store {
   explain: Map<string, Cached<string>>;
   missions: Map<string, Cached<Mission[]>>;
   summaries: Map<string, Cached<string>>;
+  inflight: Map<string, Promise<unknown>>; // กันเรียก AI ซ้ำซ้อนขณะรอผล
   boosts: Map<string, number>; // presale boost (+คะแนน) จากการแลกแต้ม
   redemptions: { userId: string; rewardId: string; at: string }[];
 }
@@ -30,6 +32,7 @@ function createStore(): Store {
     explain: new Map(),
     missions: new Map(),
     summaries: new Map(),
+    inflight: new Map(),
     boosts: new Map(),
     redemptions: [],
   };
@@ -79,3 +82,16 @@ export function getConcerts(): Concert[] {
 export function getRewards(): Reward[] {
   return rewardsJson as Reward[];
 }
+
+/** ผล AI ที่บันทึกไว้ล่วงหน้าสำหรับโหมด DEMO_OFFLINE=1 (สร้างด้วย npm run build-demo-cache) */
+export interface DemoCache {
+  generatedAt: string | null;
+  model: string | null;
+  trust: Record<string, TrustAssessment>;
+  explain: Record<string, string>;
+  missions: Record<string, Mission[]>;
+  presaleSummary: string | null;
+  concierge: Record<string, string>; // key: "userId|คำถาม"
+}
+
+export const demoCache = demoCacheJson as unknown as DemoCache;
