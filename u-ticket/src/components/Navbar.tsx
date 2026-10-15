@@ -38,7 +38,7 @@ export default function Navbar() {
       <header className="sticky top-0 z-40 border-b border-line bg-background/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
           <Link href="/admin" className="flex items-center gap-2 text-lg font-bold">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-black">U</span>
+            <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white">U</span>
             <span>
               U<span className="text-brand">-Ticket</span>
             </span>
@@ -55,7 +55,7 @@ export default function Navbar() {
                   key={l.href}
                   href={l.href}
                   className={`whitespace-nowrap rounded-full px-3 py-1 transition ${
-                    active ? "bg-brand font-semibold text-black" : "text-muted hover:bg-surface-2 hover:text-foreground"
+                    active ? "bg-brand font-semibold text-white" : "text-muted hover:bg-surface-2 hover:text-foreground"
                   }`}
                 >
                   {l.label}
@@ -72,7 +72,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-40 border-b border-line bg-background/90 backdrop-blur">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
         <Link href="/" className="flex items-center gap-2 text-lg font-bold">
-          <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-black">U</span>
+          <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white">U</span>
           <span>
             U<span className="text-brand">-Ticket</span>
           </span>
@@ -119,7 +119,7 @@ export default function Navbar() {
                   key={l.href}
                   href={l.href}
                   className={`whitespace-nowrap rounded-full px-3 py-1 transition ${
-                    active ? "bg-brand font-semibold text-black" : "text-muted hover:bg-surface-2 hover:text-foreground"
+                    active ? "bg-brand font-semibold text-white" : "text-muted hover:bg-surface-2 hover:text-foreground"
                   }`}
                 >
                   {l.label}

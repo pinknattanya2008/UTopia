@@ -76,7 +76,7 @@ export default function PresalePage() {
         <button
           onClick={simulate}
           disabled={phase === "loading" || phase === "baseline"}
-          className="flex items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-4 text-lg font-bold text-black shadow-[0_0_40px_-10px] shadow-brand transition hover:bg-brand-dark disabled:opacity-60"
+          className="flex items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-4 text-lg font-bold text-white shadow-glow transition hover:bg-brand-dark disabled:opacity-60"
         >
           {phase === "idle" || phase === "error" ? (
             <>
@@ -99,7 +99,7 @@ export default function PresalePage() {
       )}
 
       {phase === "loading" && (
-        <div className="grid place-items-center gap-4 rounded-2xl border border-line bg-surface py-16 text-center">
+        <div className="grid place-items-center gap-4 rounded-2xl border border-line bg-surface shadow-soft py-16 text-center">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand/30 border-t-brand" />
           <p className="text-lg font-semibold">AI กำลังตรวจสอบ 24 บัญชี…</p>
           <p className="text-sm text-muted">วิเคราะห์ความถี่ ความสม่ำเสมอ และรูปแบบธุรกรรมผิดปกติ</p>
@@ -145,7 +145,7 @@ export default function PresalePage() {
                 </span>
               ))}
               {me && (
-                <span className="ml-auto rounded-full bg-brand px-3 py-1 font-semibold text-black">
+                <span className="ml-auto rounded-full bg-brand px-3 py-1 font-semibold text-white">
                   {me.displayName}: คิวที่ {me.rank}/{data.stats.total} · เข้าคิว {fmtTime(me.entryTime)} น.
                 </span>
               )}

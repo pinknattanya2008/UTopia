@@ -12,7 +12,7 @@
     "name": "VIP Standing",
     "priceTHB": 7500,
     "view": "ยืนติดเวที ใกล้ศิลปินที่สุด",
-    "color": "#f43f5e",
+    "color": "#f2557a",
     "capacity": 300
    },
    {
@@ -20,7 +20,7 @@
     "name": "Zone A",
     "priceTHB": 5500,
     "view": "ที่นั่งชั้นล่าง เห็นเวทีชัด",
-    "color": "#ffd400",
+    "color": "#f5a524",
     "capacity": 1200
    },
    {
@@ -28,7 +28,7 @@
     "name": "Zone B",
     "priceTHB": 3500,
     "view": "ชั้น 2 มุมเฉียง เห็นจอใหญ่ชัด",
-    "color": "#22d3ee",
+    "color": "#3aa7e0",
     "capacity": 2500
    },
    {
@@ -36,7 +36,7 @@
     "name": "Zone C",
     "priceTHB": 1800,
     "view": "ชั้นบน ไกลเวที เน้นบรรยากาศ",
-    "color": "#a78bfa",
+    "color": "#9b7bea",
     "capacity": 4000
    }
   ],
@@ -243,7 +243,7 @@
     "name": "Premium",
     "priceTHB": 4500,
     "view": "แถวหน้ากลางเวที",
-    "color": "#f43f5e",
+    "color": "#f2557a",
     "capacity": 144
    },
    {
@@ -251,7 +251,7 @@
     "name": "Orchestra",
     "priceTHB": 2900,
     "view": "ชั้นล่าง เห็นเวทีเต็มตา",
-    "color": "#ffd400",
+    "color": "#f5a524",
     "capacity": 750
    },
    {
@@ -259,7 +259,7 @@
     "name": "Balcony",
     "priceTHB": 1500,
     "view": "ชั้นลอย มองภาพรวมทั้งเวที",
-    "color": "#a78bfa",
+    "color": "#9b7bea",
     "capacity": 520
    }
   ],
@@ -376,7 +376,7 @@
     "name": "Front Standing",
     "priceTHB": 3900,
     "view": "ยืนโซนหน้าเวที",
-    "color": "#f43f5e",
+    "color": "#f2557a",
     "capacity": 800
    },
    {
@@ -384,7 +384,7 @@
     "name": "General Standing",
     "priceTHB": 2500,
     "view": "ยืนโซนหลัง พื้นที่กว้าง",
-    "color": "#22d3ee",
+    "color": "#3aa7e0",
     "capacity": 1500
    },
    {
@@ -392,7 +392,7 @@
     "name": "Seated Balcony",
     "priceTHB": 3200,
     "view": "ที่นั่งชั้นลอย มองเวทีชัด",
-    "color": "#34d399",
+    "color": "#2fb57f",
     "capacity": 480
    }
   ],

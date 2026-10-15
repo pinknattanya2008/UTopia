@@ -39,7 +39,7 @@ export default function TicketsPage() {
         </div>
       ) : (
         rows.map((b) => (
-          <section key={b.id} className="overflow-hidden rounded-3xl border border-line bg-surface">
+          <section key={b.id} className="overflow-hidden rounded-3xl border border-line bg-surface shadow-soft">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-surface-2 px-4 py-3">
               <div>
                 <p className="font-bold">{b.concert?.title}</p>

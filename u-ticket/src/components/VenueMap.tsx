@@ -1,6 +1,7 @@
 "use client";
 
 import type { Concert } from "@/lib/types";
+import { MAP } from "@/lib/theme";
 import { MAP_H, MAP_W, sectionBounds, stageOf } from "@/lib/venue";
 
 type Availability = Record<string, { capacity: number; available: number }>;
@@ -25,7 +26,7 @@ export default function VenueMap({
 
   return (
     <svg viewBox={`0 0 ${MAP_W} ${MAP_H}`} className="h-auto w-full select-none" role="group" aria-label="ผังสถานที่">
-      <rect x={0} y={0} width={MAP_W} height={MAP_H} rx={24} fill="#111118" />
+      <rect x={0} y={0} width={MAP_W} height={MAP_H} rx={24} fill={MAP.bg} stroke={MAP.grid} />
       {concert.background && (
         <image
           href={concert.background.image}
@@ -38,8 +39,8 @@ export default function VenueMap({
           pointerEvents="none"
         />
       )}
-      <rect x={stage.x} y={stage.y} width={stage.w} height={stage.h} rx={10} fill="#ffd400" />
-      <text x={stage.x + stage.w / 2} y={stage.y + stage.h / 2 + 7} textAnchor="middle" fontSize={20} fontWeight={700} fill="#000">
+      <rect x={stage.x} y={stage.y} width={stage.w} height={stage.h} rx={10} fill={MAP.stage} />
+      <text x={stage.x + stage.w / 2} y={stage.y + stage.h / 2 + 7} textAnchor="middle" fontSize={20} fontWeight={700} fill={MAP.stageText}>
         STAGE
       </text>
 
@@ -61,7 +62,7 @@ export default function VenueMap({
             tabIndex={clickable ? 0 : undefined}
             aria-label={`${zone?.name ?? ""} ${s.name}${a ? ` ว่าง ${a.available} ที่` : ""}`}
             aria-pressed={onSelect ? isSel : undefined}
-            className={clickable ? "cursor-pointer outline-none [&:focus-visible>rect]:stroke-white" : ""}
+            className={clickable ? "cursor-pointer outline-none [&:focus-visible>rect]:stroke-[#3a2a1e]" : ""}
           >
             <rect
               x={x}
@@ -70,9 +71,9 @@ export default function VenueMap({
               height={h}
               transform={s.rotation ? `rotate(${s.rotation} ${x + w / 2} ${y + h / 2})` : undefined}
               rx={10}
-              fill={soldOut ? "#2a2a38" : (zone?.color ?? "#555")}
-              fillOpacity={soldOut ? 1 : isSel ? 0.95 : 0.35 + 0.45 * ratio}
-              stroke={isSel ? "#fff" : soldOut ? "#3a3a4a" : (zone?.color ?? "#555")}
+              fill={soldOut ? MAP.sold : (zone?.color ?? "#999")}
+              fillOpacity={soldOut ? 1 : isSel ? 0.95 : 0.25 + 0.5 * ratio}
+              stroke={isSel ? MAP.ink : soldOut ? MAP.soldStroke : (zone?.color ?? "#999")}
               strokeWidth={isSel ? 4 : 1.5}
               className="transition-[fill-opacity,stroke-width] duration-200 hover:fill-opacity-100"
             />
@@ -82,7 +83,7 @@ export default function VenueMap({
               textAnchor="middle"
               fontSize={Math.min(22, Math.max(13, b.w / 8))}
               fontWeight={700}
-              fill={soldOut ? "#71717a" : isSel ? "#000" : "#fff"}
+              fill={soldOut ? MAP.inkMuted : isSel ? "#fff" : MAP.ink}
             >
               {s.name}
             </text>
@@ -92,7 +93,7 @@ export default function VenueMap({
                 y={y + h / 2 + 18}
                 textAnchor="middle"
                 fontSize={13}
-                fill={soldOut ? "#71717a" : isSel ? "#000" : "#e4e4e7"}
+                fill={soldOut ? MAP.inkMuted : isSel ? "#fff" : MAP.ink}
               >
                 {soldOut ? "เต็ม" : `ว่าง ${a.available.toLocaleString("th-TH")}`}
               </text>

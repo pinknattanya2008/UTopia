@@ -75,7 +75,7 @@ export default function RewardsPage() {
           const count = data.redeemed.filter((x) => x.rewardId === r.id).length;
           const Icon = ICON[r.type];
           return (
-            <div key={r.id} className="flex flex-col rounded-2xl border border-line bg-surface p-5">
+            <div key={r.id} className="flex flex-col rounded-2xl border border-line bg-surface shadow-soft p-5">
               <span className="grid h-12 w-12 place-items-center rounded-xl bg-brand/15 text-brand">
                 <Icon />
               </span>
@@ -86,7 +86,7 @@ export default function RewardsPage() {
               <button
                 onClick={() => redeem(r)}
                 disabled={!enough || busy !== null}
-                className="mt-4 rounded-xl bg-brand py-2 font-bold text-black transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-muted"
+                className="mt-4 rounded-xl bg-brand py-2 font-bold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-muted"
               >
                 {busy === r.id ? "กำลังแลก…" : enough ? "แลกเลย" : `ขาดอีก ${(r.costPoints - data.points).toLocaleString("th-TH")} แต้ม`}
               </button>

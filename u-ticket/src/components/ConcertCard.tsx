@@ -8,8 +8,10 @@ import type { Concert } from "@/lib/types";
 
 /** โปสเตอร์ไล่สีจากสีโซนของงาน (ไม่ต้องมีรูป) */
 export function posterStyle(c: Pick<Concert, "zones">) {
-  const [a, b] = [c.zones[0]?.color ?? "#ffd400", c.zones[c.zones.length - 1]?.color ?? "#7c3aed"];
-  return { background: `radial-gradient(circle at 25% 25%, ${a}66, transparent 60%), radial-gradient(circle at 75% 85%, ${b}77, transparent 55%), #15151d` };
+  const [a, b] = [c.zones[0]?.color ?? "#ff8a4c", c.zones[c.zones.length - 1]?.color ?? "#9b7bea"];
+  return {
+    background: `radial-gradient(circle at 20% 20%, ${a}55, transparent 60%), radial-gradient(circle at 80% 90%, ${b}55, transparent 55%), linear-gradient(135deg, #fff4ea, #ffe6d2)`,
+  };
 }
 
 export default function ConcertCard({ concert, available, capacity }: { concert: Concert; available: number; capacity: number }) {
@@ -18,17 +20,17 @@ export default function ConcertCard({ concert, available, capacity }: { concert:
   return (
     <Link
       href={`/concert/${concert.id}`}
-      className="group flex flex-col overflow-hidden rounded-3xl border border-line bg-surface transition hover:border-brand"
+      className="group flex flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-soft transition hover:border-brand"
     >
       <div className="relative grid min-h-40 place-items-center p-6" style={posterStyle(concert)}>
-        <p className="text-center text-3xl font-black uppercase tracking-widest">{concert.artist}</p>
+        <p className="text-center text-3xl font-black uppercase tracking-widest text-foreground/85">{concert.artist}</p>
         {concert.plan === "pro" && (
-          <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-xs text-brand">
+          <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-white/85 px-2 py-0.5 text-xs font-semibold text-brand shadow-soft">
             <AutoAwesomeIcon fontSize="inherit" /> Fan Score Presale
           </span>
         )}
         {pct < 0.15 && (
-          <span className="absolute right-3 top-3 rounded-full bg-danger px-2 py-0.5 text-xs font-semibold">ใกล้เต็ม</span>
+          <span className="absolute right-3 top-3 rounded-full bg-danger px-2 py-0.5 text-xs font-semibold text-white">ใกล้เต็ม</span>
         )}
       </div>
       <div className="flex flex-1 flex-col gap-2 p-5">

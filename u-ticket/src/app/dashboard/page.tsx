@@ -108,11 +108,11 @@ export default function DashboardPage() {
       </section>
 
       <section className="grid gap-4 lg:grid-cols-3">
-        <div className="rounded-3xl border border-line bg-surface p-5 text-center">
+        <div className="rounded-3xl border border-line bg-surface shadow-soft p-5 text-center">
           <ScoreGauge score={d.finalScore} tier={d.tier} />
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
             <TierBadge tier={d.tier} size="lg" />
-            <span className="flex items-center gap-1 rounded-full bg-orange-500/15 px-3 py-1 text-sm font-semibold text-orange-300">
+            <span className="flex items-center gap-1 rounded-full bg-orange-50 px-3 py-1 text-sm font-semibold text-orange-600 ring-1 ring-orange-200">
               <LocalFireDepartmentIcon fontSize="inherit" /> streak {d.currentStreakDays} วัน
             </span>
           </div>
@@ -139,7 +139,7 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="rounded-3xl border border-line bg-surface p-5">
+        <div className="rounded-3xl border border-line bg-surface shadow-soft p-5">
           <h2 className="mb-3 font-bold">คะแนนแยกตามองค์ประกอบ</h2>
           <ScoreBreakdown score={d} />
         </div>
@@ -150,7 +150,7 @@ export default function DashboardPage() {
             <button
               onClick={askExplain}
               disabled={explaining}
-              className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand py-2.5 font-bold text-black transition hover:bg-brand-dark disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand py-2.5 font-bold text-white transition hover:bg-brand-dark disabled:opacity-60"
             >
               {explaining ? (
                 "AI กำลังคิด…"
@@ -197,7 +197,7 @@ export default function DashboardPage() {
 
       <section>
         <h2 className="mb-3 text-lg font-bold">ธุรกรรมล่าสุด</h2>
-        <div className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface">
+        <div className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface shadow-soft">
           {d.recentTransactions.map((t) => {
             const { label, Icon } = TX_LABEL[t.type];
             return (

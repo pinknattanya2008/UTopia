@@ -10,6 +10,7 @@ import ExploreOutlinedIcon from "@mui/icons-material/ExploreOutlined";
 import TouchAppOutlinedIcon from "@mui/icons-material/TouchAppOutlined";
 import { fmtTHB } from "@/lib/client";
 import type { Concert, Section, Zone } from "@/lib/types";
+import { MAP } from "@/lib/theme";
 import { sectionBounds, stageOf, viewFrom, type SeatPos } from "@/lib/venue";
 
 /** ภาพจำลองมุมมองจากที่นั่ง: ขนาดเวทีตามระยะ เลื่อนซ้าย/ขวาตามมุม และจำนวนแถวด้านหน้า */
@@ -24,23 +25,23 @@ function SeatView({ meters, angle, rowsAhead, color }: { meters: number; angle: 
   const sy = 34 - scale * 8;
   const heads = Math.min(4, Math.ceil(rowsAhead / 5));
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-xl bg-[#0b0b10]" aria-label="ภาพจำลองมุมมองจากที่นั่ง">
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-xl bg-[#fff4ea]" aria-label="ภาพจำลองมุมมองจากที่นั่ง">
       <defs>
         <radialGradient id="spot" cx="50%" cy="0%" r="80%">
-          <stop offset="0%" stopColor="#ffd400" stopOpacity="0.35" />
-          <stop offset="100%" stopColor="#ffd400" stopOpacity="0" />
+          <stop offset="0%" stopColor={MAP.stage} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={MAP.stage} stopOpacity="0" />
         </radialGradient>
       </defs>
       <rect x={0} y={0} width={W} height={H} fill="url(#spot)" />
       {/* จอด้านข้างเวที */}
-      <rect x={cx - sw / 2 - 26 * scale} y={sy - 18 * scale} width={20 * scale} height={14 * scale} fill="#3b82f6" opacity={0.6} />
-      <rect x={cx + sw / 2 + 6 * scale} y={sy - 18 * scale} width={20 * scale} height={14 * scale} fill="#3b82f6" opacity={0.6} />
+      <rect x={cx - sw / 2 - 26 * scale} y={sy - 18 * scale} width={20 * scale} height={14 * scale} fill={MAP.screen} opacity={0.8} />
+      <rect x={cx + sw / 2 + 6 * scale} y={sy - 18 * scale} width={20 * scale} height={14 * scale} fill={MAP.screen} opacity={0.8} />
       {/* เวที (เอียงตามมุม) */}
       <polygon
         points={`${cx - sw / 2 + sw * skew * 0.3},${sy} ${cx + sw / 2 + sw * skew * 0.3},${sy} ${cx + sw / 2 + 10 * scale},${sy + sh} ${cx - sw / 2 - 10 * scale},${sy + sh}`}
-        fill="#ffd400"
+        fill={MAP.stage}
       />
-      <circle cx={cx} cy={sy + sh * 0.35} r={4 * scale} fill="#111" />
+      <circle cx={cx} cy={sy + sh * 0.35} r={4 * scale} fill="#fff" />
       {/* ผู้ชมด้านหน้า */}
       {Array.from({ length: heads }, (_, row) =>
         Array.from({ length: 9 }, (_, i) => (
@@ -50,7 +51,7 @@ function SeatView({ meters, angle, rowsAhead, color }: { meters: number; angle: 
             cy={H - 8 - (heads - 1 - row) * 9}
             r={9 - row * 0.8}
             fill={color}
-            opacity={0.18 + row * 0.08}
+            opacity={0.25 + row * 0.1}
           />
         )),
       )}
@@ -97,8 +98,8 @@ export default function SeatDetail({
   const rowsAhead = seat ? seat.rowIndex : 0;
 
   return (
-    <div className="animate-fade-up overflow-hidden rounded-3xl border border-line bg-surface">
-      <div className="flex items-center gap-3 border-b border-line p-4" style={{ background: `linear-gradient(90deg, ${zone.color}33, transparent)` }}>
+    <div className="animate-fade-up overflow-hidden rounded-3xl border border-line bg-surface shadow-soft">
+      <div className="flex items-center gap-3 border-b border-line p-4" style={{ background: `linear-gradient(90deg, ${zone.color}22, transparent)` }}>
         <span className="h-10 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: zone.color }} />
         <div className="min-w-0 flex-1">
           <p className="text-xs text-muted">
@@ -152,7 +153,7 @@ export default function SeatDetail({
               onClick={onToggle}
               disabled={status === "available" && !canAdd}
               className={`flex w-full items-center justify-center gap-1.5 rounded-2xl py-2.5 font-bold transition disabled:opacity-40 ${
-                status === "selected" ? "border border-line hover:border-danger hover:text-danger" : "bg-brand text-black hover:bg-brand-dark"
+                status === "selected" ? "border border-line hover:border-danger hover:text-danger" : "bg-brand text-white hover:bg-brand-dark"
               }`}
             >
               {status === "selected" ? (
@@ -187,7 +188,7 @@ export default function SeatDetail({
                 aria-label="เพิ่มจำนวน"
                 onClick={() => onStandingChange?.((standingQty ?? 0) + 1)}
                 disabled={!canAdd || (standingQty ?? 0) >= (standingAvailable ?? 0)}
-                className="grid h-9 w-9 place-items-center rounded-full bg-brand text-black disabled:opacity-40"
+                className="grid h-9 w-9 place-items-center rounded-full bg-brand text-white disabled:opacity-40"
               >
                 <AddIcon fontSize="small" />
               </button>

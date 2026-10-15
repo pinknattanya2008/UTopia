@@ -41,7 +41,7 @@ export default function QueueTable({
 }) {
   const final = mode === "final";
   return (
-    <div className="overflow-hidden rounded-2xl border border-line bg-surface">
+    <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-soft">
       <div className="grid grid-cols-[2.5rem_1fr_auto] items-center gap-3 border-b border-line px-3 py-2 text-xs text-muted sm:grid-cols-[3rem_1fr_7rem_5rem_5rem]">
         <span>คิว</span>
         <span>ผู้ใช้</span>
@@ -69,7 +69,7 @@ export default function QueueTable({
                   <span className={`truncate font-medium ${red ? "text-danger line-through decoration-danger/60" : ""}`}>
                     {r.displayName}
                   </span>
-                  {me && <span className="shrink-0 rounded bg-brand px-1.5 text-[10px] font-bold text-black">คุณ</span>}
+                  {me && <span className="shrink-0 rounded bg-brand px-1.5 text-[10px] font-bold text-white">คุณ</span>}
                   <span className="sm:hidden">{final && <TierBadge tier={r.tier} size="sm" />}</span>
                 </div>
                 {red && r.flagReason ? (

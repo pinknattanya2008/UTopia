@@ -41,7 +41,7 @@ export default function PresaleTimeline({ salesOpenAt }: { salesOpenAt: string }
           );
         })}
       </ol>
-      <Link href="/dashboard" className="flex items-center justify-center gap-1 rounded-2xl bg-brand py-3 font-bold text-black hover:bg-brand-dark">
+      <Link href="/dashboard" className="flex items-center justify-center gap-1 rounded-2xl bg-brand py-3 font-bold text-white hover:bg-brand-dark">
         เพิ่ม Fan Score ให้ได้รอบที่เร็วขึ้น <ArrowForwardIcon fontSize="small" />
       </Link>
     </div>

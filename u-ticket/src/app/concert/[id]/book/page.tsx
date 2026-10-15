@@ -10,6 +10,7 @@ import HourglassTopIcon from "@mui/icons-material/HourglassTop";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DemoClock from "@/components/DemoClock";
+import Stepper from "@/components/Stepper";
 import SeatDetail from "@/components/SeatDetail";
 import SeatPlan, { type SeatPick } from "@/components/SeatPlan";
 import TierBadge from "@/components/TierBadge";
@@ -198,13 +199,17 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
         </p>
       </div>
 
+      <div className="rounded-2xl border border-line bg-surface px-4 py-3 shadow-soft">
+        <Stepper current={0} />
+      </div>
+
       {concert.plan === "pro" && <DemoClock salesOpenAt={concert.salesOpenAt} />}
 
       {access && <AccessBanner access={access} name={user?.displayName ?? ""} />}
 
       <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
         <div className="space-y-3">
-          <div className="rounded-3xl border border-line bg-surface p-2 sm:p-3">
+          <div className="rounded-3xl border border-line bg-surface shadow-soft p-2 sm:p-3">
             {canSelect ? (
               <SeatPlan
                 concert={concert}
@@ -231,10 +236,10 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
               </span>
             ))}
             <span className="flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-xs text-muted">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#3a3a48]" /> ไม่ว่าง
+              <span className="h-2.5 w-2.5 rounded-full bg-[#e6dbcf]" /> ไม่ว่าง
             </span>
             <span className="flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-xs text-muted">
-              <span className="h-2.5 w-2.5 rounded-full border border-black bg-white" /> ที่คุณเลือก
+              <span className="h-2.5 w-2.5 rounded-full bg-foreground ring-2 ring-white" /> ที่คุณเลือก
             </span>
           </div>
         </div>
@@ -257,7 +262,7 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
             </div>
           )}
 
-          <div className="rounded-3xl border border-line bg-surface p-4">
+          <div className="rounded-3xl border border-line bg-surface shadow-soft p-4">
             <h2 className="mb-1 font-bold">ตะกร้าของคุณ</h2>
             {access && (
               <p className="mb-3 text-xs text-muted">
@@ -298,7 +303,7 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
             <button
               onClick={checkout}
               disabled={busy || cart.length === 0 || !canSelect}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3 font-bold text-black transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3 font-bold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50"
             >
               <LockOutlinedIcon fontSize="small" />
               {busy ? "กำลังล็อกที่นั่ง…" : "ล็อกที่นั่งและชำระเงิน"}
@@ -357,5 +362,5 @@ function AccessBanner({ access, name }: { access: Access; name: string }) {
       </div>
     );
   }
-  return <p className="rounded-2xl border border-line bg-surface p-4 text-sm text-muted">{access.message}</p>;
+  return <p className="rounded-2xl border border-line bg-surface shadow-soft p-4 text-sm text-muted">{access.message}</p>;
 }

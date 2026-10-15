@@ -13,7 +13,7 @@ export default function MissionCard({ mission, index }: { mission: Mission; inde
   const c = CAT[mission.category] ?? CAT.frequency;
   return (
     <div
-      className="animate-fade-up flex flex-col rounded-2xl border border-line bg-surface p-4"
+      className="animate-fade-up flex flex-col rounded-2xl border border-line bg-surface shadow-soft p-4"
       style={{ animationDelay: `${index * 120}ms` }}
     >
       <div className="mb-2 flex items-center justify-between text-xs">

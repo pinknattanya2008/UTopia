@@ -69,7 +69,7 @@ export default function AdminPage() {
         </div>
         <Link
           href="/admin/concerts/new"
-          className="flex items-center gap-1.5 rounded-2xl bg-brand px-5 py-2.5 font-bold text-black hover:bg-brand-dark"
+          className="flex items-center gap-1.5 rounded-2xl bg-brand px-5 py-2.5 font-bold text-white hover:bg-brand-dark"
         >
           <AddIcon /> สร้างคอนเสิร์ต
         </Link>
@@ -87,9 +87,9 @@ export default function AdminPage() {
           <h2 className="font-bold">รายได้ U-Ticket (2 ทาง)</h2>
           <p className="text-2xl font-bold tabular-nums text-brand">{fmtTHB(t.platformRevenue)}</p>
         </div>
-        <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-surface-2" aria-hidden>
+        <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-[#f3e6d9]" aria-hidden>
           <div className="bg-brand" style={{ width: `${(t.commission / revBase) * 100}%` }} />
-          <div className="bg-cyan-400" style={{ width: `${(t.serviceFees / revBase) * 100}%` }} />
+          <div className="bg-sky-400" style={{ width: `${(t.serviceFees / revBase) * 100}%` }} />
         </div>
         <div className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
           <div className="flex gap-2">
@@ -101,7 +101,7 @@ export default function AdminPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <PersonOutlineIcon className="text-cyan-400" fontSize="small" />
+            <PersonOutlineIcon className="text-sky-500" fontSize="small" />
             <div>
               <p className="font-semibold">จากผู้ซื้อ: ค่าบริการ</p>
               <p className="tabular-nums">{fmtTHB(t.serviceFees)}</p>
@@ -112,7 +112,7 @@ export default function AdminPage() {
             <ConfirmationNumberOutlinedIcon className="text-muted" fontSize="small" />
             <div>
               <p className="font-semibold">หัก: ส่วนลดจากแต้ม</p>
-              <p className="tabular-nums text-danger">-{fmtTHB(t.discounts)}</p>
+              <p className={`tabular-nums ${t.discounts ? "text-danger" : ""}`}>{t.discounts ? `-${fmtTHB(t.discounts)}` : fmtTHB(0)}</p>
               <p className="text-xs text-muted">ต้นทุน loyalty ที่ดึงคนกลับมาใช้ U-topia</p>
             </div>
           </div>
@@ -126,7 +126,7 @@ export default function AdminPage() {
             <Link
               key={c.id}
               href={`/admin/concerts/${c.id}`}
-              className="grid gap-3 rounded-2xl border border-line bg-surface p-4 transition hover:border-brand sm:grid-cols-[1fr_12rem_9rem] sm:items-center"
+              className="grid gap-3 rounded-2xl border border-line bg-surface shadow-soft p-4 transition hover:border-brand sm:grid-cols-[1fr_12rem_9rem] sm:items-center"
             >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -151,7 +151,7 @@ export default function AdminPage() {
                   </span>
                   <span>{fmtPct(c.stats.sellThrough)}</span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-surface-2">
+                <div className="h-2 overflow-hidden rounded-full bg-[#f3e6d9]">
                   <div className="h-full rounded-full bg-brand" style={{ width: `${c.stats.sellThrough * 100}%` }} />
                 </div>
               </div>

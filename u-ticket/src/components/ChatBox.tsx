@@ -52,7 +52,7 @@ export default function ChatBox() {
   }
 
   return (
-    <div className="flex h-[min(70vh,640px)] flex-col overflow-hidden rounded-3xl border border-line bg-surface">
+    <div className="flex h-[min(70vh,640px)] flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-soft">
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {messages.length === 0 && (
           <div className="py-6 text-center text-muted">
@@ -66,7 +66,7 @@ export default function ChatBox() {
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
               className={`max-w-[85%] whitespace-pre-line rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
-                m.role === "user" ? "rounded-br-sm bg-brand text-black" : "rounded-bl-sm bg-surface-2"
+                m.role === "user" ? "rounded-br-sm bg-brand text-white" : "rounded-bl-sm bg-surface-2"
               }`}
             >
               {m.content || <span className="animate-pulse text-muted">กำลังพิมพ์…</span>}
@@ -104,7 +104,7 @@ export default function ChatBox() {
           <button
             type="submit"
             disabled={busy || !input.trim()}
-            className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-black disabled:opacity-50"
+            className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
           >
             ส่ง
           </button>

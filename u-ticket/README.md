@@ -120,6 +120,9 @@ data/           users / transactions / concerts / rewards / demo-cache (.json)
 - **การเก็บข้อมูล:** คอนที่สร้าง การจอง และแต้ม เก็บใน memory และบันทึกลง `data/runtime-state.json` ระหว่าง dev (gitignored) — บน Vercel จะหายเมื่อ instance ใหม่ขึ้น ปุ่ม "ล้างข้อมูลเดโม" ที่ `/admin` รีเซ็ตทั้งหมด
 - **ยังไม่มีระบบล็อกอิน:** ผู้จัดเป็นบัญชีจำลอง `Lunar Live Entertainment` ใครเปิด `/admin` ก็เข้าได้
 
+### ธีม
+โทนขาวครีม + ส้มนุ่ม — สีหลักอยู่ที่ `src/app/globals.css` (`--color-brand`, `--color-surface`, `shadow-soft` ฯลฯ) และสีใน SVG (ผังที่นั่ง/เกจ/ภาพจำลอง) อยู่ที่ `src/lib/theme.ts` เปลี่ยนสองไฟล์นี้ก็เปลี่ยนธีมทั้งแอป
+
 ### Icons
 UI ใช้ **MUI icons** แทน emoji ทั้งหมด (import ทีละไฟล์ เช่น `@mui/icons-material/CreditCard`) และห่อด้วย `AppRouterCacheProvider` (`enableCssLayer`) ให้ Tailwind utilities override style ของ MUI ได้
 - avatar ผู้ใช้เป็นวงกลมสี + อักษรแรกของชื่อ (`components/UserAvatar.tsx`) ฟิลด์ `avatar` ใน `users.json` เก็บสี

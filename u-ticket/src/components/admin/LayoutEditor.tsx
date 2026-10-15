@@ -12,6 +12,7 @@ import GridOnIcon from "@mui/icons-material/GridOn";
 import RestoreIcon from "@mui/icons-material/Restore";
 import PeopleOutlineIcon from "@mui/icons-material/PeopleOutlined";
 import type { MapRect, Section, Zone } from "@/lib/types";
+import { MAP } from "@/lib/theme";
 import {
   MAP_H,
   MAP_W,
@@ -271,7 +272,7 @@ export default function LayoutEditor({
           <button
             type="button"
             onClick={() => setMode("layout")}
-            className={`flex items-center gap-1 px-2.5 py-1.5 ${mode === "layout" ? "bg-brand font-semibold text-black" : "text-muted"}`}
+            className={`flex items-center gap-1 px-2.5 py-1.5 ${mode === "layout" ? "bg-brand font-semibold text-white" : "text-muted"}`}
           >
             <OpenWithIcon fontSize="inherit" /> จัดวาง
           </button>
@@ -279,7 +280,7 @@ export default function LayoutEditor({
             type="button"
             onClick={() => setMode("seats")}
             disabled={locked}
-            className={`flex items-center gap-1 px-2.5 py-1.5 disabled:opacity-40 ${mode === "seats" ? "bg-brand font-semibold text-black" : "text-muted"}`}
+            className={`flex items-center gap-1 px-2.5 py-1.5 disabled:opacity-40 ${mode === "seats" ? "bg-brand font-semibold text-white" : "text-muted"}`}
           >
             <EventSeatOutlinedIcon fontSize="inherit" /> แก้ที่นั่ง
           </button>
@@ -314,7 +315,7 @@ export default function LayoutEditor({
                 step={0.05}
                 value={background.opacity}
                 onChange={(e) => onChange({ background: { ...background, opacity: Number(e.target.value) } })}
-                className="w-20 accent-[#ffd400]"
+                className="w-20 accent-[#ee6c1f]"
                 aria-label="ความโปร่งใสรูปผัง"
               />
             </label>
@@ -341,7 +342,7 @@ export default function LayoutEditor({
         <svg
           ref={svgRef}
           viewBox={`0 0 ${MAP_W} ${MAP_H}`}
-          className={`aspect-[4/3] h-auto w-full touch-none select-none bg-[#111118] ${mode === "seats" ? "cursor-crosshair" : ""}`}
+          className={`aspect-[4/3] h-auto w-full touch-none select-none bg-[#fffaf4] ${mode === "seats" ? "cursor-crosshair" : ""}`}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={endDrag}
@@ -352,7 +353,7 @@ export default function LayoutEditor({
           {/* เส้นกริด */}
           <defs>
             <pattern id="ed-grid" width={20} height={20} patternUnits="userSpaceOnUse">
-              <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#ffffff" strokeOpacity={0.05} strokeWidth={1} />
+              <path d="M 20 0 L 0 0 0 20" fill="none" stroke={MAP.grid} strokeOpacity={0.6} strokeWidth={1} />
             </pattern>
           </defs>
           <rect x={0} y={0} width={MAP_W} height={MAP_H} fill="url(#ed-grid)" />
@@ -378,16 +379,16 @@ export default function LayoutEditor({
               width={stage.w}
               height={stage.h}
               rx={10}
-              fill="#ffd400"
-              stroke={sel?.kind === "stage" ? "#fff" : "none"}
+              fill={MAP.stage}
+              stroke={sel?.kind === "stage" ? MAP.ink : "none"}
               strokeWidth={3}
               className={mode === "layout" && !locked ? "cursor-move" : ""}
             />
-            <text x={stage.x + stage.w / 2} y={stage.y + stage.h / 2 + 7} textAnchor="middle" fontSize={20} fontWeight={700} fill="#000" pointerEvents="none">
+            <text x={stage.x + stage.w / 2} y={stage.y + stage.h / 2 + 7} textAnchor="middle" fontSize={20} fontWeight={700} fill={MAP.stageText} pointerEvents="none">
               STAGE
             </text>
             {sel?.kind === "stage" && mode === "layout" && !locked && (
-              <rect data-ed="stage-resize" x={stage.x + stage.w - 7} y={stage.y + stage.h - 7} width={14} height={14} rx={3} fill="#fff" stroke="#000" className="cursor-nwse-resize" />
+              <rect data-ed="stage-resize" x={stage.x + stage.w - 7} y={stage.y + stage.h - 7} width={14} height={14} rx={3} fill="#fff" stroke={MAP.ink} className="cursor-nwse-resize" />
             )}
           </g>
 
@@ -395,7 +396,7 @@ export default function LayoutEditor({
             <EditorSection
               key={s.id}
               section={s}
-              color={zoneOf(s.zoneId)?.color ?? "#888"}
+              color={zoneOf(s.zoneId)?.color ?? "#999"}
               stage={stage}
               selected={sel?.kind === "section" && sel.id === s.id}
               mode={mode}
@@ -436,7 +437,7 @@ export default function LayoutEditor({
 
       {/* คุณสมบัติของสิ่งที่เลือก */}
       {selected && (
-        <div className="grid gap-3 rounded-2xl border border-line bg-surface-2/50 p-3 sm:grid-cols-4">
+        <div className="grid gap-3 rounded-2xl border border-line bg-surface shadow-soft-2/50 p-3 sm:grid-cols-4">
           <label className="space-y-1 text-xs sm:col-span-2">
             <span className="text-muted">ชื่อ section (รหัส {selected.id})</span>
             <input className={input} value={selected.name} disabled={locked} onChange={(e) => setSection(selected.id, { name: e.target.value })} />
@@ -522,7 +523,7 @@ export default function LayoutEditor({
               disabled={locked}
               value={selected.rotation ?? 0}
               onChange={(e) => setSection(selected.id, { rotation: Number(e.target.value) })}
-              className="w-full accent-[#ffd400]"
+              className="w-full accent-[#ee6c1f]"
             />
           </label>
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs sm:col-span-4">
@@ -579,7 +580,7 @@ const EditorSection = memo(function EditorSection({
           rx={8}
           fill={color}
           fillOpacity={s.kind === "standing" ? 0.45 : 0.14}
-          stroke={selected ? "#fff" : color}
+          stroke={selected ? MAP.ink : color}
           strokeWidth={selected ? 2.5 : 1.2}
           strokeDasharray={s.kind === "standing" ? "6 4" : undefined}
           className={editable ? "cursor-move" : ""}
@@ -591,9 +592,9 @@ const EditorSection = memo(function EditorSection({
         )}
         {selected && editable && (
           <>
-            <line x1={cx} y1={y} x2={cx} y2={y - 22} stroke="#fff" strokeWidth={1.5} pointerEvents="none" />
-            <circle data-ed="rotate" data-id={s.id} cx={cx} cy={y - 26} r={7} fill="#fff" stroke="#000" className="cursor-grab" />
-            <rect data-ed="resize" data-id={s.id} x={x + w - 7} y={y + h - 7} width={14} height={14} rx={3} fill="#fff" stroke="#000" className="cursor-nwse-resize" />
+            <line x1={cx} y1={y} x2={cx} y2={y - 22} stroke={MAP.ink} strokeWidth={1.5} pointerEvents="none" />
+            <circle data-ed="rotate" data-id={s.id} cx={cx} cy={y - 26} r={7} fill="#fff" stroke={MAP.ink} strokeWidth={2} className="cursor-grab" />
+            <rect data-ed="resize" data-id={s.id} x={x + w - 7} y={y + h - 7} width={14} height={14} rx={3} fill="#fff" stroke={MAP.ink} strokeWidth={2} className="cursor-nwse-resize" />
           </>
         )}
       </g>
@@ -626,7 +627,7 @@ const EditorSection = memo(function EditorSection({
           />
         ),
       )}
-      <text x={cx} y={cy + 5} textAnchor="middle" fontSize={14} fontWeight={700} fill="#fff" pointerEvents="none" stroke="#000" strokeWidth={3} paintOrder="stroke">
+      <text x={cx} y={cy + 5} textAnchor="middle" fontSize={14} fontWeight={700} fill={MAP.ink} pointerEvents="none" stroke="#fff" strokeWidth={4} paintOrder="stroke">
         {s.name}
       </text>
     </g>

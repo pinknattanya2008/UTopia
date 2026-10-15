@@ -2,10 +2,10 @@ import TierIcon from "./TierIcon";
 import type { TierName } from "@/lib/types";
 
 const STYLE: Record<TierName, string> = {
-  Diamond: "bg-cyan-400/15 text-cyan-300 ring-cyan-400/40",
-  Gold: "bg-brand/15 text-brand ring-brand/40",
-  Silver: "bg-zinc-300/15 text-zinc-200 ring-zinc-300/40",
-  General: "bg-zinc-700/40 text-zinc-400 ring-zinc-600/50",
+  Diamond: "bg-sky-50 text-sky-700 ring-sky-200",
+  Gold: "bg-amber-50 text-amber-700 ring-amber-200",
+  Silver: "bg-slate-50 text-slate-600 ring-slate-200",
+  General: "bg-stone-50 text-stone-500 ring-stone-200",
 };
 
 export default function TierBadge({ tier, size = "md" }: { tier: TierName; size?: "sm" | "md" | "lg" }) {

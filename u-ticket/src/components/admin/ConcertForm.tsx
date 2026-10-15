@@ -132,7 +132,7 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
     <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
       <div className="space-y-6">
         {/* 1. ข้อมูลงาน */}
-        <section className="rounded-3xl border border-line bg-surface p-5">
+        <section className="rounded-3xl border border-line bg-surface shadow-soft p-5">
           <h2 className="mb-4 font-bold">1. ข้อมูลงาน</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="space-y-1 text-sm">
@@ -163,7 +163,7 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
         </section>
 
         {/* 2. ผังและโซน */}
-        <section className="rounded-3xl border border-line bg-surface p-5">
+        <section className="rounded-3xl border border-line bg-surface shadow-soft p-5">
           <h2 className="mb-1 font-bold">2. ผังสถานที่และโซนราคา</h2>
           {layoutLocked && (
             <p className="mb-3 flex items-center gap-1.5 text-xs text-brand">
@@ -264,7 +264,7 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
         </section>
 
         {/* 3. แพ็กเกจและการขาย */}
-        <section className="rounded-3xl border border-line bg-surface p-5">
+        <section className="rounded-3xl border border-line bg-surface shadow-soft p-5">
           <h2 className="mb-4 font-bold">3. แพ็กเกจและเงื่อนไขการขาย</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {(Object.keys(PLANS) as OrganizerPlan[]).map((p) => (
@@ -308,7 +308,7 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
 
       {/* Preview + สรุป */}
       <aside className="space-y-4 lg:sticky lg:top-28 lg:self-start">
-        <div className="rounded-3xl border border-line bg-surface p-4 text-sm">
+        <div className="rounded-3xl border border-line bg-surface shadow-soft p-4 text-sm">
           <p className="mb-2 font-semibold">ประมาณการเมื่อขายหมด</p>
           <dl className="space-y-1">
             <div className="flex justify-between">
@@ -342,7 +342,7 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
           <button
             onClick={() => save("published")}
             disabled={busy !== null}
-            className="flex-1 rounded-2xl bg-brand py-3 font-bold text-black hover:bg-brand-dark disabled:opacity-50"
+            className="flex-1 rounded-2xl bg-brand py-3 font-bold text-white hover:bg-brand-dark disabled:opacity-50"
           >
             {busy === "published" ? "กำลังเผยแพร่…" : concert?.status === "published" ? "บันทึก" : "เผยแพร่"}
           </button>

@@ -43,7 +43,7 @@ export default async function ConcertPage({ params }: { params: Promise<{ id: st
           </div>
           <Link
             href={`/concert/${concert.id}/book`}
-            className="flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3 font-bold text-black shadow-[0_0_40px_-10px] shadow-brand hover:bg-brand-dark"
+            className="flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3 font-bold text-white shadow-glow hover:bg-brand-dark"
           >
             <EventSeatOutlinedIcon /> เลือกที่นั่ง / ซื้อบัตร
           </Link>
@@ -53,7 +53,7 @@ export default async function ConcertPage({ params }: { params: Promise<{ id: st
       <section className="grid gap-6 lg:grid-cols-[3fr_2fr]">
         <div>
           <h2 className="mb-3 text-lg font-bold">ผังสถานที่และราคา</h2>
-          <div className="rounded-3xl border border-line bg-surface p-3 sm:p-4">
+          <div className="rounded-3xl border border-line bg-surface shadow-soft p-3 sm:p-4">
             <VenueMap concert={concert} availability={availability} />
             <div className="mt-4 divide-y divide-line">
               {concert.zones.map((z) => (
@@ -81,7 +81,7 @@ export default async function ConcertPage({ params }: { params: Promise<{ id: st
           {concert.plan === "pro" ? (
             <PresaleTimeline salesOpenAt={concert.salesOpenAt} />
           ) : (
-            <div className="rounded-2xl border border-line bg-surface p-4">
+            <div className="rounded-2xl border border-line bg-surface shadow-soft p-4">
               <p className="flex items-center gap-2 font-semibold">
                 <StorefrontOutlinedIcon className="text-brand" /> เปิดขายทั่วไปพร้อมกันทุกคน
               </p>

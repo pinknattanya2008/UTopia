@@ -20,7 +20,7 @@ export default function DemoClock({ salesOpenAt }: { salesOpenAt: string }) {
             key={p.offsetMinutes}
             onClick={() => setClock(p.offsetMinutes)}
             className={`shrink-0 rounded-full border px-3 py-1 text-xs transition ${
-              clock === p.offsetMinutes ? "border-brand bg-brand font-semibold text-black" : "border-line text-muted hover:border-brand hover:text-brand"
+              clock === p.offsetMinutes ? "border-brand bg-brand font-semibold text-white" : "border-line text-muted hover:border-brand hover:text-brand"
             }`}
           >
             {fmtTime(new Date(open + p.offsetMinutes * 60_000).toISOString())} · {p.label}

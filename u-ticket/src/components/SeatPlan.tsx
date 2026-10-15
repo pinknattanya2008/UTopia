@@ -5,6 +5,7 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import CenterFocusStrongOutlinedIcon from "@mui/icons-material/CenterFocusStrongOutlined";
 import type { Concert, Section } from "@/lib/types";
+import { MAP } from "@/lib/theme";
 import { MAP_H, MAP_W, sectionBounds, seatLayout, stageOf, type SeatPos } from "@/lib/venue";
 
 type VB = { x: number; y: number; w: number; h: number };
@@ -213,7 +214,7 @@ export default function SeatPlan({
         role="application"
         aria-label="ผังที่นั่ง ซูมและเลื่อนได้"
       >
-        <rect x={0} y={0} width={MAP_W} height={MAP_H} fill="#111118" />
+        <rect x={0} y={0} width={MAP_W} height={MAP_H} fill={MAP.bg} />
         {concert.background && (
           <image
             href={concert.background.image}
@@ -226,12 +227,12 @@ export default function SeatPlan({
             pointerEvents="none"
           />
         )}
-        <rect x={stage.x} y={stage.y} width={stage.w} height={stage.h} rx={10} fill="#ffd400" />
-        <text x={stage.x + stage.w / 2} y={stage.y + stage.h / 2 + 7} textAnchor="middle" fontSize={20} fontWeight={700} fill="#000">
+        <rect x={stage.x} y={stage.y} width={stage.w} height={stage.h} rx={10} fill={MAP.stage} />
+        <text x={stage.x + stage.w / 2} y={stage.y + stage.h / 2 + 7} textAnchor="middle" fontSize={20} fontWeight={700} fill={MAP.stageText}>
           STAGE
         </text>
 
-        <SeatLayer concert={concert} layouts={layouts} unavailable={unavailable} availability={availability} />
+        <SeatLayer concert={concert} layouts={layouts} unavailable={unavailable} availability={availability} showHints={!seatMode} />
 
         {/* ที่นั่งที่เลือก + ที่นั่งที่กำลังดูรายละเอียด */}
         <g pointerEvents="none">
@@ -239,7 +240,7 @@ export default function SeatPlan({
             const p = seatIndex.get(id);
             if (!p) return null;
             const r = radius.get(p.section.id) ?? 2;
-            return <circle key={id} cx={p.seat.cx} cy={p.seat.cy} r={r * 1.15} fill="#fff" stroke="#000" strokeWidth={r * 0.25} />;
+            return <circle key={id} cx={p.seat.cx} cy={p.seat.cy} r={r * 1.15} fill={MAP.selected} stroke="#fff" strokeWidth={r * 0.3} />;
           })}
           {focus && (
             <circle
@@ -247,8 +248,8 @@ export default function SeatPlan({
               cy={focus.seat.cy}
               r={(radius.get(focus.section.id) ?? 2) * 1.9}
               fill="none"
-              stroke="#fff"
-              strokeWidth={(radius.get(focus.section.id) ?? 2) * 0.35}
+              stroke={MAP.focus}
+              strokeWidth={(radius.get(focus.section.id) ?? 2) * 0.4}
             />
           )}
         </g>
@@ -260,12 +261,12 @@ export default function SeatPlan({
             const { x, y, w, h } = sectionBounds(s);
             return (
               <g key={s.id}>
-                <rect x={x + w / 2 - 34} y={y + h / 2 - 20} width={68} height={a ? 38 : 24} rx={8} fill="#000" fillOpacity={0.65} />
-                <text x={x + w / 2} y={y + h / 2 - 2} textAnchor="middle" fontSize={15} fontWeight={700} fill="#fff">
+                <rect x={x + w / 2 - 36} y={y + h / 2 - 20} width={72} height={a ? 38 : 24} rx={10} fill={MAP.labelBg} fillOpacity={0.92} stroke={MAP.grid} />
+                <text x={x + w / 2} y={y + h / 2 - 2} textAnchor="middle" fontSize={15} fontWeight={700} fill={MAP.ink}>
                   {s.name.length > 8 ? s.id : s.name}
                 </text>
                 {a && (
-                  <text x={x + w / 2} y={y + h / 2 + 13} textAnchor="middle" fontSize={11} fill={a.available ? "#e4e4e7" : "#f43f5e"}>
+                  <text x={x + w / 2} y={y + h / 2 + 13} textAnchor="middle" fontSize={11} fill={a.available ? MAP.inkMuted : MAP.danger}>
                     {a.available ? `ว่าง ${a.available.toLocaleString("th-TH")}` : "เต็ม"}
                   </text>
                 )}
@@ -287,7 +288,7 @@ export default function SeatPlan({
                     y={l.vertical ? s.cy + l.r * 0.45 : s.cy - l.r * 2}
                     textAnchor="middle"
                     fontSize={l.r * 1.1}
-                    fill="#71717a"
+                    fill={MAP.inkMuted}
                   >
                     {s.num}
                   </text>
@@ -309,7 +310,7 @@ export default function SeatPlan({
                     y={l.vertical ? s.cy - l.r * 2.2 : s.cy + l.r * 0.45}
                     textAnchor="middle"
                     fontSize={l.r * 1.3}
-                    fill="#a1a1aa"
+                    fill={MAP.inkMuted}
                   >
                     {s.row}
                   </text>
@@ -331,13 +332,13 @@ export default function SeatPlan({
             onClick={fn}
             aria-label={label}
             title={label}
-            className="grid h-9 w-9 place-items-center rounded-xl border border-line bg-background/85 text-foreground backdrop-blur hover:border-brand hover:text-brand"
+            className="grid h-9 w-9 place-items-center rounded-xl border border-line bg-white/90 text-foreground shadow-soft backdrop-blur hover:border-brand hover:text-brand"
           >
             <Icon fontSize="small" />
           </button>
         ))}
       </div>
-      <p className="pointer-events-none absolute bottom-2 left-2 rounded-lg bg-background/80 px-2 py-1 text-[11px] text-muted backdrop-blur">
+      <p className="pointer-events-none absolute bottom-2 left-2 rounded-lg bg-white/90 px-2 py-1 text-[11px] text-muted shadow-soft backdrop-blur">
         {seatMode ? "กดที่นั่งเพื่อเลือก · ลากเพื่อเลื่อน" : "กดที่โซนเพื่อซูมเข้าไปเลือกที่นั่ง"} · ซูม {zoom.toFixed(1)}x
       </p>
     </div>
@@ -350,13 +351,15 @@ const SeatLayer = memo(function SeatLayer({
   layouts,
   unavailable,
   availability,
+  showHints,
 }: {
   concert: Pick<Concert, "zones" | "sections">;
   layouts: { section: Section; seats: SeatPos[]; r: number }[];
   unavailable: Set<string>;
   availability: Record<string, { capacity: number; available: number }>;
+  showHints: boolean;
 }) {
-  const color = (zoneId: string) => concert.zones.find((z) => z.id === zoneId)?.color ?? "#888";
+  const color = (zoneId: string) => concert.zones.find((z) => z.id === zoneId)?.color ?? "#999";
   return (
     <g>
       {layouts.map(({ section: s, seats, r }) => {
@@ -373,19 +376,19 @@ const SeatLayer = memo(function SeatLayer({
               height={h}
               transform={s.rotation ? `rotate(${s.rotation} ${x + w / 2} ${y + h / 2})` : undefined}
               rx={10}
-              fill={soldOut ? "#2a2a38" : c}
-              fillOpacity={s.kind === "standing" ? 0.55 : 0.12}
+              fill={soldOut ? MAP.sold : c}
+              fillOpacity={s.kind === "standing" ? 0.45 : 0.1}
               stroke={c}
               strokeOpacity={0.6}
               strokeWidth={1.5}
             />
-            {s.kind === "standing" && (
-              <text x={x + w / 2} y={y + h - 8} textAnchor="middle" fontSize={8} fill="#fff" opacity={0.75} pointerEvents="none">
+            {s.kind === "standing" && showHints && (
+              <text x={x + w / 2} y={y + h - 8} textAnchor="middle" fontSize={8} fill={MAP.ink} opacity={0.7} pointerEvents="none">
                 บัตรยืน · กดเพื่อเลือกจำนวน
               </text>
             )}
             {seats.map((seat) => (
-              <circle key={seat.id} data-seat={seat.id} cx={seat.cx} cy={seat.cy} r={r} fill={unavailable.has(seat.id) ? "#3a3a48" : c} />
+              <circle key={seat.id} data-seat={seat.id} cx={seat.cx} cy={seat.cy} r={r} fill={unavailable.has(seat.id) ? MAP.sold : c} />
             ))}
           </g>
         );
