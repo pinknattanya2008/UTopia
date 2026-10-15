@@ -87,6 +87,14 @@ export function checkAccess(concert: Concert, user: User, clockOffset?: number):
   return { ...base, allowed: true, code: "ok", message: presale ? `รอบของ Tier ${score.tier} เปิดแล้ว` : "เปิดขายแล้ว" };
 }
 
+/** บันทึกบัญชีที่ AI กันไม่ให้ซื้อ (นับไม่ซ้ำต่อคอน) */
+export function recordBlocked(concertId: string, userId: string) {
+  const list = store.blocked.get(concertId) ?? [];
+  if (list.includes(userId)) return;
+  store.blocked.set(concertId, [...list, userId]);
+  saveState();
+}
+
 // ---------------------------------------------------------------- Occupancy
 
 /** ปล่อยที่นั่งที่ล็อกไว้เกินเวลา */
@@ -183,10 +191,7 @@ export function holdSeats(req: HoldRequest): Booking {
 
   const access = checkAccess(concert, user, req.clock);
   if (!access.allowed) {
-    if (access.code === "blocked_trust") {
-      store.blocked.set(concert.id, (store.blocked.get(concert.id) ?? 0) + 1);
-      saveState();
-    }
+    if (access.code === "blocked_trust") recordBlocked(concert.id, user.id);
     throw new BookingError(access.message, 403);
   }
 
@@ -361,7 +366,7 @@ export function concertStats(concert: Concert) {
     sections: avail,
     ordersInApp: paid.length,
     buyersByTier,
-    blockedAttempts: store.blocked.get(concert.id) ?? 0,
+    blockedAttempts: store.blocked.get(concert.id)?.length ?? 0,
     riskyAccounts,
   };
 }

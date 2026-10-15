@@ -102,7 +102,7 @@ export function updateConcert(id: string, input: ConcertInput): Concert {
   if (!current) throw new BookingError("ไม่พบคอนเสิร์ต", 404);
   if (hasSales(id)) {
     // มียอดขายแล้ว: ล็อกผังที่นั่งไว้ แก้ได้เฉพาะข้อมูลงานและราคา
-    input = { ...input, template: current.template, sections: current.sections };
+    input = { ...input, template: current.template, sections: current.sections, status: current.status };
   }
   const updated = buildConcert({ ...input, status: input.status ?? current.status }, current);
   Object.assign(current, updated);

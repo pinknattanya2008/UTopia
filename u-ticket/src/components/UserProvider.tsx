@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { api, type ListUser } from "@/lib/client";
+import { DEFAULT_CLOCK } from "@/lib/clock";
 
 interface UserCtx {
   users: ListUser[];
@@ -12,17 +13,22 @@ interface UserCtx {
   refresh: () => Promise<void>;
   version: number;
   warming: boolean;
+  /** เวลาจำลองสำหรับเดโมการเปิดขาย (นาที เทียบกับเวลาเปิดขายทั่วไป) */
+  clock: number;
+  setClock: (offset: number) => void;
 }
 
 const Ctx = createContext<UserCtx | null>(null);
 const STORAGE_KEY = "uticket:userId";
 const PREWARM_KEY = "uticket:prewarmed";
+const CLOCK_KEY = "uticket:clock";
 
 export function UserProvider({ children }: { children: React.ReactNode }) {
   const [users, setUsers] = useState<ListUser[]>([]);
   const [userId, setUserIdState] = useState("u01");
   const [version, setVersion] = useState(0);
   const [warming, setWarming] = useState(false);
+  const [clock, setClockState] = useState<number>(DEFAULT_CLOCK);
 
   const refresh = useCallback(async () => {
     try {
@@ -37,6 +43,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) setUserIdState(saved);
+      const savedClock = localStorage.getItem(CLOCK_KEY);
+      if (savedClock !== null && Number.isFinite(Number(savedClock))) setClockState(Number(savedClock));
     } catch {}
 
     (async () => {
@@ -65,9 +73,16 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, []);
 
+  const setClock = useCallback((offset: number) => {
+    setClockState(offset);
+    try {
+      localStorage.setItem(CLOCK_KEY, String(offset));
+    } catch {}
+  }, []);
+
   const value = useMemo(
-    () => ({ users, userId, user: users.find((u) => u.id === userId), setUserId, refresh, version, warming }),
-    [users, userId, setUserId, refresh, version, warming],
+    () => ({ users, userId, user: users.find((u) => u.id === userId), setUserId, refresh, version, warming, clock, setClock }),
+    [users, userId, setUserId, refresh, version, warming, clock, setClock],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

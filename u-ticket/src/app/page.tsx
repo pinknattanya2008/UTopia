@@ -1,20 +1,15 @@
-import Link from "next/link";
-import NightsStayOutlinedIcon from "@mui/icons-material/NightsStayOutlined";
-import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
-import EventOutlinedIcon from "@mui/icons-material/EventOutlined";
-import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import SmartToyOutlinedIcon from "@mui/icons-material/SmartToyOutlined";
 import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
 import ConnectWallet from "@/components/ConnectWallet";
-import TierBadge from "@/components/TierBadge";
-import { getConcert } from "@/lib/data";
-import { fmtDate, fmtTHB } from "@/lib/client";
-import { TIERS } from "@/lib/scoring";
+import ConcertCard from "@/components/ConcertCard";
+import { sectionAvailability } from "@/lib/booking";
+import { getPublishedConcerts } from "@/lib/data";
+
+export const dynamic = "force-dynamic";
 
 export default function Home() {
-  const concert = getConcert("c1")!;
-  const minPrice = Math.min(...concert.zones.map((z) => z.priceTHB));
+  const concerts = getPublishedConcerts();
   return (
     <div className="space-y-12">
       <section className="relative overflow-hidden rounded-3xl border border-line bg-gradient-to-br from-surface-2 via-surface to-background p-6 sm:p-10">
@@ -37,47 +32,20 @@ export default function Home() {
       </section>
 
       <section>
-        <h2 className="mb-4 text-xl font-bold">คอนเสิร์ตที่เปิดให้สะสมสิทธิ์</h2>
-        <Link
-          href="/concert/c1"
-          className="group grid overflow-hidden rounded-3xl border border-line bg-surface transition hover:border-brand sm:grid-cols-[2fr_3fr]"
-        >
-          <div className="relative grid min-h-48 place-items-center bg-[radial-gradient(circle_at_30%_30%,#ffd40055,transparent_60%),radial-gradient(circle_at_70%_80%,#7c3aed66,transparent_55%)] p-6">
-            <p className="text-center text-4xl font-black tracking-widest">
-              NOVA
-              <br />
-              LUNE
-            </p>
-            <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-black/60 px-2 py-0.5 text-xs">
-              <NightsStayOutlinedIcon fontSize="inherit" /> World Tour 2026
-            </span>
-          </div>
-          <div className="space-y-3 p-5 sm:p-6">
-            <h3 className="text-xl font-bold group-hover:text-brand">{concert.title}</h3>
-            <div className="space-y-1 text-sm text-muted">
-              <p className="flex items-center gap-1.5">
-                <PlaceOutlinedIcon fontSize="small" /> {concert.venue}
-              </p>
-              <p className="flex items-center gap-1.5">
-                <EventOutlinedIcon fontSize="small" /> {fmtDate(concert.date)} · 19:00 น.
-              </p>
-            </div>
-            <p className="text-sm">
-              เปิดขายทั่วไป {fmtDate(concert.salesOpenAt)} 12:00 น. · บัตรเริ่มต้น{" "}
-              <span className="font-semibold text-brand">{fmtTHB(minPrice)}</span>
-            </p>
-            <div className="flex flex-wrap gap-2">
-              {TIERS.slice(0, 3).map((t) => (
-                <span key={t.name} className="flex items-center gap-1 text-xs text-muted">
-                  <TierBadge tier={t.name} size="sm" /> {t.label}
-                </span>
-              ))}
-            </div>
-            <span className="inline-flex items-center gap-1 font-semibold text-brand">
-              ดูโซนและรอบ presale <ArrowForwardIcon fontSize="small" />
-            </span>
-          </div>
-        </Link>
+        <h2 className="mb-4 text-xl font-bold">คอนเสิร์ตที่เปิดขาย</h2>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {concerts.map((c) => {
+            const avail = Object.values(sectionAvailability(c));
+            return (
+              <ConcertCard
+                key={c.id}
+                concert={c}
+                available={avail.reduce((n, a) => n + a.available, 0)}
+                capacity={avail.reduce((n, a) => n + a.capacity, 0)}
+              />
+            );
+          })}
+        </div>
       </section>
 
       <section>

@@ -26,7 +26,10 @@ export async function api<T>(path: string, init?: RequestInit & { json?: unknown
     body: init?.json !== undefined ? JSON.stringify(init.json) : init?.body,
     cache: "no-store",
   });
-  if (!res.ok) throw new Error(`${path} → ${res.status}`);
+  if (!res.ok) {
+    const err = (await res.json().catch(() => null)) as { error?: string } | null;
+    throw new Error(err?.error ?? `${path} → ${res.status}`);
+  }
   return res.json() as Promise<T>;
 }
 
@@ -55,3 +58,15 @@ export const SOURCE_LABEL: Record<AiSource, string> = {
   cache: "AI (ผลที่บันทึกไว้)",
   fallback: "คำนวณพื้นฐาน",
 };
+
+/** ISO → ค่าสำหรับ <input type="datetime-local"> ตามเวลาไทย */
+export function toLocalInput(iso: string) {
+  return new Date(Date.parse(iso) + 7 * 3600_000).toISOString().slice(0, 16);
+}
+
+/** ค่าจาก <input type="datetime-local"> (เวลาไทย) → ISO */
+export function fromLocalInput(v: string) {
+  return new Date(`${v}:00+07:00`).toISOString();
+}
+
+export const fmtPct = (n: number) => `${(n * 100).toLocaleString("th-TH", { maximumFractionDigits: 1 })}%`;

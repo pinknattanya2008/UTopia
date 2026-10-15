@@ -1,4 +1,4 @@
-import { BookingError, checkAccess, sectionAvailability } from "@/lib/booking";
+import { BookingError, checkAccess, recordBlocked, sectionAvailability } from "@/lib/booking";
 import { getConcert, getUser } from "@/lib/data";
 import { handle } from "@/lib/http";
 
@@ -12,10 +12,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
     const concert = getConcert(id);
     if (!concert) throw new BookingError("ไม่พบคอนเสิร์ต", 404);
     const user = getUser(url.searchParams.get("userId") ?? "");
-    return {
-      concert,
-      availability: sectionAvailability(concert),
-      access: user ? checkAccess(concert, user, Number(url.searchParams.get("clock") ?? 0)) : null,
-    };
+    const access = user ? checkAccess(concert, user, Number(url.searchParams.get("clock") ?? 0)) : null;
+    if (user && access?.code === "blocked_trust") recordBlocked(concert.id, user.id);
+    return { concert, availability: sectionAvailability(concert), access };
   });
 }

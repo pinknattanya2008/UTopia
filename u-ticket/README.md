@@ -48,6 +48,12 @@ npm run dev                  # http://localhost:3000
 | `/presale` | **หน้าไฮไลต์**: กดจำลอง → AI ตรวจ 24 บัญชี → คิวสลับลำดับแบบ animation, บัญชีโดน flag เป็นสีแดง |
 | `/concierge` | แชต AI แบบ streaming แนะนำโซนตามงบ + ส่วนลดจากแต้ม + เตือนบัตรนอกระบบ |
 | `/rewards` | แลกแต้ม (ส่วนลด, Presale Boost +5, สมาชิกแฟนคลับ, เสื้อทัวร์) |
+| `/concert/[id]/book` | **เลือกที่นั่ง**: ผังสถานที่ → กด section → เลือกที่นั่งรายตัว (แถว A–Z) หรือจำนวนบัตรยืน → ล็อกที่นั่ง 10 นาที |
+| `/checkout/[bookingId]` | ชำระเงิน (จำลอง U-Card) + ใช้แต้มแลกส่วนลด → e-ticket |
+| `/tickets` | บัตรของฉัน (QR จำลอง) |
+| `/admin` | **ผู้จัดงาน**: ยอดขาย, รายได้แพลตฟอร์ม 2 ทาง, รายการคอนเสิร์ต |
+| `/admin/concerts/new` | สร้างคอนเสิร์ต: เลือก template ผัง (Arena / Theater / Hall), ตั้งชื่อ/ราคาโซน, แถว×ที่นั่งต่อ section, แพ็กเกจ Basic/Pro, preview ผังสด |
+| `/admin/concerts/[id]` | สถิติรายคอน: ยอดขายตามโซน, ที่ว่างตาม section, การแบ่งรายได้, Fan insights, เผยแพร่/แก้ไข/ลบ |
 
 เลือกผู้ใช้จำลองจาก dropdown บน Navbar หรือกดปุ่มลัด **เดโม: มายด์** / **เดโม: ShopKing99**
 
@@ -64,6 +70,15 @@ npm run dev                  # http://localhost:3000
 | POST | `/api/concierge` | text stream |
 | GET | `/api/rewards?userId=` | รีวอร์ด + แต้มคงเหลือ |
 | POST | `/api/rewards/redeem` | `{ ok, pointsLeft }` |
+| GET | `/api/concerts` | คอนที่เผยแพร่ + ราคาเริ่มต้น + ที่ว่าง |
+| GET | `/api/concerts/[id]?userId=&clock=` | คอน + ที่ว่างต่อ section + สิทธิ์ซื้อของผู้ใช้ |
+| GET | `/api/concerts/[id]/seats?section=&userId=` | ที่นั่งที่ขายแล้ว / ถูกล็อก / ของฉัน |
+| POST | `/api/bookings` | ล็อกที่นั่ง `{ userId, concertId, seats?, standing?, clock? }` |
+| GET | `/api/bookings?userId=` · `/api/bookings/[id]?userId=` | บัตรที่ชำระแล้ว · รายการจอง |
+| POST | `/api/bookings/[id]/confirm` · `/cancel` | ชำระเงิน (`discountRewardId?`) · ยกเลิก |
+| GET/POST | `/api/admin` · `/api/admin/concerts` | ภาพรวมผู้จัด · สร้างคอน |
+| GET/PUT/PATCH/DELETE | `/api/admin/concerts/[id]` | สถิติ · แก้ไข · เผยแพร่ · ลบร่าง |
+| POST | `/api/admin/reset` | ล้างข้อมูลเดโม |
 
 ทุก response จาก AI มีฟิลด์ `source`: `ai` (OpenAI), `cache` (demo-cache.json), `fallback` (กฎในโค้ด)
 
@@ -88,6 +103,21 @@ data/           users / transactions / concerts / rewards / demo-cache (.json)
 - เรียก OpenAI จาก API route ฝั่ง server เท่านั้น key ไม่เคยถูกส่งไป client
 - `.env*.local` อยู่ใน `.gitignore`, มีแค่ `.env.example` ที่ไม่มีค่า key
 - ฟิลด์ `persona` ไม่ถูกส่งให้ AI หรือ client
+
+### ระบบขายบัตรและรายได้ 2 ทาง
+
+| ฝ่าย | จ่ายอะไร | ค่าเริ่มต้น (`src/lib/venue.ts`) |
+|---|---|---|
+| ผู้ซื้อ | ค่าบริการต่อบัตร | 40 บาท/ใบ (`SERVICE_FEE_PER_TICKET`) |
+| ผู้จัด · Basic | ค่าคอมมิชชันจากยอดขายบัตร | 5% — ผังที่นั่ง, e-ticket, dashboard |
+| ผู้จัด · Pro | ค่าคอมมิชชันจากยอดขายบัตร | 8% — เพิ่ม presale ตาม Fan Score, AI กันบอท (trust < 0.5 ซื้อไม่ได้), Fan insights |
+
+รายได้แพลตฟอร์ม = คอมมิชชัน + ค่าบริการ − ส่วนลดจากแต้ม (แพลตฟอร์มออกเป็นต้นทุน loyalty)
+
+- **เวลาจำลอง (เดโม):** หน้าเลือกที่นั่งของงาน Pro มีแถบเลือกเวลา 09:00 / 10:00 Diamond / 11:00 Gold / 11:30 Silver / 12:00 ทั่วไป เพื่อโชว์ว่าแต่ละ Tier เข้าซื้อได้คนละเวลา (server ตรวจซ้ำทุกครั้งที่ล็อกที่นั่ง)
+- **ยอดขายตั้งต้น:** c1 และ c2 มีที่นั่งที่ "ขายไปแล้ว" แบบ deterministic ให้ผังดูสมจริง คอนที่สร้างใหม่เริ่มจาก 0
+- **การเก็บข้อมูล:** คอนที่สร้าง การจอง และแต้ม เก็บใน memory และบันทึกลง `data/runtime-state.json` ระหว่าง dev (gitignored) — บน Vercel จะหายเมื่อ instance ใหม่ขึ้น ปุ่ม "ล้างข้อมูลเดโม" ที่ `/admin` รีเซ็ตทั้งหมด
+- **ยังไม่มีระบบล็อกอิน:** ผู้จัดเป็นบัญชีจำลอง `Lunar Live Entertainment` ใครเปิด `/admin` ก็เข้าได้
 
 ### Icons
 UI ใช้ **MUI icons** แทน emoji ทั้งหมด (import ทีละไฟล์ เช่น `@mui/icons-material/CreditCard`) และห่อด้วย `AppRouterCacheProvider` (`enableCssLayer`) ให้ Tailwind utilities override style ของ MUI ได้
@@ -120,6 +150,9 @@ UI ใช้ **MUI icons** แทน emoji ทั้งหมด (import ที�
 3. **Presale** → กด **▶ จำลองเปิดขาย presale**: ตอนแรกเรียงตามจำนวนธุรกรรม (บอท/ปั๊มแต้มอยู่บน) → AI จัดคิวใหม่ แฟนตัวจริงขึ้นหัวคิว มายด์คิวที่ 5 (อันดับ 1 ของ Gold), 6 บัญชีผิดปกติสีแดงตกไปท้ายคิว
 4. **Concierge**: กด "งบ 5,000 อยากเห็นเวทีชัด" → แนะนำ Zone A 5,500 บาท แลกส่วนลด 800 เหลือ 4,700 บาท
 5. ปิดด้วยคุณค่าทางธุรกิจ: คอนใหญ่ 1 งานมีคนแย่งบัตร 200,000 คน ถ้า 10% สมัคร U-topia และใช้วันละ 2 รายการ 30 วัน = **ผู้ใช้ใหม่ 20,000 คน, 1.2 ล้านธุรกรรม/คอน** *(ตัวเลขสมมติฐาน)*
+
+6. *(ถ้ามีเวลา)* **ซื้อบัตรจริง**: มายด์ → คอนเสิร์ต → เลือกที่นั่ง (เวลาจำลอง 11:00 รอบ Gold) → เลือก A2 → ชำระด้วยส่วนลด 800 → e-ticket แล้วสลับเป็น ShopKing99 จะเห็นว่าถูก AI ระงับสิทธิ์ซื้อ
+7. **ฝั่งผู้จัด** `/admin`: รายได้ 2 ทาง (คอมมิชชันจากผู้จัด + ค่าบริการจากผู้ซื้อ) และสร้างคอนใหม่จาก template ได้ในไม่กี่คลิก
 
 > ทริก: แลก **Presale Boost** ให้มายด์ที่หน้า `/rewards` แล้วกลับไป Dashboard จะเห็นขึ้น Diamond ทันที
 

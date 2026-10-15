@@ -29,8 +29,8 @@ interface Store {
   bookings: Booking[];
   /** ยอดขายตั้งต้นของคอนตัวอย่าง (ผู้ซื้อรายอื่นนอกระบบเดโม) — สร้างแบบ deterministic */
   presold: Map<string, { seats: Set<string>; standing: Map<string, number> }>;
-  /** จำนวนครั้งที่ AI กันบัญชีเสี่ยงไม่ให้ซื้อ ต่อคอนเสิร์ต */
-  blocked: Map<string, number>;
+  /** บัญชีที่ AI กันไม่ให้ซื้อ (ไม่ซ้ำ) ต่อคอนเสิร์ต */
+  blocked: Map<string, string[]>;
 }
 
 /** state ที่บันทึกลงไฟล์ระหว่าง dev (ไม่ทำบน Vercel เพราะ filesystem อ่านอย่างเดียว) */
@@ -40,7 +40,7 @@ interface PersistedState {
   points: Record<string, number>;
   redemptions: Store["redemptions"];
   boosts: Record<string, number>;
-  blocked: Record<string, number>;
+  blocked: Record<string, string[]>;
 }
 
 const STATE_FILE = join(process.cwd(), "data", "runtime-state.json");
@@ -98,7 +98,7 @@ function createStore(saved: PersistedState | null): Store {
     concerts,
     bookings: saved?.bookings ?? [],
     presold: new Map(SEED_SALES.map(([id, level]) => [id, makePresold(concerts.find((c) => c.id === id), level)])),
-    blocked: new Map(Object.entries(saved?.blocked ?? {})),
+    blocked: new Map(Object.entries(saved?.blocked ?? {}).filter(([, v]) => Array.isArray(v))),
   };
 }
 
