@@ -10,7 +10,7 @@ import ExploreOutlinedIcon from "@mui/icons-material/ExploreOutlined";
 import TouchAppOutlinedIcon from "@mui/icons-material/TouchAppOutlined";
 import { fmtTHB } from "@/lib/client";
 import type { Concert, Section, Zone } from "@/lib/types";
-import { getTemplate, viewFrom, type SeatPos } from "@/lib/venue";
+import { sectionBounds, stageOf, viewFrom, type SeatPos } from "@/lib/venue";
 
 /** ภาพจำลองมุมมองจากที่นั่ง: ขนาดเวทีตามระยะ เลื่อนซ้าย/ขวาตามมุม และจำนวนแถวด้านหน้า */
 function SeatView({ meters, angle, rowsAhead, color }: { meters: number; angle: number; rowsAhead: number; color: string }) {
@@ -70,7 +70,7 @@ export default function SeatDetail({
   standingAvailable,
   onStandingChange,
 }: {
-  concert: Pick<Concert, "template">;
+  concert: Pick<Concert, "template" | "stage">;
   zone?: Zone;
   section?: Section | null;
   seat?: SeatPos | null;
@@ -89,9 +89,10 @@ export default function SeatDetail({
       </div>
     );
   }
-  const stage = getTemplate(concert.template).stage;
-  const cx = seat?.cx ?? section.shape.x + section.shape.w / 2;
-  const cy = seat?.cy ?? section.shape.y + section.shape.h / 2;
+  const stage = stageOf(concert);
+  const sb = sectionBounds(section);
+  const cx = seat?.cx ?? sb.x + sb.w / 2;
+  const cy = seat?.cy ?? sb.y + sb.h / 2;
   const v = viewFrom(cx, cy, stage);
   const rowsAhead = seat ? seat.rowIndex : 0;
 

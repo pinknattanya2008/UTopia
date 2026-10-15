@@ -45,6 +45,8 @@ export interface Concert {
   // ---- ระบบขายบัตร/ผู้จัด (ส่วนขยายจาก Build Spec) ----
   sections: Section[]; // บล็อกที่นั่งบนผัง (หลาย section ต่อ 1 zone ราคา)
   template: VenueTemplateId;
+  stage?: MapRect; // ตำแหน่งเวทีที่ผู้จัดกำหนดเอง (ไม่มี = ใช้ของ template)
+  background?: { image: string; opacity: number }; // รูปผังสถานที่ (data URL) ที่ผู้จัดอัปโหลด
   status: "draft" | "published";
   organizerId: string;
   description?: string;
@@ -62,7 +64,15 @@ export interface Zone {
   color: string; // สีบนผัง
 }
 
-export type VenueTemplateId = "arena" | "theater" | "hall";
+export type VenueTemplateId = "arena" | "theater" | "hall" | "custom";
+
+/** สี่เหลี่ยมบนผัง viewBox 800×600 */
+export interface MapRect {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
 export type OrganizerPlan = "basic" | "pro";
 
 /** บล็อกบนผังสถานที่ — seated: แถว × ที่นั่งต่อแถว, standing: ขายเป็นจำนวน */
@@ -74,7 +84,9 @@ export interface Section {
   rows: number; // seated เท่านั้น (สูงสุด 26 = A–Z)
   seatsPerRow: number; // seated เท่านั้น
   capacity: number; // standing: จำนวนบัตร, seated: rows × seatsPerRow
-  shape: { x: number; y: number; w: number; h: number }; // ตำแหน่งบนผัง viewBox 800×600
+  shape: MapRect; // ตำแหน่งบนผัง viewBox 800×600 (ก่อนหมุน)
+  rotation?: number; // องศา หมุนรอบจุดกึ่งกลาง (ไม่มี = แถวหันเข้าหาเวทีอัตโนมัติ)
+  removedSeats?: string[]; // ที่นั่งที่ผู้จัดเอาออก (ทางเดิน/รูปทรงพิเศษ)
 }
 
 export interface BookingItem {

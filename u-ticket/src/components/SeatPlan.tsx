@@ -5,7 +5,7 @@ import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
 import CenterFocusStrongOutlinedIcon from "@mui/icons-material/CenterFocusStrongOutlined";
 import type { Concert, Section } from "@/lib/types";
-import { getTemplate, MAP_H, MAP_W, seatLayout, type SeatPos } from "@/lib/venue";
+import { MAP_H, MAP_W, sectionBounds, seatLayout, stageOf, type SeatPos } from "@/lib/venue";
 
 type VB = { x: number; y: number; w: number; h: number };
 const FULL: VB = { x: 0, y: 0, w: MAP_W, h: MAP_H };
@@ -41,7 +41,7 @@ export default function SeatPlan({
   onSeatHover,
   onStandingClick,
 }: {
-  concert: Pick<Concert, "template" | "zones" | "sections">;
+  concert: Pick<Concert, "template" | "zones" | "sections" | "stage" | "background">;
   availability: Record<string, { capacity: number; available: number }>;
   unavailable: Set<string>;
   selected: string[];
@@ -51,7 +51,7 @@ export default function SeatPlan({
   onSeatHover: (pick: SeatPick | null) => void;
   onStandingClick: (section: Section) => void;
 }) {
-  const stage = getTemplate(concert.template).stage;
+  const stage = useMemo(() => stageOf(concert), [concert]);
   const svgRef = useRef<SVGSVGElement>(null);
   const [vb, setVb] = useState<VB>(FULL);
   const vbRef = useRef(vb);
@@ -179,7 +179,7 @@ export default function SeatPlan({
     }
     if (!seatMode) {
       // ซูมเข้า section ให้พอดีกรอบ (อัตราส่วน 4:3)
-      const { x, y, w, h } = section.shape;
+      const { x, y, w, h } = sectionBounds(section);
       const pad = 24;
       let tw = w + pad * 2;
       let th = h + pad * 2;
@@ -214,6 +214,18 @@ export default function SeatPlan({
         aria-label="ผังที่นั่ง ซูมและเลื่อนได้"
       >
         <rect x={0} y={0} width={MAP_W} height={MAP_H} fill="#111118" />
+        {concert.background && (
+          <image
+            href={concert.background.image}
+            x={0}
+            y={0}
+            width={MAP_W}
+            height={MAP_H}
+            preserveAspectRatio="xMidYMid meet"
+            opacity={concert.background.opacity}
+            pointerEvents="none"
+          />
+        )}
         <rect x={stage.x} y={stage.y} width={stage.w} height={stage.h} rx={10} fill="#ffd400" />
         <text x={stage.x + stage.w / 2} y={stage.y + stage.h / 2 + 7} textAnchor="middle" fontSize={20} fontWeight={700} fill="#000">
           STAGE
@@ -245,7 +257,7 @@ export default function SeatPlan({
         <g pointerEvents="none" opacity={seatMode ? 0 : 1} style={{ transition: "opacity 200ms" }}>
           {concert.sections.map((s) => {
             const a = availability[s.id];
-            const { x, y, w, h } = s.shape;
+            const { x, y, w, h } = sectionBounds(s);
             return (
               <g key={s.id}>
                 <rect x={x + w / 2 - 34} y={y + h / 2 - 20} width={68} height={a ? 38 : 24} rx={8} fill="#000" fillOpacity={0.65} />
@@ -359,6 +371,7 @@ const SeatLayer = memo(function SeatLayer({
               y={y}
               width={w}
               height={h}
+              transform={s.rotation ? `rotate(${s.rotation} ${x + w / 2} ${y + h / 2})` : undefined}
               rx={10}
               fill={soldOut ? "#2a2a38" : c}
               fillOpacity={s.kind === "standing" ? 0.55 : 0.12}

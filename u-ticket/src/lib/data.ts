@@ -6,7 +6,7 @@ import concertsJson from "../../data/concerts.json";
 import rewardsJson from "../../data/rewards.json";
 import demoCacheJson from "../../data/demo-cache.json";
 import type { Booking, Concert, Mission, PublicUser, Reward, Transaction, TrustAssessment, User, AiSource } from "./types";
-import { ROW_LABELS, seatId } from "./venue";
+import { removedSet, ROW_LABELS, seatId } from "./venue";
 
 /**
  * State ใน memory ฝั่ง server (แต้ม, cache ผล AI)
@@ -136,9 +136,13 @@ function makePresold(concert: Concert | undefined, level: number) {
       standing.set(s.id, Math.floor(s.capacity * Math.min(0.95, base)));
       continue;
     }
+    const removed = removedSet(s);
     for (let r = 0; r < s.rows && r < ROW_LABELS.length; r++) {
       const p = Math.min(0.97, base * (1.15 - (r / s.rows) * 0.8));
-      for (let n = 1; n <= s.seatsPerRow; n++) if (rand() < p) seats.add(seatId(s.id, r, n));
+      for (let n = 1; n <= s.seatsPerRow; n++) {
+        const id = seatId(s.id, r, n);
+        if (rand() < p && !removed.has(id)) seats.add(id);
+      }
     }
   }
   return { seats, standing };

@@ -1,7 +1,7 @@
 "use client";
 
 import type { Concert } from "@/lib/types";
-import { getTemplate, MAP_H, MAP_W } from "@/lib/venue";
+import { MAP_H, MAP_W, sectionBounds, stageOf } from "@/lib/venue";
 
 type Availability = Record<string, { capacity: number; available: number }>;
 
@@ -15,17 +15,29 @@ export default function VenueMap({
   selected,
   onSelect,
 }: {
-  concert: Pick<Concert, "template" | "zones" | "sections">;
+  concert: Pick<Concert, "template" | "zones" | "sections" | "stage" | "background">;
   availability?: Availability;
   selected?: string | null;
   onSelect?: (sectionId: string) => void;
 }) {
-  const stage = getTemplate(concert.template).stage;
+  const stage = stageOf(concert);
   const zoneOf = (id: string) => concert.zones.find((z) => z.id === id);
 
   return (
     <svg viewBox={`0 0 ${MAP_W} ${MAP_H}`} className="h-auto w-full select-none" role="group" aria-label="ผังสถานที่">
       <rect x={0} y={0} width={MAP_W} height={MAP_H} rx={24} fill="#111118" />
+      {concert.background && (
+        <image
+          href={concert.background.image}
+          x={0}
+          y={0}
+          width={MAP_W}
+          height={MAP_H}
+          preserveAspectRatio="xMidYMid meet"
+          opacity={concert.background.opacity}
+          pointerEvents="none"
+        />
+      )}
       <rect x={stage.x} y={stage.y} width={stage.w} height={stage.h} rx={10} fill="#ffd400" />
       <text x={stage.x + stage.w / 2} y={stage.y + stage.h / 2 + 7} textAnchor="middle" fontSize={20} fontWeight={700} fill="#000">
         STAGE
@@ -39,6 +51,7 @@ export default function VenueMap({
         const clickable = !!onSelect && !soldOut;
         const ratio = a ? a.available / Math.max(1, a.capacity) : 1;
         const { x, y, w, h } = s.shape;
+        const b = sectionBounds(s);
         return (
           <g
             key={s.id}
@@ -55,6 +68,7 @@ export default function VenueMap({
               y={y}
               width={w}
               height={h}
+              transform={s.rotation ? `rotate(${s.rotation} ${x + w / 2} ${y + h / 2})` : undefined}
               rx={10}
               fill={soldOut ? "#2a2a38" : (zone?.color ?? "#555")}
               fillOpacity={soldOut ? 1 : isSel ? 0.95 : 0.35 + 0.45 * ratio}
@@ -66,7 +80,7 @@ export default function VenueMap({
               x={x + w / 2}
               y={y + h / 2 - (a ? 4 : -6)}
               textAnchor="middle"
-              fontSize={Math.min(22, Math.max(13, w / 8))}
+              fontSize={Math.min(22, Math.max(13, b.w / 8))}
               fontWeight={700}
               fill={soldOut ? "#71717a" : isSel ? "#000" : "#fff"}
             >

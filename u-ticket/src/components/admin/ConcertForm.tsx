@@ -4,19 +4,12 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import CheckIcon from "@mui/icons-material/Check";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
-import VenueMap from "@/components/VenueMap";
+import AddIcon from "@mui/icons-material/Add";
+import CloseIcon from "@mui/icons-material/Close";
+import LayoutEditor, { type LayoutPatch } from "@/components/admin/LayoutEditor";
 import { api, fmtTHB, fromLocalInput, toLocalInput } from "@/lib/client";
-import type { Concert, OrganizerPlan, Section, VenueTemplateId, Zone } from "@/lib/types";
-import {
-  buildFromTemplate,
-  MAX_ROWS,
-  MAX_SEATS_PER_ROW,
-  PLANS,
-  sectionCapacity,
-  SERVICE_FEE_PER_TICKET,
-  TEMPLATES,
-  withZoneCapacity,
-} from "@/lib/venue";
+import type { Concert, MapRect, OrganizerPlan, Section, VenueTemplateId, Zone } from "@/lib/types";
+import { buildFromTemplate, getTemplate, PLANS, SERVICE_FEE_PER_TICKET, stageOf, TEMPLATES, withZoneCapacity, ZONE_COLORS } from "@/lib/venue";
 
 type Form = {
   artist: string;
@@ -30,6 +23,8 @@ type Form = {
   maxTicketsPerUser: number;
   zones: Zone[];
   sections: Section[];
+  stage: MapRect;
+  background: { image: string; opacity: number } | null;
 };
 
 function initialForm(concert?: Concert): Form {
@@ -46,6 +41,8 @@ function initialForm(concert?: Concert): Form {
       maxTicketsPerUser: concert.maxTicketsPerUser,
       zones: concert.zones,
       sections: concert.sections,
+      stage: stageOf(concert),
+      background: concert.background ?? null,
     };
   }
   const t = buildFromTemplate("arena");
@@ -60,6 +57,8 @@ function initialForm(concert?: Concert): Form {
     plan: "pro",
     maxTicketsPerUser: 4,
     ...t,
+    stage: getTemplate("arena").stage,
+    background: null,
   };
 }
 
@@ -75,15 +74,26 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
   const set = <K extends keyof Form>(k: K, v: Form[K]) => setF((x) => ({ ...x, [k]: v }));
   const setZone = (id: string, patch: Partial<Zone>) =>
     setF((x) => ({ ...x, zones: x.zones.map((z) => (z.id === id ? { ...z, ...patch } : z)) }));
-  const setSection = (id: string, patch: Partial<Section>) =>
+  const applyLayout = (patch: LayoutPatch) =>
     setF((x) => ({
       ...x,
-      sections: x.sections.map((s) => {
-        if (s.id !== id) return s;
-        const next = { ...s, ...patch };
-        return { ...next, capacity: sectionCapacity(next) };
-      }),
+      template: "custom",
+      ...(patch.sections ? { sections: patch.sections } : {}),
+      ...(patch.stage ? { stage: patch.stage } : {}),
+      ...(patch.background !== undefined ? { background: patch.background } : {}),
     }));
+  const addZone = () =>
+    setF((x) => {
+      let n = x.zones.length + 1;
+      while (x.zones.some((z) => z.id === `Z${n}`)) n++;
+      const zone: Zone = { id: `Z${n}`, name: `Zone ${n}`, priceTHB: 2000, view: "", color: ZONE_COLORS[x.zones.length % ZONE_COLORS.length], capacity: 0 };
+      return { ...x, zones: [...x.zones, zone] };
+    });
+  const removeZone = (id: string) =>
+    setF((x) => {
+      if (x.zones.length <= 1 || x.sections.some((s) => s.zoneId === id)) return x;
+      return { ...x, zones: x.zones.filter((z) => z.id !== id) };
+    });
 
   const zones = useMemo(() => withZoneCapacity(f.zones, f.sections), [f.zones, f.sections]);
   const capacity = zones.reduce((n, z) => n + z.capacity, 0);
@@ -92,7 +102,8 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
 
   function pickTemplate(id: VenueTemplateId) {
     if (layoutLocked) return;
-    setF((x) => ({ ...x, template: id, ...buildFromTemplate(id) }));
+    if (id === "custom") return;
+    setF((x) => ({ ...x, template: id, ...buildFromTemplate(id), stage: getTemplate(id).stage }));
   }
 
   async function save(status: "draft" | "published") {
@@ -159,12 +170,19 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
               <InfoOutlinedIcon fontSize="inherit" /> มียอดขายแล้ว ผังที่นั่งถูกล็อก แก้ได้เฉพาะชื่อโซน ราคา และข้อมูลงาน
             </p>
           )}
+          <p className="mt-2 text-xs text-muted">
+            เริ่มจาก template แล้วปรับเองได้อิสระ หรือวางรูปผังจริงของสถานที่แล้ววาง section ตามรูป
+            {f.template === "custom" && <span className="ml-1 rounded bg-brand/15 px-1.5 py-0.5 text-brand">ผังแบบกำหนดเอง</span>}
+          </p>
           <div className="mb-4 mt-3 grid gap-2 sm:grid-cols-3">
             {TEMPLATES.map((t) => (
               <button
                 key={t.id}
                 type="button"
-                onClick={() => pickTemplate(t.id)}
+                onClick={() => {
+                  if (f.template === "custom" && !confirm(`ใช้ template ${t.name}? ผังที่ปรับไว้จะถูกแทนที่ (รูปพื้นหลังยังอยู่)`)) return;
+                  pickTemplate(t.id);
+                }}
                 disabled={layoutLocked && f.template !== t.id}
                 className={`rounded-2xl border p-3 text-left transition disabled:opacity-40 ${
                   f.template === t.id ? "border-brand bg-brand/10" : "border-line hover:border-brand/60"
@@ -209,93 +227,40 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
                   />
                   <span className="pointer-events-none absolute right-3 top-2 text-xs text-muted">บาท</span>
                 </label>
-                <span className="hidden text-right text-xs text-muted sm:block">{z.capacity.toLocaleString("th-TH")} ที่</span>
+                <span className="hidden items-center justify-end gap-1 text-right text-xs text-muted sm:flex">
+                  {z.capacity.toLocaleString("th-TH")} ที่
+                  <button
+                    type="button"
+                    onClick={() => removeZone(z.id)}
+                    disabled={layoutLocked || zones.length <= 1 || z.capacity > 0}
+                    title={z.capacity > 0 ? "ย้าย section ออกจากโซนนี้ก่อน" : "ลบโซน"}
+                    aria-label={`ลบโซน ${z.name}`}
+                    className="rounded p-0.5 hover:text-danger disabled:opacity-30"
+                  >
+                    <CloseIcon fontSize="inherit" />
+                  </button>
+                </span>
               </div>
             ))}
           </div>
+          <button
+            type="button"
+            onClick={addZone}
+            disabled={layoutLocked || zones.length >= 8}
+            className="mt-2 flex items-center gap-1 rounded-xl border border-dashed border-line px-3 py-1.5 text-xs text-muted hover:border-brand hover:text-brand disabled:opacity-40"
+          >
+            <AddIcon fontSize="inherit" /> เพิ่มโซนราคา
+          </button>
 
-          <h3 className="mb-2 mt-5 text-sm font-semibold">Section บนผัง</h3>
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[520px] text-sm">
-              <thead className="text-xs text-muted">
-                <tr className="text-left">
-                  <th className="py-1 font-normal">Section</th>
-                  <th className="py-1 font-normal">โซนราคา</th>
-                  <th className="py-1 font-normal">แถว</th>
-                  <th className="py-1 font-normal">ที่นั่ง/แถว</th>
-                  <th className="py-1 text-right font-normal">ความจุ</th>
-                </tr>
-              </thead>
-              <tbody>
-                {f.sections.map((s) => (
-                  <tr key={s.id} className="border-t border-line/60">
-                    <td className="py-1.5 pr-2 font-semibold">
-                      {s.name}
-                      <span className="ml-1 text-xs font-normal text-muted">{s.kind === "standing" ? "ยืน" : "ที่นั่ง"}</span>
-                    </td>
-                    <td className="py-1.5 pr-2">
-                      <select
-                        className={input}
-                        value={s.zoneId}
-                        disabled={layoutLocked}
-                        onChange={(e) => setSection(s.id, { zoneId: e.target.value })}
-                        aria-label={`โซนของ ${s.name}`}
-                      >
-                        {zones.map((z) => (
-                          <option key={z.id} value={z.id}>
-                            {z.name}
-                          </option>
-                        ))}
-                      </select>
-                    </td>
-                    {s.kind === "seated" ? (
-                      <>
-                        <td className="w-20 py-1.5 pr-2">
-                          <input
-                            type="number"
-                            min={1}
-                            max={MAX_ROWS}
-                            className={input}
-                            disabled={layoutLocked}
-                            value={s.rows}
-                            onChange={(e) => setSection(s.id, { rows: Math.min(MAX_ROWS, Math.max(1, Number(e.target.value))) })}
-                            aria-label={`จำนวนแถว ${s.name}`}
-                          />
-                        </td>
-                        <td className="w-24 py-1.5 pr-2">
-                          <input
-                            type="number"
-                            min={1}
-                            max={MAX_SEATS_PER_ROW}
-                            className={input}
-                            disabled={layoutLocked}
-                            value={s.seatsPerRow}
-                            onChange={(e) =>
-                              setSection(s.id, { seatsPerRow: Math.min(MAX_SEATS_PER_ROW, Math.max(1, Number(e.target.value))) })
-                            }
-                            aria-label={`ที่นั่งต่อแถว ${s.name}`}
-                          />
-                        </td>
-                      </>
-                    ) : (
-                      <td colSpan={2} className="py-1.5 pr-2">
-                        <input
-                          type="number"
-                          min={1}
-                          className={input}
-                          disabled={layoutLocked}
-                          value={s.capacity}
-                          onChange={(e) => setSection(s.id, { capacity: Math.max(1, Number(e.target.value)) })}
-                          aria-label={`ความจุ ${s.name}`}
-                        />
-                      </td>
-                    )}
-                    <td className="py-1.5 text-right tabular-nums">{s.capacity.toLocaleString("th-TH")}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <h3 className="mb-2 mt-5 text-sm font-semibold">ผังและ Section</h3>
+          <LayoutEditor
+            zones={zones}
+            sections={f.sections}
+            stage={f.stage}
+            background={f.background}
+            locked={layoutLocked}
+            onChange={applyLayout}
+          />
         </section>
 
         {/* 3. แพ็กเกจและการขาย */}
@@ -343,10 +308,6 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
 
       {/* Preview + สรุป */}
       <aside className="space-y-4 lg:sticky lg:top-28 lg:self-start">
-        <div className="rounded-3xl border border-line bg-surface p-3">
-          <p className="mb-2 px-1 text-xs text-muted">ตัวอย่างผัง</p>
-          <VenueMap concert={{ template: f.template, zones, sections: f.sections }} />
-        </div>
         <div className="rounded-3xl border border-line bg-surface p-4 text-sm">
           <p className="mb-2 font-semibold">ประมาณการเมื่อขายหมด</p>
           <dl className="space-y-1">

@@ -2,7 +2,7 @@
  * ผังสถานที่ (venue templates), ที่นั่ง และโครงสร้างค่าธรรมเนียม
  * ไฟล์นี้ไม่มี value import (ใช้ได้ทั้ง client, server และ node scripts)
  */
-import type { OrganizerPlan, Section, VenueTemplateId, Zone } from "./types";
+import type { MapRect, OrganizerPlan, Section, VenueTemplateId, Zone } from "./types";
 
 export const MAP_W = 800;
 export const MAP_H = 600;
@@ -56,7 +56,8 @@ export function parseSeatId(id: string) {
   return { sectionId: id.slice(0, i), row: m[1], rowIndex: ROW_LABELS.indexOf(m[1]), num: Number(m[2]) };
 }
 
-export function isValidSeat(section: Section, id: string) {
+/** ที่นั่งอยู่ในขอบเขตแถว × ที่นั่งของ section (ไม่สนว่าถูกเอาออกหรือไม่) */
+function inGrid(section: Pick<Section, "id" | "kind" | "rows" | "seatsPerRow">, id: string) {
   const p = parseSeatId(id);
   return (
     !!p &&
@@ -69,6 +70,15 @@ export function isValidSeat(section: Section, id: string) {
   );
 }
 
+/** ที่นั่งที่ถูกเอาออกและยังอยู่ในกริดปัจจุบัน */
+export function removedSet(section: Pick<Section, "id" | "kind" | "rows" | "seatsPerRow" | "removedSeats">) {
+  return new Set((section.removedSeats ?? []).filter((id) => inGrid(section, id)));
+}
+
+export function isValidSeat(section: Section, id: string) {
+  return inGrid(section, id) && !removedSet(section).has(id);
+}
+
 export function seatLabel(zone: Zone | undefined, section: Section, id?: string) {
   const base = `${zone?.name ?? section.zoneId} · ${section.name}`;
   if (!id) return `${base} (บัตรยืน)`;
@@ -76,8 +86,13 @@ export function seatLabel(zone: Zone | undefined, section: Section, id?: string)
   return p ? `${base} แถว ${p.row} ที่นั่ง ${p.num}` : base;
 }
 
-export function sectionCapacity(s: Pick<Section, "kind" | "rows" | "seatsPerRow" | "capacity">) {
-  return s.kind === "seated" ? s.rows * s.seatsPerRow : s.capacity;
+export function sectionCapacity(s: Pick<Section, "id" | "kind" | "rows" | "seatsPerRow" | "capacity" | "removedSeats">) {
+  return s.kind === "seated" ? s.rows * s.seatsPerRow - removedSet(s).size : s.capacity;
+}
+
+/** ตำแหน่งเวทีของคอน: ที่ผู้จัดกำหนดเอง หรือของ template */
+export function stageOf(c: { template: VenueTemplateId; stage?: MapRect }): MapRect {
+  return c.stage ?? getTemplate(c.template).stage;
 }
 
 /** คำนวณ capacity ของ zone จากผลรวมของ section */
@@ -205,7 +220,7 @@ export function buildFromTemplate(id: VenueTemplateId): { zones: Zone[]; section
 
 // ---------------------------------------------------------------- ตำแหน่งที่นั่งบนผัง
 
-type Rect = { x: number; y: number; w: number; h: number };
+type Rect = MapRect;
 
 export interface SeatPos {
   id: string;
@@ -214,57 +229,75 @@ export interface SeatPos {
   num: number;
   cx: number;
   cy: number;
+  removed?: boolean;
+}
+
+export function rotatePoint(x: number, y: number, cx: number, cy: number, deg: number) {
+  if (!deg) return { x, y };
+  const t = (deg * Math.PI) / 180;
+  const dx = x - cx;
+  const dy = y - cy;
+  return { x: cx + dx * Math.cos(t) - dy * Math.sin(t), y: cy + dx * Math.sin(t) + dy * Math.cos(t) };
 }
 
 /**
  * ตำแหน่งที่นั่งทุกที่ใน section บนผัง (หน่วยเดียวกับ viewBox 800×600)
- * - section ปกติ: แถวเรียงจากบนลงล่าง แถว A ใกล้เวที (เวทีอยู่ด้านบน)
- * - section ด้านข้างเวที (ทรงสูง): แถวเรียงในแนวตั้ง แถว A อยู่ฝั่งที่หันเข้าหาเวที
+ * - มี rotation: แถว A อยู่ด้านบนของกรอบ แล้วหมุนทั้งกรอบตามองศา (ผู้จัดหมุนให้แถว A หันเข้าเวทีเอง)
+ * - ไม่มี rotation (template เดิม): section ทรงสูงข้างเวทีจะเรียงแถวแนวตั้งให้แถว A หันเข้าหาเวทีอัตโนมัติ
+ * - ที่นั่งที่ถูกเอาออกจะไม่อยู่ในผล ยกเว้น includeRemoved (ใช้ใน editor)
  */
-export function seatLayout(section: Section, stage: Rect): { seats: SeatPos[]; r: number; vertical: boolean } {
+export function seatLayout(
+  section: Section,
+  stage: Rect,
+  opts: { includeRemoved?: boolean } = {},
+): { seats: SeatPos[]; r: number; vertical: boolean } {
   if (section.kind !== "seated") return { seats: [], r: 0, vertical: false };
   const { x, y, w, h } = section.shape;
   const pad = Math.min(8, w * 0.05, h * 0.05);
   const stageCx = stage.x + stage.w / 2;
-  const vertical = h > w * 1.3 && (x + w <= stage.x + 10 || x >= stage.x + stage.w - 10);
+  const vertical =
+    section.rotation === undefined && h > w * 1.3 && (x + w <= stage.x + 10 || x >= stage.x + stage.w - 10);
   const leftOfStage = x + w / 2 < stageCx;
+  const removed = removedSet(section);
+  const rot = section.rotation ?? 0;
+  const ox = x + w / 2;
+  const oy = y + h / 2;
   const seats: SeatPos[] = [];
-  let r: number;
-  if (!vertical) {
-    const cw = (w - 2 * pad) / section.seatsPerRow;
-    const ch = (h - 2 * pad) / section.rows;
-    r = Math.min(cw, ch) * 0.38;
-    for (let ri = 0; ri < section.rows; ri++) {
-      for (let n = 1; n <= section.seatsPerRow; n++) {
-        seats.push({
-          id: seatId(section.id, ri, n),
-          row: ROW_LABELS[ri],
-          rowIndex: ri,
-          num: n,
-          cx: x + pad + cw * (n - 1) + cw / 2,
-          cy: y + pad + ch * ri + ch / 2,
-        });
-      }
-    }
-  } else {
-    const cw = (w - 2 * pad) / section.rows;
-    const ch = (h - 2 * pad) / section.seatsPerRow;
-    r = Math.min(cw, ch) * 0.38;
-    for (let ri = 0; ri < section.rows; ri++) {
-      const col = leftOfStage ? section.rows - 1 - ri : ri;
-      for (let n = 1; n <= section.seatsPerRow; n++) {
-        seats.push({
-          id: seatId(section.id, ri, n),
-          row: ROW_LABELS[ri],
-          rowIndex: ri,
-          num: n,
-          cx: x + pad + cw * col + cw / 2,
-          cy: y + pad + ch * (n - 1) + ch / 2,
-        });
-      }
+  const cols = vertical ? section.rows : section.seatsPerRow;
+  const lines = vertical ? section.seatsPerRow : section.rows;
+  const cw = (w - 2 * pad) / cols;
+  const ch = (h - 2 * pad) / lines;
+  const r = Math.min(cw, ch) * 0.38;
+  for (let ri = 0; ri < section.rows; ri++) {
+    for (let n = 1; n <= section.seatsPerRow; n++) {
+      const id = seatId(section.id, ri, n);
+      const isRemoved = removed.has(id);
+      if (isRemoved && !opts.includeRemoved) continue;
+      const col = vertical ? (leftOfStage ? section.rows - 1 - ri : ri) : n - 1;
+      const line = vertical ? n - 1 : ri;
+      const p = rotatePoint(x + pad + cw * col + cw / 2, y + pad + ch * line + ch / 2, ox, oy, rot);
+      seats.push({ id, row: ROW_LABELS[ri], rowIndex: ri, num: n, cx: p.x, cy: p.y, ...(isRemoved ? { removed: true } : {}) });
     }
   }
   return { seats, r, vertical };
+}
+
+/** กรอบรอบ section หลังหมุน (ใช้ซูม/วางป้าย) */
+export function sectionBounds(section: Pick<Section, "shape" | "rotation">): MapRect {
+  const { x, y, w, h } = section.shape;
+  const rot = section.rotation ?? 0;
+  if (!rot) return section.shape;
+  const ox = x + w / 2;
+  const oy = y + h / 2;
+  const pts = [
+    [x, y],
+    [x + w, y],
+    [x, y + h],
+    [x + w, y + h],
+  ].map(([px, py]) => rotatePoint(px, py, ox, oy, rot));
+  const xs = pts.map((p) => p.x);
+  const ys = pts.map((p) => p.y);
+  return { x: Math.min(...xs), y: Math.min(...ys), w: Math.max(...xs) - Math.min(...xs), h: Math.max(...ys) - Math.min(...ys) };
 }
 
 /** 1 หน่วยบนผัง ≈ 0.1 เมตร (ผัง 800 หน่วย ≈ 80 ม.) — ใช้ประมาณระยะห่างจากเวที */
