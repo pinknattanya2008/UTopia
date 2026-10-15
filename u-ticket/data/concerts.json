@@ -11,30 +11,459 @@
     "id": "VIP",
     "name": "VIP Standing",
     "priceTHB": 7500,
-    "capacity": 300,
-    "view": "ยืนติดเวที ใกล้ศิลปินที่สุด"
+    "view": "ยืนติดเวที ใกล้ศิลปินที่สุด",
+    "color": "#f43f5e",
+    "capacity": 300
    },
    {
     "id": "A",
     "name": "Zone A",
     "priceTHB": 5500,
-    "capacity": 1200,
-    "view": "ที่นั่งชั้นล่าง เห็นเวทีชัด"
+    "view": "ที่นั่งชั้นล่าง เห็นเวทีชัด",
+    "color": "#ffd400",
+    "capacity": 1200
    },
    {
     "id": "B",
     "name": "Zone B",
     "priceTHB": 3500,
-    "capacity": 2500,
-    "view": "ชั้น 2 มุมเฉียง เห็นจอใหญ่ชัด"
+    "view": "ชั้น 2 มุมเฉียง เห็นจอใหญ่ชัด",
+    "color": "#22d3ee",
+    "capacity": 2500
    },
    {
     "id": "C",
     "name": "Zone C",
     "priceTHB": 1800,
-    "capacity": 4000,
-    "view": "ชั้นบน ไกลเวที เน้นบรรยากาศ"
+    "view": "ชั้นบน ไกลเวที เน้นบรรยากาศ",
+    "color": "#a78bfa",
+    "capacity": 4000
    }
-  ]
+  ],
+  "sections": [
+   {
+    "id": "VIP",
+    "zoneId": "VIP",
+    "name": "VIP Standing",
+    "kind": "standing",
+    "rows": 0,
+    "seatsPerRow": 0,
+    "capacity": 300,
+    "shape": {
+     "x": 270,
+     "y": 86,
+     "w": 260,
+     "h": 84
+    }
+   },
+   {
+    "id": "A1",
+    "zoneId": "A",
+    "name": "A1",
+    "kind": "seated",
+    "rows": 20,
+    "seatsPerRow": 20,
+    "shape": {
+     "x": 150,
+     "y": 188,
+     "w": 140,
+     "h": 110
+    },
+    "capacity": 400
+   },
+   {
+    "id": "A2",
+    "zoneId": "A",
+    "name": "A2",
+    "kind": "seated",
+    "rows": 20,
+    "seatsPerRow": 20,
+    "shape": {
+     "x": 300,
+     "y": 188,
+     "w": 200,
+     "h": 110
+    },
+    "capacity": 400
+   },
+   {
+    "id": "A3",
+    "zoneId": "A",
+    "name": "A3",
+    "kind": "seated",
+    "rows": 20,
+    "seatsPerRow": 20,
+    "shape": {
+     "x": 510,
+     "y": 188,
+     "w": 140,
+     "h": 110
+    },
+    "capacity": 400
+   },
+   {
+    "id": "B1",
+    "zoneId": "B",
+    "name": "B1",
+    "kind": "seated",
+    "rows": 25,
+    "seatsPerRow": 25,
+    "shape": {
+     "x": 30,
+     "y": 120,
+     "w": 110,
+     "h": 280
+    },
+    "capacity": 625
+   },
+   {
+    "id": "B2",
+    "zoneId": "B",
+    "name": "B2",
+    "kind": "seated",
+    "rows": 25,
+    "seatsPerRow": 25,
+    "shape": {
+     "x": 660,
+     "y": 120,
+     "w": 110,
+     "h": 280
+    },
+    "capacity": 625
+   },
+   {
+    "id": "B3",
+    "zoneId": "B",
+    "name": "B3",
+    "kind": "seated",
+    "rows": 25,
+    "seatsPerRow": 25,
+    "shape": {
+     "x": 150,
+     "y": 310,
+     "w": 240,
+     "h": 90
+    },
+    "capacity": 625
+   },
+   {
+    "id": "B4",
+    "zoneId": "B",
+    "name": "B4",
+    "kind": "seated",
+    "rows": 25,
+    "seatsPerRow": 25,
+    "shape": {
+     "x": 410,
+     "y": 310,
+     "w": 240,
+     "h": 90
+    },
+    "capacity": 625
+   },
+   {
+    "id": "C1",
+    "zoneId": "C",
+    "name": "C1",
+    "kind": "seated",
+    "rows": 25,
+    "seatsPerRow": 40,
+    "shape": {
+     "x": 30,
+     "y": 420,
+     "w": 180,
+     "h": 150
+    },
+    "capacity": 1000
+   },
+   {
+    "id": "C2",
+    "zoneId": "C",
+    "name": "C2",
+    "kind": "seated",
+    "rows": 25,
+    "seatsPerRow": 40,
+    "shape": {
+     "x": 220,
+     "y": 420,
+     "w": 175,
+     "h": 150
+    },
+    "capacity": 1000
+   },
+   {
+    "id": "C3",
+    "zoneId": "C",
+    "name": "C3",
+    "kind": "seated",
+    "rows": 25,
+    "seatsPerRow": 40,
+    "shape": {
+     "x": 405,
+     "y": 420,
+     "w": 175,
+     "h": 150
+    },
+    "capacity": 1000
+   },
+   {
+    "id": "C4",
+    "zoneId": "C",
+    "name": "C4",
+    "kind": "seated",
+    "rows": 25,
+    "seatsPerRow": 40,
+    "shape": {
+     "x": 590,
+     "y": 420,
+     "w": 180,
+     "h": 150
+    },
+    "capacity": 1000
+   }
+  ],
+  "template": "arena",
+  "status": "published",
+  "organizerId": "o1",
+  "description": "คอนเสิร์ตเต็มรูปแบบครั้งแรกในไทยของ NOVA LUNE พร้อมโปรดักชันเวทีใหม่ทั้งหมด",
+  "plan": "pro",
+  "maxTicketsPerUser": 4,
+  "createdAt": "2026-09-10T10:00:00+07:00"
+ },
+ {
+  "id": "c2",
+  "artist": "Midnight Echo",
+  "title": "Midnight Echo — Acoustic Night",
+  "venue": "Thailand Cultural Centre, Bangkok",
+  "date": "2026-11-21T19:30:00+07:00",
+  "salesOpenAt": "2026-10-10T10:00:00+07:00",
+  "zones": [
+   {
+    "id": "P",
+    "name": "Premium",
+    "priceTHB": 4500,
+    "view": "แถวหน้ากลางเวที",
+    "color": "#f43f5e",
+    "capacity": 144
+   },
+   {
+    "id": "O",
+    "name": "Orchestra",
+    "priceTHB": 2900,
+    "view": "ชั้นล่าง เห็นเวทีเต็มตา",
+    "color": "#ffd400",
+    "capacity": 750
+   },
+   {
+    "id": "BC",
+    "name": "Balcony",
+    "priceTHB": 1500,
+    "view": "ชั้นลอย มองภาพรวมทั้งเวที",
+    "color": "#a78bfa",
+    "capacity": 520
+   }
+  ],
+  "sections": [
+   {
+    "id": "P1",
+    "zoneId": "P",
+    "name": "Premium",
+    "kind": "seated",
+    "rows": 6,
+    "seatsPerRow": 24,
+    "shape": {
+     "x": 240,
+     "y": 92,
+     "w": 320,
+     "h": 70
+    },
+    "capacity": 144
+   },
+   {
+    "id": "O1",
+    "zoneId": "O",
+    "name": "O1",
+    "kind": "seated",
+    "rows": 15,
+    "seatsPerRow": 14,
+    "shape": {
+     "x": 60,
+     "y": 182,
+     "w": 200,
+     "h": 170
+    },
+    "capacity": 210
+   },
+   {
+    "id": "O2",
+    "zoneId": "O",
+    "name": "O2",
+    "kind": "seated",
+    "rows": 15,
+    "seatsPerRow": 22,
+    "shape": {
+     "x": 280,
+     "y": 182,
+     "w": 240,
+     "h": 170
+    },
+    "capacity": 330
+   },
+   {
+    "id": "O3",
+    "zoneId": "O",
+    "name": "O3",
+    "kind": "seated",
+    "rows": 15,
+    "seatsPerRow": 14,
+    "shape": {
+     "x": 540,
+     "y": 182,
+     "w": 200,
+     "h": 170
+    },
+    "capacity": 210
+   },
+   {
+    "id": "BC1",
+    "zoneId": "BC",
+    "name": "BC1",
+    "kind": "seated",
+    "rows": 10,
+    "seatsPerRow": 26,
+    "shape": {
+     "x": 60,
+     "y": 400,
+     "w": 330,
+     "h": 160
+    },
+    "capacity": 260
+   },
+   {
+    "id": "BC2",
+    "zoneId": "BC",
+    "name": "BC2",
+    "kind": "seated",
+    "rows": 10,
+    "seatsPerRow": 26,
+    "shape": {
+     "x": 410,
+     "y": 400,
+     "w": 330,
+     "h": 160
+    },
+    "capacity": 260
+   }
+  ],
+  "template": "theater",
+  "status": "published",
+  "organizerId": "o1",
+  "description": "คืนอะคูสติกสุดอบอุ่นในหอประชุมขนาดกลาง",
+  "plan": "basic",
+  "maxTicketsPerUser": 6,
+  "createdAt": "2026-09-25T14:00:00+07:00"
+ },
+ {
+  "id": "c3",
+  "artist": "SUNRISE Collective",
+  "title": "SUNRISE Fest 2027",
+  "venue": "Thunder Dome, Muang Thong Thani",
+  "date": "2027-02-14T18:00:00+07:00",
+  "salesOpenAt": "2026-12-01T12:00:00+07:00",
+  "zones": [
+   {
+    "id": "FS",
+    "name": "Front Standing",
+    "priceTHB": 3900,
+    "view": "ยืนโซนหน้าเวที",
+    "color": "#f43f5e",
+    "capacity": 800
+   },
+   {
+    "id": "GA",
+    "name": "General Standing",
+    "priceTHB": 2500,
+    "view": "ยืนโซนหลัง พื้นที่กว้าง",
+    "color": "#22d3ee",
+    "capacity": 1500
+   },
+   {
+    "id": "SB",
+    "name": "Seated Balcony",
+    "priceTHB": 3200,
+    "view": "ที่นั่งชั้นลอย มองเวทีชัด",
+    "color": "#34d399",
+    "capacity": 480
+   }
+  ],
+  "sections": [
+   {
+    "id": "FS",
+    "zoneId": "FS",
+    "name": "Front Standing",
+    "kind": "standing",
+    "rows": 0,
+    "seatsPerRow": 0,
+    "capacity": 800,
+    "shape": {
+     "x": 150,
+     "y": 92,
+     "w": 500,
+     "h": 130
+    }
+   },
+   {
+    "id": "GA",
+    "zoneId": "GA",
+    "name": "General Standing",
+    "kind": "standing",
+    "rows": 0,
+    "seatsPerRow": 0,
+    "capacity": 1500,
+    "shape": {
+     "x": 90,
+     "y": 240,
+     "w": 620,
+     "h": 160
+    }
+   },
+   {
+    "id": "SB1",
+    "zoneId": "SB",
+    "name": "SB1",
+    "kind": "seated",
+    "rows": 8,
+    "seatsPerRow": 30,
+    "shape": {
+     "x": 60,
+     "y": 430,
+     "w": 330,
+     "h": 130
+    },
+    "capacity": 240
+   },
+   {
+    "id": "SB2",
+    "zoneId": "SB",
+    "name": "SB2",
+    "kind": "seated",
+    "rows": 8,
+    "seatsPerRow": 30,
+    "shape": {
+     "x": 410,
+     "y": 430,
+     "w": 330,
+     "h": 130
+    },
+    "capacity": 240
+   }
+  ],
+  "template": "hall",
+  "status": "draft",
+  "organizerId": "o1",
+  "description": "เทศกาลดนตรีอินดี้ 6 วง (ร่างยังไม่เผยแพร่)",
+  "plan": "pro",
+  "maxTicketsPerUser": 4,
+  "createdAt": "2026-10-12T09:00:00+07:00"
  }
 ]

@@ -36,20 +36,71 @@ export interface Transaction {
 
 export interface Concert {
   id: string;
-  artist: string;
+  artist: string; // ใช้ชื่อศิลปินสมมติ
   title: string;
   venue: string;
   date: string;
   salesOpenAt: string; // เวลาเปิดขายทั่วไป
   zones: Zone[];
+  // ---- ระบบขายบัตร/ผู้จัด (ส่วนขยายจาก Build Spec) ----
+  sections: Section[]; // บล็อกที่นั่งบนผัง (หลาย section ต่อ 1 zone ราคา)
+  template: VenueTemplateId;
+  status: "draft" | "published";
+  organizerId: string;
+  description?: string;
+  plan: OrganizerPlan; // แพ็กเกจที่ผู้จัดเลือก (กำหนดค่าคอมมิชชันและฟีเจอร์)
+  maxTicketsPerUser: number;
+  createdAt: string;
 }
 
 export interface Zone {
   id: string; // "VIP", "A", "B", "C"
   name: string;
   priceTHB: number;
-  capacity: number;
+  capacity: number; // รวมจากทุก section ของโซนนี้
   view: string; // คำอธิบายมุมมอง ให้ Concierge ใช้
+  color: string; // สีบนผัง
+}
+
+export type VenueTemplateId = "arena" | "theater" | "hall";
+export type OrganizerPlan = "basic" | "pro";
+
+/** บล็อกบนผังสถานที่ — seated: แถว × ที่นั่งต่อแถว, standing: ขายเป็นจำนวน */
+export interface Section {
+  id: string; // "A1"
+  zoneId: string;
+  name: string;
+  kind: "seated" | "standing";
+  rows: number; // seated เท่านั้น (สูงสุด 26 = A–Z)
+  seatsPerRow: number; // seated เท่านั้น
+  capacity: number; // standing: จำนวนบัตร, seated: rows × seatsPerRow
+  shape: { x: number; y: number; w: number; h: number }; // ตำแหน่งบนผัง viewBox 800×600
+}
+
+export interface BookingItem {
+  sectionId: string;
+  zoneId: string;
+  seatId?: string; // "A1-C12" (seated) — standing ไม่มี
+  label: string; // "Zone A · A1 แถว C ที่นั่ง 12"
+  priceTHB: number;
+}
+
+export interface Booking {
+  id: string;
+  code: string; // "UT-7K2Q9F"
+  userId: string;
+  concertId: string;
+  items: BookingItem[];
+  status: "held" | "paid" | "cancelled" | "expired";
+  createdAt: string;
+  holdExpiresAt: string;
+  paidAt?: string;
+  subtotal: number; // ราคาบัตรรวม
+  serviceFee: number; // ค่าบริการที่ผู้ซื้อจ่าย (รายได้แพลตฟอร์ม)
+  discount: number; // ส่วนลดจากแต้ม (แพลตฟอร์มออก)
+  discountRewardId?: string;
+  total: number; // subtotal - discount + serviceFee
+  organizerCommission: number; // ค่าคอมมิชชันที่หักจากผู้จัด (รายได้แพลตฟอร์ม)
 }
 
 export interface ScoreBreakdown {

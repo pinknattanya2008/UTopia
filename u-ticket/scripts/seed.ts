@@ -15,6 +15,7 @@ import type {
   UCenterPackage,
   User,
 } from "../src/lib/types.ts";
+import { buildFromTemplate } from "../src/lib/venue.ts";
 
 // ---------- Seeded RNG (mulberry32) ----------
 function mulberry32(seed: number) {
@@ -267,6 +268,10 @@ const users: User[] = SPECS.map((s) => {
   };
 });
 
+const arena = buildFromTemplate("arena");
+const theater = buildFromTemplate("theater");
+const hall = buildFromTemplate("hall");
+
 const concerts: Concert[] = [
   {
     id: "c1",
@@ -275,12 +280,49 @@ const concerts: Concert[] = [
     venue: "Impact Arena, Bangkok",
     date: "2026-12-12T19:00:00+07:00",
     salesOpenAt: "2026-10-16T12:00:00+07:00",
-    zones: [
-      { id: "VIP", name: "VIP Standing", priceTHB: 7500, capacity: 300, view: "ยืนติดเวที ใกล้ศิลปินที่สุด" },
-      { id: "A", name: "Zone A", priceTHB: 5500, capacity: 1200, view: "ที่นั่งชั้นล่าง เห็นเวทีชัด" },
-      { id: "B", name: "Zone B", priceTHB: 3500, capacity: 2500, view: "ชั้น 2 มุมเฉียง เห็นจอใหญ่ชัด" },
-      { id: "C", name: "Zone C", priceTHB: 1800, capacity: 4000, view: "ชั้นบน ไกลเวที เน้นบรรยากาศ" },
-    ],
+    zones: arena.zones,
+    sections: arena.sections,
+    template: "arena",
+    status: "published",
+    organizerId: "o1",
+    description: "คอนเสิร์ตเต็มรูปแบบครั้งแรกในไทยของ NOVA LUNE พร้อมโปรดักชันเวทีใหม่ทั้งหมด",
+    plan: "pro",
+    maxTicketsPerUser: 4,
+    createdAt: "2026-09-10T10:00:00+07:00",
+  },
+  {
+    id: "c2",
+    artist: "Midnight Echo",
+    title: "Midnight Echo — Acoustic Night",
+    venue: "Thailand Cultural Centre, Bangkok",
+    date: "2026-11-21T19:30:00+07:00",
+    salesOpenAt: "2026-10-10T10:00:00+07:00",
+    zones: theater.zones,
+    sections: theater.sections,
+    template: "theater",
+    status: "published",
+    organizerId: "o1",
+    description: "คืนอะคูสติกสุดอบอุ่นในหอประชุมขนาดกลาง",
+    plan: "basic",
+    maxTicketsPerUser: 6,
+    createdAt: "2026-09-25T14:00:00+07:00",
+  },
+  {
+    id: "c3",
+    artist: "SUNRISE Collective",
+    title: "SUNRISE Fest 2027",
+    venue: "Thunder Dome, Muang Thong Thani",
+    date: "2027-02-14T18:00:00+07:00",
+    salesOpenAt: "2026-12-01T12:00:00+07:00",
+    zones: hall.zones,
+    sections: hall.sections,
+    template: "hall",
+    status: "draft",
+    organizerId: "o1",
+    description: "เทศกาลดนตรีอินดี้ 6 วง (ร่างยังไม่เผยแพร่)",
+    plan: "pro",
+    maxTicketsPerUser: 4,
+    createdAt: "2026-10-12T09:00:00+07:00",
   },
 ];
 

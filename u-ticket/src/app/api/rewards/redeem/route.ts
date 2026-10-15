@@ -1,4 +1,4 @@
-import { getRewards, getUser, store } from "@/lib/data";
+import { getRewards, getUser, saveState, store } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
 
@@ -21,5 +21,6 @@ export async function POST(req: Request) {
   user.points -= reward.costPoints;
   if (reward.type === "presale_boost") store.boosts.set(user.id, PRESALE_BOOST);
   store.redemptions.push({ userId: user.id, rewardId: reward.id, at: new Date().toISOString() });
+  saveState();
   return Response.json({ ok: true, pointsLeft: user.points });
 }

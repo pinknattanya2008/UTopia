@@ -41,3 +41,6 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# runtime state (คอนที่สร้าง/การจองระหว่าง dev)
+/data/runtime-state.json
