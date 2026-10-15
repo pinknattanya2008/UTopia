@@ -3,8 +3,6 @@
 import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import AddIcon from "@mui/icons-material/Add";
-import RemoveIcon from "@mui/icons-material/Remove";
 import CloseIcon from "@mui/icons-material/Close";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import BlockIcon from "@mui/icons-material/Block";
@@ -12,12 +10,13 @@ import HourglassTopIcon from "@mui/icons-material/HourglassTop";
 import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DemoClock from "@/components/DemoClock";
-import SeatMap, { type SeatState } from "@/components/SeatMap";
+import SeatDetail from "@/components/SeatDetail";
+import SeatPlan, { type SeatPick } from "@/components/SeatPlan";
 import TierBadge from "@/components/TierBadge";
 import VenueMap from "@/components/VenueMap";
 import { useUser } from "@/components/UserProvider";
 import { api, fmtDate, fmtTHB, fmtTime } from "@/lib/client";
-import type { Booking, Concert, TierName } from "@/lib/types";
+import type { Booking, Concert, Section, TierName } from "@/lib/types";
 import { parseSeatId, SERVICE_FEE_PER_TICKET } from "@/lib/venue";
 
 interface Access {
@@ -37,6 +36,10 @@ interface ConcertRes {
   availability: Record<string, { capacity: number; available: number }>;
   access: Access | null;
 }
+type SeatState = { sold: string[]; held: string[]; mine: string[] };
+
+/** รายละเอียดที่กำลังดู: ที่นั่ง (seated) หรือโซนยืน */
+type Focus = { kind: "seat"; pick: SeatPick } | { kind: "standing"; section: Section } | null;
 
 export default function BookPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -44,22 +47,22 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
   const { userId, user, clock } = useUser();
   const [data, setData] = useState<ConcertRes | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [sectionId, setSectionId] = useState<string | null>(null);
   const [seatState, setSeatState] = useState<SeatState | null>(null);
   const [seats, setSeats] = useState<string[]>([]);
   const [standing, setStanding] = useState<Record<string, number>>({});
+  const [focus, setFocus] = useState<Focus>(null);
+  const [hover, setHover] = useState<SeatPick | null>(null);
   const [busy, setBusy] = useState(false);
-  const seatPanel = useRef<HTMLDivElement>(null);
-
-  function selectSection(sid: string) {
-    setSectionId(sid);
-    // จอเล็ก: เลื่อนลงไปที่ผังที่นั่งหลังเลือกโซน
-    if (window.innerWidth < 1024) setTimeout(() => seatPanel.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
-  }
+  const detailRef = useRef<HTMLDivElement>(null);
 
   const load = useCallback(async () => {
     try {
-      setData(await api<ConcertRes>(`/api/concerts/${id}?userId=${userId}&clock=${clock}`));
+      const [d, st] = await Promise.all([
+        api<ConcertRes>(`/api/concerts/${id}?userId=${userId}&clock=${clock}`),
+        api<SeatState>(`/api/concerts/${id}/seats?userId=${userId}`),
+      ]);
+      setData(d);
+      setSeatState(st);
     } catch (e) {
       setError((e as Error).message);
     }
@@ -67,35 +70,37 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
 
   useEffect(() => {
     load();
-  }, [load]);
+    // อัปเดตสถานะที่นั่งทุก 20 วินาที (คนอื่นซื้อ/ล็อก)
+    const t = setInterval(() => {
+      api<SeatState>(`/api/concerts/${id}/seats?userId=${userId}`).then(setSeatState).catch(() => {});
+    }, 20_000);
+    return () => clearInterval(t);
+  }, [load, id, userId]);
 
   // เปลี่ยนผู้ใช้ = ล้างที่เลือก
   useEffect(() => {
     setSeats([]);
     setStanding({});
+    setFocus(null);
   }, [userId]);
 
   const concert = data?.concert;
-  const section = concert?.sections.find((s) => s.id === sectionId) ?? null;
-
-  useEffect(() => {
-    if (!section || section.kind !== "seated") {
-      setSeatState(null);
-      return;
-    }
-    let alive = true;
-    api<SeatState>(`/api/concerts/${id}/seats?section=${section.id}&userId=${userId}`)
-      .then((s) => alive && setSeatState(s))
-      .catch(() => alive && setSeatState({ sold: [], held: [], mine: [] }));
-    return () => {
-      alive = false;
-    };
-  }, [id, section, userId]);
-
   const access = data?.access;
   const zoneOf = useCallback((zid: string) => concert?.zones.find((z) => z.id === zid), [concert]);
+  // ที่นั่งที่คนอื่นซื้อ/ล็อกแล้ว (ที่ล็อกโดยตัวเองถือว่าว่าง เพราะล็อกใหม่จะแทนของเดิม)
+  const unavailable = useMemo(() => new Set([...(seatState?.sold ?? []), ...(seatState?.held ?? [])]), [seatState]);
   const count = seats.length + Object.values(standing).reduce((n, q) => n + q, 0);
   const remaining = access ? access.maxTickets - access.ticketsUsed - count : 0;
+  const canSelect = !!access?.allowed;
+
+  function showDetail(f: Focus) {
+    setFocus(f);
+    if (window.innerWidth < 1024) setTimeout(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50);
+  }
+
+  function toggleSeat(sid: string) {
+    setSeats((xs) => (xs.includes(sid) ? xs.filter((x) => x !== sid) : remaining > 0 ? [...xs, sid] : xs));
+  }
 
   const cart = useMemo(() => {
     if (!concert) return [];
@@ -148,14 +153,18 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
     } catch (e) {
       setError((e as Error).message);
       setBusy(false);
-      load();
-      if (section?.kind === "seated") {
-        api<SeatState>(`/api/concerts/${id}/seats?section=${section.id}&userId=${userId}`).then(setSeatState).catch(() => {});
+      // ที่นั่งอาจถูกคนอื่นจองไปแล้ว: โหลดสถานะใหม่และเอาที่ไม่ว่างออกจากตะกร้า
+      const st = await api<SeatState>(`/api/concerts/${id}/seats?userId=${userId}`).catch(() => null);
+      if (st) {
+        setSeatState(st);
+        const taken = new Set([...st.sold, ...st.held]);
+        setSeats((xs) => xs.filter((x) => !taken.has(x)));
       }
+      load();
     }
   }
 
-  if (!data || !concert) {
+  if (!data || !concert || !seatState) {
     return error ? (
       <p className="text-danger">{error}</p>
     ) : (
@@ -165,7 +174,17 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
     );
   }
 
-  const canSelect = !!access?.allowed;
+  // การ์ดรายละเอียด: hover (เมาส์) มาก่อน แล้วค่อยเป็นที่กดล่าสุด
+  const shown: Focus = hover ? { kind: "seat", pick: hover } : focus;
+  const shownSeat = shown?.kind === "seat" ? shown.pick : null;
+  const shownSection = shown?.kind === "seat" ? shown.pick.section : shown?.kind === "standing" ? shown.section : null;
+  const seatStatus = shownSeat
+    ? seats.includes(shownSeat.seat.id)
+      ? "selected"
+      : unavailable.has(shownSeat.seat.id)
+        ? "unavailable"
+        : "available"
+    : undefined;
 
   return (
     <div className="space-y-5">
@@ -183,80 +202,61 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
 
       {access && <AccessBanner access={access} name={user?.displayName ?? ""} />}
 
-      <div className="grid gap-5 lg:grid-cols-[1fr_340px]">
-        <div className="space-y-4">
-          <div className="rounded-3xl border border-line bg-surface p-3 sm:p-4">
-            <p className="mb-2 text-sm text-muted">{canSelect ? "1. เลือกโซนบนผัง" : "ผังสถานที่"}</p>
-            <VenueMap
-              concert={concert}
-              availability={data.availability}
-              selected={sectionId}
-              onSelect={canSelect ? selectSection : undefined}
-            />
-            <div className="mt-3 flex flex-wrap gap-2">
-              {concert.zones.map((z) => (
-                <span key={z.id} className="flex items-center gap-1.5 rounded-full bg-surface-2 px-3 py-1 text-xs">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: z.color }} />
-                  {z.name} <span className="font-semibold">{fmtTHB(z.priceTHB)}</span>
-                </span>
-              ))}
-            </div>
+      <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
+        <div className="space-y-3">
+          <div className="rounded-3xl border border-line bg-surface p-2 sm:p-3">
+            {canSelect ? (
+              <SeatPlan
+                concert={concert}
+                availability={data.availability}
+                unavailable={unavailable}
+                selected={seats}
+                focusId={shownSeat?.seat.id ?? null}
+                onSeatHover={setHover}
+                onSeatClick={(pick) => {
+                  toggleSeat(pick.seat.id);
+                  showDetail({ kind: "seat", pick });
+                }}
+                onStandingClick={(section) => showDetail({ kind: "standing", section })}
+              />
+            ) : (
+              <VenueMap concert={concert} availability={data.availability} />
+            )}
           </div>
-
-          {canSelect && section && (
-            <div ref={seatPanel} className="animate-fade-up scroll-mt-28 rounded-3xl border border-line bg-surface p-3 sm:p-4">
-              <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
-                <p className="text-sm text-muted">2. เลือกที่นั่ง</p>
-                <p className="font-semibold">
-                  {zoneOf(section.zoneId)?.name} · {section.name}{" "}
-                  <span className="text-brand">{fmtTHB(zoneOf(section.zoneId)?.priceTHB ?? 0)}</span>
-                </p>
-              </div>
-              {section.kind === "seated" ? (
-                seatState ? (
-                  <SeatMap
-                    section={section}
-                    zone={zoneOf(section.zoneId)}
-                    state={seatState}
-                    selected={new Set(seats)}
-                    canAddMore={remaining > 0}
-                    onToggle={(sid) => setSeats((xs) => (xs.includes(sid) ? xs.filter((x) => x !== sid) : [...xs, sid]))}
-                  />
-                ) : (
-                  <div className="h-40 animate-pulse rounded-xl bg-surface-2" />
-                )
-              ) : (
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-surface-2 p-4">
-                  <div>
-                    <p className="font-semibold">บัตรยืน (ไม่ระบุที่นั่ง)</p>
-                    <p className="text-sm text-muted">เหลือ {data.availability[section.id]?.available.toLocaleString("th-TH")} ใบ</p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <button
-                      aria-label="ลดจำนวน"
-                      onClick={() => setStanding((st) => ({ ...st, [section.id]: Math.max(0, (st[section.id] ?? 0) - 1) }))}
-                      disabled={!standing[section.id]}
-                      className="grid h-9 w-9 place-items-center rounded-full border border-line disabled:opacity-40"
-                    >
-                      <RemoveIcon fontSize="small" />
-                    </button>
-                    <span className="w-6 text-center text-lg font-bold tabular-nums">{standing[section.id] ?? 0}</span>
-                    <button
-                      aria-label="เพิ่มจำนวน"
-                      onClick={() => setStanding((st) => ({ ...st, [section.id]: (st[section.id] ?? 0) + 1 }))}
-                      disabled={remaining <= 0 || (standing[section.id] ?? 0) >= (data.availability[section.id]?.available ?? 0)}
-                      className="grid h-9 w-9 place-items-center rounded-full bg-brand text-black disabled:opacity-40"
-                    >
-                      <AddIcon fontSize="small" />
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+          <div className="flex flex-wrap gap-2">
+            {concert.zones.map((z) => (
+              <span key={z.id} className="flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-xs">
+                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: z.color }} />
+                {z.name} <span className="font-semibold">{fmtTHB(z.priceTHB)}</span>
+              </span>
+            ))}
+            <span className="flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-xs text-muted">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#3a3a48]" /> ไม่ว่าง
+            </span>
+            <span className="flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-xs text-muted">
+              <span className="h-2.5 w-2.5 rounded-full border border-black bg-white" /> ที่คุณเลือก
+            </span>
+          </div>
         </div>
 
-        <aside className="lg:sticky lg:top-28 lg:self-start">
+        <aside className="space-y-4 lg:sticky lg:top-28 lg:self-start">
+          {canSelect && (
+            <div ref={detailRef} className="scroll-mt-28">
+              <SeatDetail
+                concert={concert}
+                section={shownSection}
+                zone={shownSection ? zoneOf(shownSection.zoneId) : undefined}
+                seat={shownSeat?.seat}
+                status={seatStatus}
+                canAdd={remaining > 0}
+                onToggle={shownSeat ? () => toggleSeat(shownSeat.seat.id) : undefined}
+                standingQty={shownSection ? (standing[shownSection.id] ?? 0) : 0}
+                standingAvailable={shownSection ? (data.availability[shownSection.id]?.available ?? 0) : 0}
+                onStandingChange={(q) => shownSection && setStanding((st) => ({ ...st, [shownSection.id]: q }))}
+              />
+            </div>
+          )}
+
           <div className="rounded-3xl border border-line bg-surface p-4">
             <h2 className="mb-1 font-bold">ตะกร้าของคุณ</h2>
             {access && (

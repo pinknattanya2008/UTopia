@@ -202,3 +202,84 @@ export function buildFromTemplate(id: VenueTemplateId): { zones: Zone[]; section
   );
   return { zones, sections };
 }
+
+// ---------------------------------------------------------------- ตำแหน่งที่นั่งบนผัง
+
+type Rect = { x: number; y: number; w: number; h: number };
+
+export interface SeatPos {
+  id: string;
+  row: string;
+  rowIndex: number;
+  num: number;
+  cx: number;
+  cy: number;
+}
+
+/**
+ * ตำแหน่งที่นั่งทุกที่ใน section บนผัง (หน่วยเดียวกับ viewBox 800×600)
+ * - section ปกติ: แถวเรียงจากบนลงล่าง แถว A ใกล้เวที (เวทีอยู่ด้านบน)
+ * - section ด้านข้างเวที (ทรงสูง): แถวเรียงในแนวตั้ง แถว A อยู่ฝั่งที่หันเข้าหาเวที
+ */
+export function seatLayout(section: Section, stage: Rect): { seats: SeatPos[]; r: number; vertical: boolean } {
+  if (section.kind !== "seated") return { seats: [], r: 0, vertical: false };
+  const { x, y, w, h } = section.shape;
+  const pad = Math.min(8, w * 0.05, h * 0.05);
+  const stageCx = stage.x + stage.w / 2;
+  const vertical = h > w * 1.3 && (x + w <= stage.x + 10 || x >= stage.x + stage.w - 10);
+  const leftOfStage = x + w / 2 < stageCx;
+  const seats: SeatPos[] = [];
+  let r: number;
+  if (!vertical) {
+    const cw = (w - 2 * pad) / section.seatsPerRow;
+    const ch = (h - 2 * pad) / section.rows;
+    r = Math.min(cw, ch) * 0.38;
+    for (let ri = 0; ri < section.rows; ri++) {
+      for (let n = 1; n <= section.seatsPerRow; n++) {
+        seats.push({
+          id: seatId(section.id, ri, n),
+          row: ROW_LABELS[ri],
+          rowIndex: ri,
+          num: n,
+          cx: x + pad + cw * (n - 1) + cw / 2,
+          cy: y + pad + ch * ri + ch / 2,
+        });
+      }
+    }
+  } else {
+    const cw = (w - 2 * pad) / section.rows;
+    const ch = (h - 2 * pad) / section.seatsPerRow;
+    r = Math.min(cw, ch) * 0.38;
+    for (let ri = 0; ri < section.rows; ri++) {
+      const col = leftOfStage ? section.rows - 1 - ri : ri;
+      for (let n = 1; n <= section.seatsPerRow; n++) {
+        seats.push({
+          id: seatId(section.id, ri, n),
+          row: ROW_LABELS[ri],
+          rowIndex: ri,
+          num: n,
+          cx: x + pad + cw * col + cw / 2,
+          cy: y + pad + ch * (n - 1) + ch / 2,
+        });
+      }
+    }
+  }
+  return { seats, r, vertical };
+}
+
+/** 1 หน่วยบนผัง ≈ 0.1 เมตร (ผัง 800 หน่วย ≈ 80 ม.) — ใช้ประมาณระยะห่างจากเวที */
+export const METERS_PER_UNIT = 0.1;
+
+/** ระยะ (เมตร) และมุมจากจุด (cx, cy) ถึงขอบหน้าเวทีตรงกลาง */
+export function viewFrom(cx: number, cy: number, stage: Rect) {
+  const sx = stage.x + stage.w / 2;
+  const sy = stage.y + stage.h;
+  const dx = cx - sx;
+  const dy = Math.max(1, cy - sy);
+  const meters = Math.round(Math.hypot(dx, dy) * METERS_PER_UNIT);
+  const angle = Math.round((Math.atan2(dx, dy) * 180) / Math.PI); // + = ขวาของเวที (มองจากผู้ชม), - = ซ้าย
+  const abs = Math.abs(angle);
+  const side = angle < 0 ? "ซ้าย" : "ขวา";
+  const angleLabel = abs < 18 ? "ตรงกลางเวที" : abs < 50 ? `เฉียง${side}` : `ด้านข้าง${side}`;
+  return { meters, angle, angleLabel };
+}

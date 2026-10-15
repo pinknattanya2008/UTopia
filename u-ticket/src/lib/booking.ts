@@ -150,10 +150,10 @@ export function sectionAvailability(concert: Concert) {
   );
 }
 
-/** สถานะที่นั่งราย section (สำหรับผังที่นั่ง) */
-export function sectionSeats(concert: Concert, sectionId: string, userId: string) {
+/** สถานะที่นั่งราย section หรือทั้งงาน (sectionId = null) */
+export function sectionSeats(concert: Concert, sectionId: string | null, userId: string) {
   const occ = occupancy(concert.id);
-  const prefix = `${sectionId}-`;
+  const prefix = sectionId ? `${sectionId}-` : "";
   const sold: string[] = [];
   const held: string[] = [];
   const mine: string[] = [];
