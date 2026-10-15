@@ -56,7 +56,7 @@ export default function AdminPage() {
     load();
   }
 
-  if (!data) return <div className="h-64 animate-pulse rounded-3xl bg-surface" />;
+  if (!data) return <div className="h-64 animate-pulse rounded-xl bg-surface" />;
   const t = data.totals;
   const revBase = Math.max(1, t.commission + t.serviceFees);
 
@@ -69,7 +69,7 @@ export default function AdminPage() {
         </div>
         <Link
           href="/admin/concerts/new"
-          className="flex items-center gap-1.5 rounded-2xl bg-brand px-5 py-2.5 font-bold text-white hover:bg-brand-dark"
+          className="flex items-center gap-1.5 rounded-lg bg-brand px-5 py-2.5 font-bold text-white hover:bg-brand-dark"
         >
           <AddIcon /> สร้างคอนเสิร์ต
         </Link>
@@ -82,12 +82,12 @@ export default function AdminPage() {
         <Kpi icon={ShieldOutlinedIcon} label="AI กันบัญชีเสี่ยงไม่ให้ซื้อ" value={t.blockedAttempts.toLocaleString("th-TH")} sub="บัญชีที่พยายามเข้าซื้อ" tone="danger" />
       </section>
 
-      <section className="rounded-3xl border border-brand/30 bg-brand/5 p-5">
+      <section className="rounded-xl border border-line bg-surface p-5">
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h2 className="font-bold">รายได้ U-Ticket (2 ทาง)</h2>
           <p className="text-2xl font-bold tabular-nums text-brand">{fmtTHB(t.platformRevenue)}</p>
         </div>
-        <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-[#f3e6d9]" aria-hidden>
+        <div className="mt-3 flex h-3 overflow-hidden rounded-full bg-line" aria-hidden>
           <div className="bg-brand" style={{ width: `${(t.commission / revBase) * 100}%` }} />
           <div className="bg-sky-400" style={{ width: `${(t.serviceFees / revBase) * 100}%` }} />
         </div>
@@ -126,7 +126,7 @@ export default function AdminPage() {
             <Link
               key={c.id}
               href={`/admin/concerts/${c.id}`}
-              className="grid gap-3 rounded-2xl border border-line bg-surface shadow-soft p-4 transition hover:border-brand sm:grid-cols-[1fr_12rem_9rem] sm:items-center"
+              className="grid gap-3 rounded-lg border border-line bg-surface p-4 transition hover:border-brand sm:grid-cols-[1fr_12rem_9rem] sm:items-center"
             >
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
@@ -151,7 +151,7 @@ export default function AdminPage() {
                   </span>
                   <span>{fmtPct(c.stats.sellThrough)}</span>
                 </div>
-                <div className="h-2 overflow-hidden rounded-full bg-[#f3e6d9]">
+                <div className="h-2 overflow-hidden rounded-full bg-line">
                   <div className="h-full rounded-full bg-brand" style={{ width: `${c.stats.sellThrough * 100}%` }} />
                 </div>
               </div>

@@ -260,7 +260,7 @@ export default function LayoutEditor({
   }
 
   const btn =
-    "flex items-center gap-1 rounded-xl border border-line px-2.5 py-1.5 text-xs transition hover:border-brand hover:text-brand disabled:pointer-events-none disabled:opacity-40";
+    "flex items-center gap-1 rounded-md border border-line px-2.5 py-1.5 text-xs transition hover:border-brand hover:text-brand disabled:pointer-events-none disabled:opacity-40";
   const input =
     "w-full rounded-lg border border-line bg-background px-2 py-1.5 text-sm focus:border-brand focus:outline-none disabled:opacity-50";
 
@@ -268,7 +268,7 @@ export default function LayoutEditor({
     <div className="space-y-3">
       {/* Toolbar */}
       <div className="flex flex-wrap items-center gap-1.5">
-        <div className="flex overflow-hidden rounded-xl border border-line text-xs">
+        <div className="flex overflow-hidden rounded-md border border-line text-xs">
           <button
             type="button"
             onClick={() => setMode("layout")}
@@ -338,11 +338,11 @@ export default function LayoutEditor({
       {error && <p className="rounded-lg bg-danger/10 p-2 text-xs text-danger">{error}</p>}
 
       {/* Canvas */}
-      <div className="overflow-hidden rounded-2xl border border-line">
+      <div className="overflow-hidden rounded-lg border border-line">
         <svg
           ref={svgRef}
           viewBox={`0 0 ${MAP_W} ${MAP_H}`}
-          className={`aspect-[4/3] h-auto w-full touch-none select-none bg-[#fffaf4] ${mode === "seats" ? "cursor-crosshair" : ""}`}
+          className={`aspect-[4/3] h-auto w-full touch-none select-none bg-[#fafafa] ${mode === "seats" ? "cursor-crosshair" : ""}`}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={endDrag}
@@ -437,7 +437,7 @@ export default function LayoutEditor({
 
       {/* คุณสมบัติของสิ่งที่เลือก */}
       {selected && (
-        <div className="grid gap-3 rounded-2xl border border-line bg-surface shadow-soft-2/50 p-3 sm:grid-cols-4">
+        <div className="grid gap-3 rounded-lg border border-line bg-surface-2/50 p-3 sm:grid-cols-4">
           <label className="space-y-1 text-xs sm:col-span-2">
             <span className="text-muted">ชื่อ section (รหัส {selected.id})</span>
             <input className={input} value={selected.name} disabled={locked} onChange={(e) => setSection(selected.id, { name: e.target.value })} />

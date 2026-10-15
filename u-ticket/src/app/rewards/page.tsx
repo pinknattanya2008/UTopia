@@ -56,14 +56,14 @@ export default function RewardsPage() {
           </h1>
           <p className="text-sm text-muted">แต้มได้จากธุรกรรมที่ผ่านการตรวจของ AI ว่าเป็นการใช้งานจริงเท่านั้น</p>
         </div>
-        <div className="rounded-2xl border border-brand/40 bg-brand/10 px-5 py-3 text-right">
+        <div className="rounded-lg border border-brand/40 bg-brand/10 px-5 py-3 text-right">
           <p className="text-xs text-muted">แต้มคงเหลือของ {user?.displayName ?? "…"}</p>
           <p className="text-3xl font-bold tabular-nums text-brand">{data ? data.points.toLocaleString("th-TH") : "—"}</p>
         </div>
       </section>
 
       {toast && (
-        <p className={`animate-fade-up flex items-center gap-2 rounded-xl border p-3 text-sm ${toast.ok ? "border-ok/40 bg-ok/10 text-ok" : "border-danger/40 bg-danger/10 text-danger"}`}>
+        <p className={`animate-fade-up flex items-center gap-2 rounded-md border p-3 text-sm ${toast.ok ? "border-ok/40 bg-ok/10 text-ok" : "border-danger/40 bg-danger/10 text-danger"}`}>
           {toast.ok ? <CheckCircleOutlineIcon fontSize="small" /> : <ErrorOutlineIcon fontSize="small" />}
           {toast.text}
         </p>
@@ -75,10 +75,8 @@ export default function RewardsPage() {
           const count = data.redeemed.filter((x) => x.rewardId === r.id).length;
           const Icon = ICON[r.type];
           return (
-            <div key={r.id} className="flex flex-col rounded-2xl border border-line bg-surface shadow-soft p-5">
-              <span className="grid h-12 w-12 place-items-center rounded-xl bg-brand/15 text-brand">
-                <Icon />
-              </span>
+            <div key={r.id} className="flex flex-col rounded-lg border border-line bg-surface p-5">
+              <Icon className="text-brand" />
               <h2 className="mt-2 font-semibold">{r.name}</h2>
               <p className="mt-1 text-sm text-muted">
                 {r.costPoints.toLocaleString("th-TH")} แต้ม{count > 0 && ` · แลกแล้ว ${count} ครั้ง`}
@@ -86,7 +84,7 @@ export default function RewardsPage() {
               <button
                 onClick={() => redeem(r)}
                 disabled={!enough || busy !== null}
-                className="mt-4 rounded-xl bg-brand py-2 font-bold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-muted"
+                className="mt-4 rounded-md bg-brand py-2 font-bold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:bg-surface-2 disabled:text-muted"
               >
                 {busy === r.id ? "กำลังแลก…" : enough ? "แลกเลย" : `ขาดอีก ${(r.costPoints - data.points).toLocaleString("th-TH")} แต้ม`}
               </button>

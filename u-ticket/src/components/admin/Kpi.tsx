@@ -15,7 +15,7 @@ export default function Kpi({
 }) {
   const color = { default: "text-foreground", brand: "text-brand", ok: "text-ok", danger: "text-danger" }[tone];
   return (
-    <div className="rounded-2xl border border-line bg-surface shadow-soft p-4">
+    <div className="rounded-lg border border-line bg-surface p-4">
       <p className="flex items-center gap-1.5 text-xs text-muted">
         <Icon fontSize="inherit" /> {label}
       </p>

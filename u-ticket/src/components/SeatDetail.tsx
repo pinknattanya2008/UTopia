@@ -25,14 +25,7 @@ function SeatView({ meters, angle, rowsAhead, color }: { meters: number; angle: 
   const sy = 34 - scale * 8;
   const heads = Math.min(4, Math.ceil(rowsAhead / 5));
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-xl bg-[#fff4ea]" aria-label="ภาพจำลองมุมมองจากที่นั่ง">
-      <defs>
-        <radialGradient id="spot" cx="50%" cy="0%" r="80%">
-          <stop offset="0%" stopColor={MAP.stage} stopOpacity="0.28" />
-          <stop offset="100%" stopColor={MAP.stage} stopOpacity="0" />
-        </radialGradient>
-      </defs>
-      <rect x={0} y={0} width={W} height={H} fill="url(#spot)" />
+    <svg viewBox={`0 0 ${W} ${H}`} className="w-full rounded-md bg-surface-2" aria-label="ภาพจำลองมุมมองจากที่นั่ง">
       {/* จอด้านข้างเวที */}
       <rect x={cx - sw / 2 - 26 * scale} y={sy - 18 * scale} width={20 * scale} height={14 * scale} fill={MAP.screen} opacity={0.8} />
       <rect x={cx + sw / 2 + 6 * scale} y={sy - 18 * scale} width={20 * scale} height={14 * scale} fill={MAP.screen} opacity={0.8} />
@@ -84,7 +77,7 @@ export default function SeatDetail({
 }) {
   if (!section || !zone) {
     return (
-      <div className="flex items-center gap-3 rounded-3xl border border-dashed border-line p-4 text-sm text-muted">
+      <div className="flex items-center gap-3 rounded-xl border border-dashed border-line p-4 text-sm text-muted">
         <TouchAppOutlinedIcon className="text-brand" />
         <span>กดที่โซนบนผังเพื่อซูม แล้วกดที่นั่งเพื่อดูรายละเอียดและเลือก</span>
       </div>
@@ -98,8 +91,8 @@ export default function SeatDetail({
   const rowsAhead = seat ? seat.rowIndex : 0;
 
   return (
-    <div className="animate-fade-up overflow-hidden rounded-3xl border border-line bg-surface shadow-soft">
-      <div className="flex items-center gap-3 border-b border-line p-4" style={{ background: `linear-gradient(90deg, ${zone.color}22, transparent)` }}>
+    <div className="animate-fade-up overflow-hidden rounded-xl border border-line bg-surface">
+      <div className="flex items-center gap-3 border-b border-line p-4">
         <span className="h-10 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: zone.color }} />
         <div className="min-w-0 flex-1">
           <p className="text-xs text-muted">
@@ -118,20 +111,20 @@ export default function SeatDetail({
 
       <div className="space-y-3 p-4">
         <SeatView meters={v.meters} angle={v.angle} rowsAhead={rowsAhead} color={zone.color} />
-        <dl className="grid grid-cols-3 gap-2 text-center text-xs">
-          <div className="rounded-xl bg-surface-2 p-2">
+        <dl className="grid grid-cols-3 divide-x divide-line text-center text-xs">
+          <div className="px-2 py-1">
             <dt className="flex items-center justify-center gap-1 text-muted">
               <StraightenIcon fontSize="inherit" /> ห่างเวที
             </dt>
             <dd className="mt-0.5 text-sm font-semibold">~{v.meters} ม.</dd>
           </div>
-          <div className="rounded-xl bg-surface-2 p-2">
+          <div className="px-2 py-1">
             <dt className="flex items-center justify-center gap-1 text-muted">
               <ExploreOutlinedIcon fontSize="inherit" /> มุมมอง
             </dt>
             <dd className="mt-0.5 text-sm font-semibold">{v.angleLabel}</dd>
           </div>
-          <div className="rounded-xl bg-surface-2 p-2">
+          <div className="px-2 py-1">
             <dt className="text-muted">{seat ? "แถวด้านหน้า" : "ที่ว่าง"}</dt>
             <dd className="mt-0.5 text-sm font-semibold">
               {seat ? `${rowsAhead} แถว` : `${(standingAvailable ?? 0).toLocaleString("th-TH")} ใบ`}
@@ -144,7 +137,7 @@ export default function SeatDetail({
 
         {seat ? (
           status === "unavailable" ? (
-            <p className="flex items-center justify-center gap-1 rounded-2xl bg-surface-2 py-2.5 text-sm text-muted">
+            <p className="flex items-center justify-center gap-1 rounded-lg bg-surface-2 py-2.5 text-sm text-muted">
               <CloseIcon fontSize="small" /> ที่นั่งนี้ไม่ว่าง
             </p>
           ) : (
@@ -152,7 +145,7 @@ export default function SeatDetail({
               type="button"
               onClick={onToggle}
               disabled={status === "available" && !canAdd}
-              className={`flex w-full items-center justify-center gap-1.5 rounded-2xl py-2.5 font-bold transition disabled:opacity-40 ${
+              className={`flex w-full items-center justify-center gap-1.5 rounded-lg py-2.5 font-bold transition disabled:opacity-40 ${
                 status === "selected" ? "border border-line hover:border-danger hover:text-danger" : "bg-brand text-white hover:bg-brand-dark"
               }`}
             >
@@ -170,7 +163,7 @@ export default function SeatDetail({
             </button>
           )
         ) : (
-          <div className="flex items-center justify-between rounded-2xl bg-surface-2 p-3">
+          <div className="flex items-center justify-between rounded-lg bg-surface-2 p-3">
             <span className="text-sm font-semibold">จำนวนบัตร</span>
             <div className="flex items-center gap-3">
               <button

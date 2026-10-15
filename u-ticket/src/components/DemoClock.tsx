@@ -10,7 +10,7 @@ export default function DemoClock({ salesOpenAt }: { salesOpenAt: string }) {
   const { clock, setClock } = useUser();
   const open = Date.parse(salesOpenAt);
   return (
-    <div className="rounded-2xl border border-dashed border-line bg-surface/60 p-3">
+    <div className="rounded-lg border border-dashed border-line bg-surface/60 p-3">
       <p className="mb-2 flex items-center gap-1.5 text-xs text-muted">
         <ScheduleIcon fontSize="inherit" /> เวลาจำลอง (เดโม) — เปิดขายทั่วไป {fmtTime(salesOpenAt)} น.
       </p>

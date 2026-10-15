@@ -29,9 +29,9 @@ export default function TicketsPage() {
         <ConfirmationNumberOutlinedIcon className="text-brand" /> บัตรของ{user?.displayName ?? "ฉัน"}
       </h1>
       {rows === null ? (
-        <div className="h-40 animate-pulse rounded-3xl bg-surface" />
+        <div className="h-40 animate-pulse rounded-xl bg-surface" />
       ) : rows.length === 0 ? (
-        <div className="rounded-3xl border border-dashed border-line p-10 text-center text-muted">
+        <div className="rounded-xl border border-dashed border-line p-10 text-center text-muted">
           ยังไม่มีบัตร{" "}
           <Link href="/" className="font-semibold text-brand hover:underline">
             เลือกคอนเสิร์ต
@@ -39,7 +39,7 @@ export default function TicketsPage() {
         </div>
       ) : (
         rows.map((b) => (
-          <section key={b.id} className="overflow-hidden rounded-3xl border border-line bg-surface shadow-soft">
+          <section key={b.id} className="overflow-hidden rounded-xl border border-line bg-surface">
             <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line bg-surface-2 px-4 py-3">
               <div>
                 <p className="font-bold">{b.concert?.title}</p>
@@ -60,7 +60,7 @@ export default function TicketsPage() {
             </div>
             <div className="grid gap-3 p-4 sm:grid-cols-2 lg:grid-cols-3">
               {b.items.map((it, i) => (
-                <div key={i} className="flex items-center gap-3 rounded-2xl border border-dashed border-line p-3">
+                <div key={i} className="flex items-center gap-3 rounded-lg border border-dashed border-line p-3">
                   <TicketQR value={`${b.code}-${i}`} size={72} />
                   <div className="min-w-0 text-sm">
                     <p className="font-semibold">{it.label}</p>

@@ -19,7 +19,7 @@ export default function TrustBadge({ trust, source }: { trust: TrustAssessment; 
     },
   }[level];
   return (
-    <div className={`rounded-2xl border p-4 ${style.box}`}>
+    <div className={`rounded-lg border p-4 ${style.box}`}>
       <div className="flex items-center justify-between gap-2">
         <p className={`flex items-center gap-1.5 font-semibold ${style.text}`}>
           <style.Icon fontSize="small" />

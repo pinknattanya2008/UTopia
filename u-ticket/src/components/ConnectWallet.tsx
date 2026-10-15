@@ -16,7 +16,7 @@ export default function ConnectWallet() {
 
   if (state === "done" && user) {
     return (
-      <div className="animate-fade-up flex flex-wrap items-center gap-3 rounded-2xl border border-ok/40 bg-ok/10 px-4 py-3">
+      <div className="animate-fade-up flex flex-wrap items-center gap-3 rounded-lg border border-ok/40 bg-ok/10 px-4 py-3">
         <span className="flex items-center gap-1 text-ok">
           <CheckCircleOutlineIcon fontSize="small" /> เชื่อมกระเป๋าแล้ว
         </span>
@@ -38,7 +38,7 @@ export default function ConnectWallet() {
         setTimeout(() => setState("done"), 900);
       }}
       disabled={state === "connecting"}
-      className="flex items-center gap-2 rounded-2xl border border-brand/40 bg-white px-5 py-3 font-semibold text-brand transition hover:bg-brand-soft disabled:opacity-70"
+      className="flex items-center gap-2 rounded-lg border border-brand/40 bg-white px-5 py-3 font-semibold text-brand transition hover:bg-brand-soft disabled:opacity-70"
     >
       {state === "connecting" ? (
         "กำลังเชื่อมต่อ…"

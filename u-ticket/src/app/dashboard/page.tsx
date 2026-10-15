@@ -7,8 +7,6 @@ import SendOutlinedIcon from "@mui/icons-material/SendOutlined";
 import SwapHorizIcon from "@mui/icons-material/SwapHoriz";
 import AccountBalanceWalletOutlinedIcon from "@mui/icons-material/AccountBalanceWalletOutlined";
 import LocalFireDepartmentIcon from "@mui/icons-material/LocalFireDepartment";
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
-import TrackChangesIcon from "@mui/icons-material/TrackChanges";
 import UserAvatar from "@/components/UserAvatar";
 import MissionCard from "@/components/MissionCard";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
@@ -108,11 +106,11 @@ export default function DashboardPage() {
       </section>
 
       <section className="grid gap-4 lg:grid-cols-3">
-        <div className="rounded-3xl border border-line bg-surface shadow-soft p-5 text-center">
+        <div className="rounded-xl border border-line bg-surface p-5 text-center">
           <ScoreGauge score={d.finalScore} tier={d.tier} />
           <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
             <TierBadge tier={d.tier} size="lg" />
-            <span className="flex items-center gap-1 rounded-full bg-orange-50 px-3 py-1 text-sm font-semibold text-orange-600 ring-1 ring-orange-200">
+            <span className="flex items-center gap-1 rounded-full bg-brand-soft px-3 py-1 text-sm font-semibold text-brand">
               <LocalFireDepartmentIcon fontSize="inherit" /> streak {d.currentStreakDays} วัน
             </span>
           </div>
@@ -127,38 +125,32 @@ export default function DashboardPage() {
             )}
           </p>
           {d.presaleBoost > 0 && <p className="mt-1 text-xs text-brand">รวม Presale Boost +{d.presaleBoost}</p>}
-          <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
-            <div className="rounded-xl bg-surface-2 p-2">
+          <div className="mt-4 grid grid-cols-2 divide-x divide-line border-t border-line pt-3 text-sm">
+            <div>
               <p className="text-lg font-bold tabular-nums">{d.totalTxCount30d}</p>
               <p className="text-xs text-muted">ธุรกรรมทั้งหมด 30 วัน</p>
             </div>
-            <div className="rounded-xl bg-surface-2 p-2">
+            <div>
               <p className="text-lg font-bold tabular-nums">{d.validTxCount30d}</p>
               <p className="text-xs text-muted">ธุรกรรมที่นับคะแนน</p>
             </div>
           </div>
         </div>
 
-        <div className="rounded-3xl border border-line bg-surface shadow-soft p-5">
+        <div className="rounded-xl border border-line bg-surface p-5">
           <h2 className="mb-3 font-bold">คะแนนแยกตามองค์ประกอบ</h2>
           <ScoreBreakdown score={d} />
         </div>
 
         <div className="space-y-4">
           <TrustBadge trust={d.trust} source={d.trustSource} />
-          <div className="rounded-3xl border border-brand/30 bg-brand/5 p-5">
+          <div className="rounded-xl border border-line bg-surface p-5">
             <button
               onClick={askExplain}
               disabled={explaining}
-              className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-brand py-2.5 font-bold text-white transition hover:bg-brand-dark disabled:opacity-60"
+              className="flex w-full items-center justify-center gap-1.5 rounded-md bg-brand py-2.5 font-bold text-white transition hover:bg-brand-dark disabled:opacity-60"
             >
-              {explaining ? (
-                "AI กำลังคิด…"
-              ) : (
-                <>
-                  <AutoAwesomeIcon fontSize="small" /> AI อธิบายคะแนน
-                </>
-              )}
+              {explaining ? "AI กำลังคิด…" : "AI อธิบายคะแนน"}
             </button>
             {explain && (
               <div className="animate-fade-up mt-3">
@@ -175,9 +167,7 @@ export default function DashboardPage() {
 
       <section>
         <div className="mb-3 flex items-baseline justify-between gap-2">
-          <h2 className="flex items-center gap-1.5 text-lg font-bold">
-            <TrackChangesIcon className="text-brand" /> AI Missions สำหรับคุณ
-          </h2>
+          <h2 className="text-lg font-bold">AI Missions สำหรับคุณ</h2>
           {missions && <span className="text-xs text-muted">{SOURCE_LABEL[missions.source]}</span>}
         </div>
         {missions ? (
@@ -189,7 +179,7 @@ export default function DashboardPage() {
         ) : (
           <div className="grid gap-3 sm:grid-cols-3">
             {[0, 1, 2].map((i) => (
-              <div key={i} className="h-36 animate-pulse rounded-2xl bg-surface" />
+              <div key={i} className="h-36 animate-pulse rounded-lg bg-surface" />
             ))}
           </div>
         )}
@@ -197,7 +187,7 @@ export default function DashboardPage() {
 
       <section>
         <h2 className="mb-3 text-lg font-bold">ธุรกรรมล่าสุด</h2>
-        <div className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-surface shadow-soft">
+        <div className="divide-y divide-line overflow-hidden rounded-lg border border-line bg-surface">
           {d.recentTransactions.map((t) => {
             const { label, Icon } = TX_LABEL[t.type];
             return (

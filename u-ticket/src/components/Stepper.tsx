@@ -13,7 +13,7 @@ export default function Stepper({ current }: { current: 0 | 1 | 2 }) {
           <li key={label} className="flex flex-1 items-center gap-2 last:flex-none">
             <span
               className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-xs font-bold ${
-                done ? "bg-ok text-white" : active ? "bg-brand text-white shadow-glow" : "bg-surface-2 text-muted ring-1 ring-line"
+                done ? "bg-ok text-white" : active ? "bg-brand text-white" : "bg-surface-2 text-muted ring-1 ring-line"
               }`}
               aria-current={active ? "step" : undefined}
             >

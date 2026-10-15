@@ -199,9 +199,7 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
         </p>
       </div>
 
-      <div className="rounded-2xl border border-line bg-surface px-4 py-3 shadow-soft">
-        <Stepper current={0} />
-      </div>
+      <Stepper current={0} />
 
       {concert.plan === "pro" && <DemoClock salesOpenAt={concert.salesOpenAt} />}
 
@@ -209,7 +207,7 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
 
       <div className="grid gap-5 lg:grid-cols-[1fr_360px]">
         <div className="space-y-3">
-          <div className="rounded-3xl border border-line bg-surface shadow-soft p-2 sm:p-3">
+          <div className="rounded-xl border border-line bg-surface p-2 sm:p-3">
             {canSelect ? (
               <SeatPlan
                 concert={concert}
@@ -236,7 +234,7 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
               </span>
             ))}
             <span className="flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-xs text-muted">
-              <span className="h-2.5 w-2.5 rounded-full bg-[#e6dbcf]" /> ไม่ว่าง
+              <span className="h-2.5 w-2.5 rounded-full bg-[#e4e4e7]" /> ไม่ว่าง
             </span>
             <span className="flex items-center gap-1.5 rounded-full bg-surface px-3 py-1 text-xs text-muted">
               <span className="h-2.5 w-2.5 rounded-full bg-foreground ring-2 ring-white" /> ที่คุณเลือก
@@ -262,7 +260,7 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
             </div>
           )}
 
-          <div className="rounded-3xl border border-line bg-surface shadow-soft p-4">
+          <div className="rounded-xl border border-line bg-surface p-4">
             <h2 className="mb-1 font-bold">ตะกร้าของคุณ</h2>
             {access && (
               <p className="mb-3 text-xs text-muted">
@@ -270,7 +268,7 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
               </p>
             )}
             {cart.length === 0 ? (
-              <p className="rounded-xl bg-surface-2 p-4 text-center text-sm text-muted">ยังไม่ได้เลือกที่นั่ง</p>
+              <p className="rounded-md bg-surface-2 p-4 text-center text-sm text-muted">ยังไม่ได้เลือกที่นั่ง</p>
             ) : (
               <ul className="space-y-2">
                 {cart.map((it) => (
@@ -299,11 +297,11 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
                 <dd className="tabular-nums text-brand">{fmtTHB(subtotal + fee)}</dd>
               </div>
             </dl>
-            {error && <p className="mt-3 rounded-xl bg-danger/10 p-2 text-sm text-danger">{error}</p>}
+            {error && <p className="mt-3 rounded-md bg-danger/10 p-2 text-sm text-danger">{error}</p>}
             <button
               onClick={checkout}
               disabled={busy || cart.length === 0 || !canSelect}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-brand py-3 font-bold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-brand py-3 font-bold text-white transition hover:bg-brand-dark disabled:cursor-not-allowed disabled:opacity-50"
             >
               <LockOutlinedIcon fontSize="small" />
               {busy ? "กำลังล็อกที่นั่ง…" : "ล็อกที่นั่งและชำระเงิน"}
@@ -319,7 +317,7 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
 function AccessBanner({ access, name }: { access: Access; name: string }) {
   if (access.code === "ok") {
     return (
-      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-ok/40 bg-ok/10 p-3 text-sm">
+      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-ok/40 bg-ok/10 p-3 text-sm">
         <CheckCircleOutlinedIcon className="text-ok" fontSize="small" />
         <span className="font-semibold text-ok">{access.message}</span>
         {access.presale && (
@@ -332,7 +330,7 @@ function AccessBanner({ access, name }: { access: Access; name: string }) {
   }
   if (access.code === "blocked_trust") {
     return (
-      <div className="flex gap-2 rounded-2xl border border-danger/50 bg-danger/10 p-4 text-sm">
+      <div className="flex gap-2 rounded-lg border border-danger/50 bg-danger/10 p-4 text-sm">
         <BlockIcon className="shrink-0 text-danger" />
         <div>
           <p className="font-semibold text-danger">{name} ซื้อบัตรงานนี้ไม่ได้</p>
@@ -344,7 +342,7 @@ function AccessBanner({ access, name }: { access: Access; name: string }) {
   }
   if (access.code === "not_yet") {
     return (
-      <div className="flex flex-wrap items-start gap-3 rounded-2xl border border-brand/40 bg-brand/10 p-4 text-sm">
+      <div className="flex flex-wrap items-start gap-3 rounded-lg border border-brand/40 bg-brand/10 p-4 text-sm">
         <HourglassTopIcon className="shrink-0 text-brand" />
         <div className="flex-1">
           <p className="font-semibold">
@@ -362,5 +360,5 @@ function AccessBanner({ access, name }: { access: Access; name: string }) {
       </div>
     );
   }
-  return <p className="rounded-2xl border border-line bg-surface shadow-soft p-4 text-sm text-muted">{access.message}</p>;
+  return <p className="rounded-lg border border-line bg-surface p-4 text-sm text-muted">{access.message}</p>;
 }

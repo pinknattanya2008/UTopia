@@ -23,7 +23,7 @@ export default function ScoreBreakdown({ score }: { score: SB }) {
                 <span className="text-xs text-muted"> /100</span>
               </span>
             </div>
-            <div className="h-2.5 overflow-hidden rounded-full bg-[#f3e6d9]">
+            <div className="h-2.5 overflow-hidden rounded-full bg-line">
               <div className="h-full rounded-full bg-brand transition-[width] duration-700" style={{ width: `${v}%` }} />
             </div>
             <p className="mt-0.5 text-xs text-muted">{r.hint}</p>

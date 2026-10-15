@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import ConfirmationNumberOutlinedIcon from "@mui/icons-material/ConfirmationNumberOutlined";
 import { useUser } from "./UserProvider";
 
 type Msg = { role: "user" | "assistant"; content: string };
@@ -52,12 +51,11 @@ export default function ChatBox() {
   }
 
   return (
-    <div className="flex h-[min(70vh,640px)] flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-soft">
+    <div className="flex h-[min(70vh,640px)] flex-col overflow-hidden rounded-xl border border-line bg-surface">
       <div className="flex-1 space-y-3 overflow-y-auto p-4">
         {messages.length === 0 && (
           <div className="py-6 text-center text-muted">
-            <ConfirmationNumberOutlinedIcon className="text-5xl text-brand" fontSize="inherit" />
-            <p className="mt-2">
+            <p>
               สวัสดี{user ? ` ${user.displayName}` : ""}! บอกงบและสิ่งที่อยากได้ แล้ว Concierge จะช่วยเลือกโซนให้
             </p>
           </div>
@@ -65,7 +63,7 @@ export default function ChatBox() {
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
             <div
-              className={`max-w-[85%] whitespace-pre-line rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
+              className={`max-w-[85%] whitespace-pre-line rounded-lg px-4 py-2.5 text-sm leading-relaxed ${
                 m.role === "user" ? "rounded-br-sm bg-brand text-white" : "rounded-bl-sm bg-surface-2"
               }`}
             >
@@ -99,12 +97,12 @@ export default function ChatBox() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             placeholder="พิมพ์คำถาม เช่น งบ 4,000 อยากใกล้เวที"
-            className="min-w-0 flex-1 rounded-xl border border-line bg-background px-3 py-2 text-sm focus:border-brand focus:outline-none"
+            className="min-w-0 flex-1 rounded-md border border-line bg-background px-3 py-2 text-sm focus:border-brand focus:outline-none"
           />
           <button
             type="submit"
             disabled={busy || !input.trim()}
-            className="rounded-xl bg-brand px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
+            className="rounded-md bg-brand px-4 py-2 text-sm font-bold text-white disabled:opacity-50"
           >
             ส่ง
           </button>

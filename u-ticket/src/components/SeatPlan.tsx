@@ -200,7 +200,7 @@ export default function SeatPlan({
       <svg
         ref={svgRef}
         viewBox={`${vb.x} ${vb.y} ${vb.w} ${vb.h}`}
-        className="aspect-[4/3] h-auto w-full cursor-grab select-none rounded-2xl active:cursor-grabbing"
+        className="aspect-[4/3] h-auto w-full cursor-grab select-none rounded-lg active:cursor-grabbing"
         style={{ touchAction: zoom > 1.05 ? "none" : "pan-y" }}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -332,13 +332,13 @@ export default function SeatPlan({
             onClick={fn}
             aria-label={label}
             title={label}
-            className="grid h-9 w-9 place-items-center rounded-xl border border-line bg-white/90 text-foreground shadow-soft backdrop-blur hover:border-brand hover:text-brand"
+            className="grid h-9 w-9 place-items-center rounded-md border border-line bg-white/90 text-foreground hover:border-brand hover:text-brand"
           >
             <Icon fontSize="small" />
           </button>
         ))}
       </div>
-      <p className="pointer-events-none absolute bottom-2 left-2 rounded-lg bg-white/90 px-2 py-1 text-[11px] text-muted shadow-soft backdrop-blur">
+      <p className="pointer-events-none absolute bottom-2 left-2 rounded-lg bg-white/90 px-2 py-1 text-[11px] text-muted">
         {seatMode ? "กดที่นั่งเพื่อเลือก · ลากเพื่อเลื่อน" : "กดที่โซนเพื่อซูมเข้าไปเลือกที่นั่ง"} · ซูม {zoom.toFixed(1)}x
       </p>
     </div>

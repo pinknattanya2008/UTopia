@@ -22,7 +22,7 @@ export default function PresaleTimeline({ salesOpenAt }: { salesOpenAt: string }
               <span
                 className={`absolute -left-[1.72rem] top-4 h-3 w-3 rounded-full ${mine ? "bg-brand ring-4 ring-brand/30" : "bg-line"}`}
               />
-              <div className={`rounded-2xl border p-4 ${mine ? "border-brand bg-brand/10" : "border-line bg-surface"}`}>
+              <div className={`rounded-lg border p-4 ${mine ? "border-brand bg-brand/10" : "border-line bg-surface"}`}>
                 <div className="flex items-center justify-between gap-2">
                   <TierBadge tier={t.name} />
                   <span className="text-lg font-bold tabular-nums">{fmtTime(new Date(open - t.leadMinutes * 60_000).toISOString())} น.</span>
@@ -41,7 +41,7 @@ export default function PresaleTimeline({ salesOpenAt }: { salesOpenAt: string }
           );
         })}
       </ol>
-      <Link href="/dashboard" className="flex items-center justify-center gap-1 rounded-2xl bg-brand py-3 font-bold text-white hover:bg-brand-dark">
+      <Link href="/dashboard" className="flex items-center justify-center gap-1 rounded-lg bg-brand py-3 font-bold text-white hover:bg-brand-dark">
         เพิ่ม Fan Score ให้ได้รอบที่เร็วขึ้น <ArrowForwardIcon fontSize="small" />
       </Link>
     </div>

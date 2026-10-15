@@ -88,10 +88,8 @@ export default function CheckoutPage({ params }: { params: Promise<{ bookingId: 
   if (b.status === "paid") {
     return (
       <div className="mx-auto max-w-2xl space-y-5">
-        <div className="rounded-2xl border border-line bg-surface px-4 py-3 shadow-soft">
-          <Stepper current={2} />
-        </div>
-        <div className="animate-fade-up rounded-3xl border border-ok/40 bg-ok/10 p-6 text-center">
+        <Stepper current={2} />
+        <div className="animate-fade-up rounded-xl border border-ok/40 bg-ok/10 p-6 text-center">
           <CheckCircleIcon className="text-ok" sx={{ fontSize: 56 }} />
           <h1 className="mt-2 text-2xl font-bold">ชำระเงินสำเร็จ</h1>
           <p className="text-muted">
@@ -100,7 +98,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ bookingId: 
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
           {b.items.map((it, i) => (
-            <div key={i} className="flex gap-3 rounded-2xl border border-line bg-surface shadow-soft p-3">
+            <div key={i} className="flex gap-3 rounded-lg border border-line bg-surface p-3">
               <TicketQR value={`${b.code}-${i}`} size={80} />
               <div className="min-w-0 text-sm">
                 <p className="font-semibold">{data.concert?.artist}</p>
@@ -113,10 +111,10 @@ export default function CheckoutPage({ params }: { params: Promise<{ bookingId: 
           ))}
         </div>
         <div className="flex flex-wrap justify-center gap-3">
-          <Link href="/tickets" className="rounded-2xl bg-brand px-5 py-2.5 font-bold text-white">
+          <Link href="/tickets" className="rounded-lg bg-brand px-5 py-2.5 font-bold text-white">
             ดูบัตรของฉัน
           </Link>
-          <Link href="/" className="rounded-2xl border border-line px-5 py-2.5">
+          <Link href="/" className="rounded-lg border border-line px-5 py-2.5">
             กลับหน้าแรก
           </Link>
         </div>
@@ -129,9 +127,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ bookingId: 
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
-      <div className="rounded-2xl border border-line bg-surface px-4 py-3 shadow-soft">
-        <Stepper current={1} />
-      </div>
+      <Stepper current={1} />
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold">ชำระเงิน</h1>
@@ -140,7 +136,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ bookingId: 
           </p>
         </div>
         <span
-          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 font-mono text-sm font-semibold ${
+          className={`flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-semibold tabular-nums ${
             expired ? "bg-danger/15 text-danger" : left < 120_000 ? "bg-danger/15 text-danger" : "bg-brand/15 text-brand"
           }`}
         >
@@ -149,7 +145,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ bookingId: 
         </span>
       </div>
 
-      <section className="rounded-3xl border border-line bg-surface shadow-soft p-4">
+      <section className="rounded-xl border border-line bg-surface p-4">
         <h2 className="mb-2 font-semibold">ที่นั่งที่ล็อกไว้ ({b.items.length} ใบ)</h2>
         <ul className="divide-y divide-line text-sm">
           {b.items.map((it, i) => (
@@ -161,7 +157,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ bookingId: 
         </ul>
       </section>
 
-      <section className="rounded-3xl border border-line bg-surface shadow-soft p-4">
+      <section className="rounded-xl border border-line bg-surface p-4">
         <h2 className="mb-1 flex items-center gap-1.5 font-semibold">
           <LocalOfferOutlinedIcon fontSize="small" className="text-brand" /> ใช้แต้มแลกส่วนลด
         </h2>
@@ -172,7 +168,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ bookingId: 
             return (
               <label
                 key={d.id || "none"}
-                className={`cursor-pointer rounded-2xl border p-3 text-sm transition ${
+                className={`cursor-pointer rounded-lg border p-3 text-sm transition ${
                   discountId === d.id ? "border-brand bg-brand/10" : "border-line"
                 } ${!enough ? "cursor-not-allowed opacity-40" : ""}`}
               >
@@ -193,7 +189,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ bookingId: 
         </div>
       </section>
 
-      <section className="rounded-3xl border border-line bg-surface shadow-soft p-4">
+      <section className="rounded-xl border border-line bg-surface p-4">
         <dl className="space-y-1 text-sm">
           <div className="flex justify-between">
             <dt className="text-muted">ค่าบัตร</dt>
@@ -214,23 +210,23 @@ export default function CheckoutPage({ params }: { params: Promise<{ bookingId: 
             <dd className="tabular-nums text-brand">{fmtTHB(total)}</dd>
           </div>
         </dl>
-        <div className="mt-4 flex items-center gap-3 rounded-2xl bg-surface-2 p-3 text-sm">
+        <div className="mt-4 flex items-center gap-3 rounded-lg bg-surface-2 p-3 text-sm">
           <CreditCardIcon className="text-brand" />
           <div>
             <p className="font-semibold">U-Card Visa •••• 4821</p>
             <p className="text-xs text-muted">ตัดเป็นเงินบาท (จำลอง)</p>
           </div>
         </div>
-        {error && <p className="mt-3 rounded-xl bg-danger/10 p-2 text-sm text-danger">{error}</p>}
+        {error && <p className="mt-3 rounded-md bg-danger/10 p-2 text-sm text-danger">{error}</p>}
         <div className="mt-4 flex flex-col gap-2 sm:flex-row-reverse">
           <button
             onClick={pay}
             disabled={paying || expired}
-            className="flex-1 rounded-2xl bg-brand py-3 font-bold text-white transition hover:bg-brand-dark disabled:opacity-50"
+            className="flex-1 rounded-lg bg-brand py-3 font-bold text-white transition hover:bg-brand-dark disabled:opacity-50"
           >
             {paying ? "กำลังชำระเงิน…" : `ชำระ ${fmtTHB(total)}`}
           </button>
-          <button onClick={cancel} disabled={paying} className="rounded-2xl border border-line px-5 py-3 text-muted hover:text-foreground">
+          <button onClick={cancel} disabled={paying} className="rounded-lg border border-line px-5 py-3 text-muted hover:text-foreground">
             {expired ? "เลือกที่นั่งใหม่" : "ยกเลิก"}
           </button>
         </div>

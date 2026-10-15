@@ -78,7 +78,7 @@ export default function AdminConcertPage({ params }: { params: Promise<{ id: str
     }
   }
 
-  if (!data) return error ? <p className="text-danger">{error}</p> : <div className="h-64 animate-pulse rounded-3xl bg-surface" />;
+  if (!data) return error ? <p className="text-danger">{error}</p> : <div className="h-64 animate-pulse rounded-xl bg-surface" />;
   const { concert: c, stats: s } = data;
   const hasSales = s.ticketsSold > 0 || s.held > 0;
 
@@ -106,19 +106,19 @@ export default function AdminConcertPage({ params }: { params: Promise<{ id: str
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <Link href={`/concert/${c.id}`} className="flex items-center gap-1 rounded-xl border border-line px-3 py-2 text-sm hover:border-brand">
+            <Link href={`/concert/${c.id}`} className="flex items-center gap-1 rounded-md border border-line px-3 py-2 text-sm hover:border-brand">
               <OpenInNewIcon fontSize="small" /> หน้าขาย
             </Link>
             <Link
               href={`/admin/concerts/${c.id}/edit`}
-              className="flex items-center gap-1 rounded-xl border border-line px-3 py-2 text-sm hover:border-brand"
+              className="flex items-center gap-1 rounded-md border border-line px-3 py-2 text-sm hover:border-brand"
             >
               <EditOutlinedIcon fontSize="small" /> แก้ไข
             </Link>
             {c.status === "draft" ? (
               <button
                 onClick={() => setStatus("published")}
-                className="flex items-center gap-1 rounded-xl bg-brand px-3 py-2 text-sm font-bold text-white"
+                className="flex items-center gap-1 rounded-md bg-brand px-3 py-2 text-sm font-bold text-white"
               >
                 <PublishIcon fontSize="small" /> เผยแพร่
               </button>
@@ -127,19 +127,19 @@ export default function AdminConcertPage({ params }: { params: Promise<{ id: str
                 onClick={() => setStatus("draft")}
                 disabled={hasSales}
                 title={hasSales ? "มียอดขายแล้ว" : undefined}
-                className="flex items-center gap-1 rounded-xl border border-line px-3 py-2 text-sm hover:border-brand disabled:opacity-40"
+                className="flex items-center gap-1 rounded-md border border-line px-3 py-2 text-sm hover:border-brand disabled:opacity-40"
               >
                 <UnpublishedOutlinedIcon fontSize="small" /> ยกเลิกเผยแพร่
               </button>
             )}
             {c.status === "draft" && !hasSales && (
-              <button onClick={remove} className="flex items-center gap-1 rounded-xl border border-danger/40 px-3 py-2 text-sm text-danger">
+              <button onClick={remove} className="flex items-center gap-1 rounded-md border border-danger/40 px-3 py-2 text-sm text-danger">
                 <DeleteOutlineIcon fontSize="small" /> ลบ
               </button>
             )}
           </div>
         </div>
-        {error && <p className="mt-2 rounded-xl bg-danger/10 p-2 text-sm text-danger">{error}</p>}
+        {error && <p className="mt-2 rounded-md bg-danger/10 p-2 text-sm text-danger">{error}</p>}
       </div>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -161,12 +161,12 @@ export default function AdminConcertPage({ params }: { params: Promise<{ id: str
       </section>
 
       <section className="grid gap-5 lg:grid-cols-[3fr_2fr]">
-        <div className="rounded-3xl border border-line bg-surface shadow-soft p-4">
+        <div className="rounded-xl border border-line bg-surface p-4">
           <h2 className="mb-2 font-bold">ที่ว่างตาม section</h2>
           <VenueMap concert={c} availability={s.sections} />
         </div>
         <div className="space-y-5">
-          <div className="rounded-3xl border border-line bg-surface shadow-soft p-4">
+          <div className="rounded-xl border border-line bg-surface p-4">
             <h2 className="mb-3 font-bold">ยอดขายตามโซน</h2>
             <div className="space-y-3">
               {s.byZone.map((z) => (
@@ -179,14 +179,14 @@ export default function AdminConcertPage({ params }: { params: Promise<{ id: str
                       {z.sold.toLocaleString("th-TH")}/{z.capacity.toLocaleString("th-TH")} · {fmtTHB(z.gross)}
                     </span>
                   </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-[#f3e6d9]">
+                  <div className="h-2 overflow-hidden rounded-full bg-line">
                     <div className="h-full rounded-full" style={{ width: `${(z.sold / Math.max(1, z.capacity)) * 100}%`, backgroundColor: z.color }} />
                   </div>
                 </div>
               ))}
             </div>
           </div>
-          <div className="rounded-3xl border border-line bg-surface shadow-soft p-4 text-sm">
+          <div className="rounded-xl border border-line bg-surface p-4 text-sm">
             <h2 className="mb-2 font-bold">การแบ่งรายได้</h2>
             <dl className="space-y-1">
               <div className="flex justify-between">
@@ -208,7 +208,7 @@ export default function AdminConcertPage({ params }: { params: Promise<{ id: str
             </dl>
           </div>
           {c.plan === "pro" && (
-            <div className="rounded-3xl border border-line bg-surface shadow-soft p-4">
+            <div className="rounded-xl border border-line bg-surface p-4">
               <h2 className="mb-1 font-bold">Fan insights</h2>
               <p className="mb-3 text-xs text-muted">ผู้ซื้อผ่านแอป {s.ordersInApp} คำสั่งซื้อ แยกตาม Tier</p>
               <div className="flex flex-wrap gap-2">

@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import ReplayIcon from "@mui/icons-material/Replay";
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import QueueTable, { type QueueRowView } from "@/components/QueueTable";
 import TierBadge from "@/components/TierBadge";
@@ -76,7 +75,7 @@ export default function PresalePage() {
         <button
           onClick={simulate}
           disabled={phase === "loading" || phase === "baseline"}
-          className="flex items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-4 text-lg font-bold text-white shadow-glow transition hover:bg-brand-dark disabled:opacity-60"
+          className="flex items-center justify-center gap-2 rounded-lg bg-brand px-6 py-4 text-lg font-bold text-white transition hover:bg-brand-dark disabled:opacity-60"
         >
           {phase === "idle" || phase === "error" ? (
             <>
@@ -93,13 +92,13 @@ export default function PresalePage() {
       </section>
 
       {phase === "error" && (
-        <p className="rounded-xl border border-danger/40 bg-danger/10 p-4 text-sm text-danger">
+        <p className="rounded-md border border-danger/40 bg-danger/10 p-4 text-sm text-danger">
           จำลองไม่สำเร็จ ลองกดอีกครั้ง
         </p>
       )}
 
       {phase === "loading" && (
-        <div className="grid place-items-center gap-4 rounded-2xl border border-line bg-surface shadow-soft py-16 text-center">
+        <div className="grid place-items-center gap-4 rounded-lg border border-line bg-surface py-16 text-center">
           <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand/30 border-t-brand" />
           <p className="text-lg font-semibold">AI กำลังตรวจสอบ 24 บัญชี…</p>
           <p className="text-sm text-muted">วิเคราะห์ความถี่ ความสม่ำเสมอ และรูปแบบธุรกรรมผิดปกติ</p>
@@ -110,12 +109,12 @@ export default function PresalePage() {
         <>
           <div className="grid gap-3 sm:grid-cols-3">
             <div
-              className={`rounded-2xl border p-4 transition-colors duration-700 sm:col-span-2 ${
+              className={`rounded-lg border p-4 transition-colors duration-700 sm:col-span-2 ${
                 phase === "final" ? "border-brand/40 bg-brand/5" : "border-line bg-surface"
               }`}
             >
               <p className="mb-1 flex items-center gap-2 text-xs font-semibold text-brand">
-                <AutoAwesomeIcon fontSize="inherit" /> สรุปจาก AI
+                สรุปจาก AI
                 {phase === "final" && <span className="font-normal text-muted">· {SOURCE_LABEL[data.summarySource]}</span>}
               </p>
               {phase === "final" ? (
@@ -127,7 +126,7 @@ export default function PresalePage() {
                   <InfoOutlinedIcon fontSize="inherit" /> {data.notice}
                 </p>}
             </div>
-            <div className="rounded-2xl border border-danger/40 bg-danger/10 p-4">
+            <div className="rounded-lg border border-danger/40 bg-danger/10 p-4">
               <p className="text-xs font-semibold text-danger">บอท/ปั๊มแต้มที่ถูกคัดออก</p>
               <p className="text-5xl font-bold tabular-nums text-danger">{phase === "final" ? count : "?"}</p>
               <p className="text-xs text-muted">
@@ -162,7 +161,7 @@ export default function PresalePage() {
       )}
 
       {phase === "idle" && (
-        <div className="rounded-2xl border border-dashed border-line p-10 text-center text-muted">
+        <div className="rounded-lg border border-dashed border-line p-10 text-center text-muted">
           กดปุ่ม <span className="font-semibold text-brand">จำลองเปิดขาย presale</span> เพื่อดู AI จัดคิวสด ๆ
         </div>
       )}

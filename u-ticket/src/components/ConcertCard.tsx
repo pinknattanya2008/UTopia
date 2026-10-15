@@ -2,17 +2,8 @@ import Link from "next/link";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import EventOutlinedIcon from "@mui/icons-material/EventOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
-import AutoAwesomeIcon from "@mui/icons-material/AutoAwesome";
 import { fmtDate, fmtTHB } from "@/lib/client";
 import type { Concert } from "@/lib/types";
-
-/** โปสเตอร์ไล่สีจากสีโซนของงาน (ไม่ต้องมีรูป) */
-export function posterStyle(c: Pick<Concert, "zones">) {
-  const [a, b] = [c.zones[0]?.color ?? "#ff8a4c", c.zones[c.zones.length - 1]?.color ?? "#9b7bea"];
-  return {
-    background: `radial-gradient(circle at 20% 20%, ${a}55, transparent 60%), radial-gradient(circle at 80% 90%, ${b}55, transparent 55%), linear-gradient(135deg, #fff4ea, #ffe6d2)`,
-  };
-}
 
 export default function ConcertCard({ concert, available, capacity }: { concert: Concert; available: number; capacity: number }) {
   const minPrice = Math.min(...concert.zones.map((z) => z.priceTHB));
@@ -20,13 +11,13 @@ export default function ConcertCard({ concert, available, capacity }: { concert:
   return (
     <Link
       href={`/concert/${concert.id}`}
-      className="group flex flex-col overflow-hidden rounded-3xl border border-line bg-surface shadow-soft transition hover:border-brand"
+      className="group flex flex-col overflow-hidden rounded-xl border border-line bg-surface transition hover:border-brand"
     >
-      <div className="relative grid min-h-40 place-items-center p-6" style={posterStyle(concert)}>
-        <p className="text-center text-3xl font-black uppercase tracking-widest text-foreground/85">{concert.artist}</p>
+      <div className="relative grid min-h-36 place-items-center border-b border-line bg-surface-2 p-6">
+        <p className="text-center text-3xl font-black tracking-wide">{concert.artist}</p>
         {concert.plan === "pro" && (
-          <span className="absolute left-3 top-3 flex items-center gap-1 rounded-full bg-white/85 px-2 py-0.5 text-xs font-semibold text-brand shadow-soft">
-            <AutoAwesomeIcon fontSize="inherit" /> Fan Score Presale
+          <span className="absolute left-3 top-3 rounded-md bg-surface px-2 py-0.5 text-xs font-medium text-muted ring-1 ring-line">
+            Presale ตาม Fan Score
           </span>
         )}
         {pct < 0.15 && (

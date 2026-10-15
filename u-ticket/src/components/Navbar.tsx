@@ -35,7 +35,7 @@ export default function Navbar() {
 
   if (admin) {
     return (
-      <header className="sticky top-0 z-40 border-b border-line bg-background/90 backdrop-blur">
+      <header className="sticky top-0 z-40 border-b border-line bg-background/90">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
           <Link href="/admin" className="flex items-center gap-2 text-lg font-bold">
             <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white">U</span>
@@ -69,7 +69,7 @@ export default function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-background/90 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-line bg-background/90">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
         <Link href="/" className="flex items-center gap-2 text-lg font-bold">
           <span className="grid h-8 w-8 place-items-center rounded-lg bg-brand text-white">U</span>

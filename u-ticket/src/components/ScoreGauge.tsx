@@ -15,7 +15,7 @@ export default function ScoreGauge({ score, tier }: { score: number; tier: TierN
   return (
     <div className="relative mx-auto w-full max-w-[260px]">
       <svg viewBox="0 0 200 112" className="w-full" role="img" aria-label={`Fan Score ${score} จาก 100`}>
-        <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="#f3e6d9" strokeWidth="16" strokeLinecap="round" />
+        <path d="M20 100 A80 80 0 0 1 180 100" fill="none" stroke="#ececef" strokeWidth="16" strokeLinecap="round" />
         <path
           d="M20 100 A80 80 0 0 1 180 100"
           fill="none"

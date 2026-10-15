@@ -4,7 +4,6 @@ import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
 import EventOutlinedIcon from "@mui/icons-material/EventOutlined";
 import EventSeatOutlinedIcon from "@mui/icons-material/EventSeatOutlined";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
-import { posterStyle } from "@/components/ConcertCard";
 import PresaleTimeline from "@/components/PresaleTimeline";
 import VenueMap from "@/components/VenueMap";
 import { sectionAvailability } from "@/lib/booking";
@@ -24,12 +23,11 @@ export default async function ConcertPage({ params }: { params: Promise<{ id: st
   return (
     <div className="space-y-8">
       {concert.status === "draft" && (
-        <p className="rounded-2xl border border-brand/40 bg-brand/10 p-3 text-sm">หน้านี้เป็นร่าง (ตัวอย่างสำหรับผู้จัด) ยังไม่เปิดขาย</p>
+        <p className="rounded-lg border border-brand/40 bg-brand/10 p-3 text-sm">หน้านี้เป็นร่าง (ตัวอย่างสำหรับผู้จัด) ยังไม่เปิดขาย</p>
       )}
-      <section className="overflow-hidden rounded-3xl border border-line" style={posterStyle(concert)}>
-        <div className="flex flex-col gap-4 bg-gradient-to-t from-background/90 to-transparent p-6 sm:flex-row sm:items-end sm:justify-between sm:p-8">
+      <section className="rounded-xl border border-line bg-surface">
+        <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-end sm:justify-between sm:p-8">
           <div>
-            <p className="text-sm font-semibold uppercase tracking-widest text-brand">{concert.artist}</p>
             <h1 className="text-2xl font-bold sm:text-4xl">{concert.title}</h1>
             <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted">
               <span className="flex items-center gap-1">
@@ -43,7 +41,7 @@ export default async function ConcertPage({ params }: { params: Promise<{ id: st
           </div>
           <Link
             href={`/concert/${concert.id}/book`}
-            className="flex shrink-0 items-center justify-center gap-2 rounded-2xl bg-brand px-6 py-3 font-bold text-white shadow-glow hover:bg-brand-dark"
+            className="flex shrink-0 items-center justify-center gap-2 rounded-lg bg-brand px-6 py-3 font-bold text-white hover:bg-brand-dark"
           >
             <EventSeatOutlinedIcon /> เลือกที่นั่ง / ซื้อบัตร
           </Link>
@@ -53,7 +51,7 @@ export default async function ConcertPage({ params }: { params: Promise<{ id: st
       <section className="grid gap-6 lg:grid-cols-[3fr_2fr]">
         <div>
           <h2 className="mb-3 text-lg font-bold">ผังสถานที่และราคา</h2>
-          <div className="rounded-3xl border border-line bg-surface shadow-soft p-3 sm:p-4">
+          <div className="rounded-xl border border-line bg-surface p-3 sm:p-4">
             <VenueMap concert={concert} availability={availability} />
             <div className="mt-4 divide-y divide-line">
               {concert.zones.map((z) => (
@@ -81,7 +79,7 @@ export default async function ConcertPage({ params }: { params: Promise<{ id: st
           {concert.plan === "pro" ? (
             <PresaleTimeline salesOpenAt={concert.salesOpenAt} />
           ) : (
-            <div className="rounded-2xl border border-line bg-surface shadow-soft p-4">
+            <div className="rounded-lg border border-line bg-surface p-4">
               <p className="flex items-center gap-2 font-semibold">
                 <StorefrontOutlinedIcon className="text-brand" /> เปิดขายทั่วไปพร้อมกันทุกคน
               </p>

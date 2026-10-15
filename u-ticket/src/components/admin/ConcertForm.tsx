@@ -63,7 +63,7 @@ function initialForm(concert?: Concert): Form {
 }
 
 const input =
-  "w-full rounded-xl border border-line bg-background px-3 py-2 text-sm focus:border-brand focus:outline-none disabled:opacity-50";
+  "w-full rounded-md border border-line bg-background px-3 py-2 text-sm focus:border-brand focus:outline-none disabled:opacity-50";
 
 export default function ConcertForm({ concert, layoutLocked = false }: { concert?: Concert; layoutLocked?: boolean }) {
   const router = useRouter();
@@ -132,7 +132,7 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
     <div className="grid gap-6 lg:grid-cols-[1fr_380px]">
       <div className="space-y-6">
         {/* 1. ข้อมูลงาน */}
-        <section className="rounded-3xl border border-line bg-surface shadow-soft p-5">
+        <section className="rounded-xl border border-line bg-surface p-5">
           <h2 className="mb-4 font-bold">1. ข้อมูลงาน</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="space-y-1 text-sm">
@@ -163,7 +163,7 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
         </section>
 
         {/* 2. ผังและโซน */}
-        <section className="rounded-3xl border border-line bg-surface shadow-soft p-5">
+        <section className="rounded-xl border border-line bg-surface p-5">
           <h2 className="mb-1 font-bold">2. ผังสถานที่และโซนราคา</h2>
           {layoutLocked && (
             <p className="mb-3 flex items-center gap-1.5 text-xs text-brand">
@@ -184,7 +184,7 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
                   pickTemplate(t.id);
                 }}
                 disabled={layoutLocked && f.template !== t.id}
-                className={`rounded-2xl border p-3 text-left transition disabled:opacity-40 ${
+                className={`rounded-lg border p-3 text-left transition disabled:opacity-40 ${
                   f.template === t.id ? "border-brand bg-brand/10" : "border-line hover:border-brand/60"
                 }`}
               >
@@ -247,7 +247,7 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
             type="button"
             onClick={addZone}
             disabled={layoutLocked || zones.length >= 8}
-            className="mt-2 flex items-center gap-1 rounded-xl border border-dashed border-line px-3 py-1.5 text-xs text-muted hover:border-brand hover:text-brand disabled:opacity-40"
+            className="mt-2 flex items-center gap-1 rounded-md border border-dashed border-line px-3 py-1.5 text-xs text-muted hover:border-brand hover:text-brand disabled:opacity-40"
           >
             <AddIcon fontSize="inherit" /> เพิ่มโซนราคา
           </button>
@@ -264,7 +264,7 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
         </section>
 
         {/* 3. แพ็กเกจและการขาย */}
-        <section className="rounded-3xl border border-line bg-surface shadow-soft p-5">
+        <section className="rounded-xl border border-line bg-surface p-5">
           <h2 className="mb-4 font-bold">3. แพ็กเกจและเงื่อนไขการขาย</h2>
           <div className="grid gap-3 sm:grid-cols-2">
             {(Object.keys(PLANS) as OrganizerPlan[]).map((p) => (
@@ -272,7 +272,7 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
                 key={p}
                 type="button"
                 onClick={() => set("plan", p)}
-                className={`rounded-2xl border p-4 text-left transition ${f.plan === p ? "border-brand bg-brand/10" : "border-line hover:border-brand/60"}`}
+                className={`rounded-lg border p-4 text-left transition ${f.plan === p ? "border-brand bg-brand/10" : "border-line hover:border-brand/60"}`}
               >
                 <div className="flex items-baseline justify-between">
                   <p className="text-lg font-bold">{PLANS[p].name}</p>
@@ -308,7 +308,7 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
 
       {/* Preview + สรุป */}
       <aside className="space-y-4 lg:sticky lg:top-28 lg:self-start">
-        <div className="rounded-3xl border border-line bg-surface shadow-soft p-4 text-sm">
+        <div className="rounded-xl border border-line bg-surface p-4 text-sm">
           <p className="mb-2 font-semibold">ประมาณการเมื่อขายหมด</p>
           <dl className="space-y-1">
             <div className="flex justify-between">
@@ -330,19 +330,19 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
           </dl>
           <p className="mt-2 text-xs text-muted">ผู้ซื้อจ่ายค่าบริการเพิ่ม {SERVICE_FEE_PER_TICKET} บาท/ใบ ไม่หักจากยอดของผู้จัด</p>
         </div>
-        {error && <p className="rounded-xl bg-danger/10 p-3 text-sm text-danger">{error}</p>}
+        {error && <p className="rounded-md bg-danger/10 p-3 text-sm text-danger">{error}</p>}
         <div className="flex gap-2">
           <button
             onClick={() => save("draft")}
             disabled={busy !== null}
-            className="flex-1 rounded-2xl border border-line py-3 font-semibold hover:border-brand disabled:opacity-50"
+            className="flex-1 rounded-lg border border-line py-3 font-semibold hover:border-brand disabled:opacity-50"
           >
             {busy === "draft" ? "กำลังบันทึก…" : "บันทึกร่าง"}
           </button>
           <button
             onClick={() => save("published")}
             disabled={busy !== null}
-            className="flex-1 rounded-2xl bg-brand py-3 font-bold text-white hover:bg-brand-dark disabled:opacity-50"
+            className="flex-1 rounded-lg bg-brand py-3 font-bold text-white hover:bg-brand-dark disabled:opacity-50"
           >
             {busy === "published" ? "กำลังเผยแพร่…" : concert?.status === "published" ? "บันทึก" : "เผยแพร่"}
           </button>
