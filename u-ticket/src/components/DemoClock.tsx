@@ -14,7 +14,7 @@ export default function DemoClock({ salesOpenAt }: { salesOpenAt: string }) {
       <p className="mb-2 flex items-center gap-1.5 text-xs text-muted">
         <ScheduleIcon fontSize="inherit" /> เวลาจำลอง (เดโม) — เปิดขายทั่วไป {fmtTime(salesOpenAt)} น.
       </p>
-      <div className="flex gap-1.5 overflow-x-auto [scrollbar-width:none]">
+      <div className="flex flex-wrap gap-1.5">
         {CLOCK_PRESETS.map((p) => (
           <button
             key={p.offsetMinutes}

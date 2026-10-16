@@ -59,7 +59,7 @@ function AccountArea() {
             id="account-select"
             value={account?.id ?? ""}
             onChange={(e) => setUserId(e.target.value)}
-            className="max-w-[10rem] rounded-md border border-line bg-surface px-2 py-1.5 text-sm focus:border-brand focus:outline-none sm:max-w-[14rem]"
+            className="w-[8.5rem] rounded-md border border-line bg-surface px-2 py-1.5 text-sm focus:border-brand focus:outline-none sm:w-auto sm:max-w-[14rem]"
             title="สลับบัญชีเดโม"
           >
             {!account && <option value="">เลือกบัญชีเดโม…</option>}
@@ -124,8 +124,8 @@ export default function Navbar() {
       <header className="sticky top-0 z-40 border-b border-line bg-background">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
           <Link href={role === "staff" ? "/staff" : "/admin"} className="flex items-center gap-2">
-            <Logo size={30} />
-            <span className="rounded-md bg-surface-2 px-2 py-0.5 text-xs font-semibold text-muted">
+            <Logo size={30} textClassName="hidden sm:inline" />
+            <span className="hidden rounded-md bg-surface-2 px-2 py-0.5 text-xs font-semibold text-muted sm:inline">
               {role === "staff" ? "Staff" : role === "admin" ? "Admin" : "Organizer"}
             </span>
           </Link>
@@ -163,8 +163,8 @@ export default function Navbar() {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-background">
       <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
-        <Link href="/" className="flex items-center gap-2">
-          <Logo size={30} />
+        <Link href="/" className="flex shrink-0 items-center gap-2" aria-label="U Ticket หน้าแรก">
+          <Logo size={28} textClassName="hidden sm:inline" />
         </Link>
 
         {role === "organizer" || role === "admin" ? (
@@ -180,12 +180,12 @@ export default function Navbar() {
             <BusinessCenterOutlinedIcon fontSize="inherit" /> สำหรับผู้จัดงาน
           </Link>
         )}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-2">
           <ThemeToggle />
           <AccountArea />
         </div>
 
-        <div className="flex w-full items-center gap-2 overflow-x-auto pb-1 text-sm [scrollbar-width:none]">
+        <div className="hidden w-full items-center gap-2 overflow-x-auto pb-1 text-sm [scrollbar-width:none] lg:flex">
           <nav className="flex gap-1">
             {LINKS.map((l) => {
               const active =

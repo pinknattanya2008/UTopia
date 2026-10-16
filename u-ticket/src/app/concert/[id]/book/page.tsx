@@ -310,6 +310,30 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
           </div>
         </aside>
       </div>
+
+      {/* มือถือ: แถบสรุปยอดติดด้านล่าง กดล็อกที่นั่งได้โดยไม่ต้องเลื่อนลงไปที่ตะกร้า */}
+      {canSelect && (
+        <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
+          {error && <p className="mb-2 text-xs text-danger">{error}</p>}
+          <div className="mx-auto flex max-w-6xl items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-xs text-muted">
+                {cart.length ? `${cart.length} ใบ · ${cart.map((c) => c.label).join(", ")}` : "ยังไม่ได้เลือกที่นั่ง"}
+              </p>
+              <p className="text-lg font-bold tabular-nums text-brand">{fmtTHB(subtotal + fee)}</p>
+            </div>
+            <button
+              type="button"
+              onClick={checkout}
+              disabled={busy || cart.length === 0}
+              className="flex shrink-0 items-center gap-1.5 rounded-lg bg-brand px-5 py-3 font-bold text-white disabled:opacity-50"
+            >
+              <LockOutlinedIcon fontSize="small" />
+              {busy ? "กำลังล็อก…" : "ล็อกที่นั่ง"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

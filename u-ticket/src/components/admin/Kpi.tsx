@@ -19,7 +19,7 @@ export default function Kpi({
       <p className="flex items-center gap-1.5 text-xs text-muted">
         <Icon fontSize="inherit" /> {label}
       </p>
-      <p className={`mt-1 text-2xl font-bold tabular-nums ${color}`}>{value}</p>
+      <p className={`mt-1 text-xl font-bold tabular-nums sm:text-2xl ${color}`}>{value}</p>
       {sub && <p className="mt-0.5 text-xs text-muted">{sub}</p>}
     </div>
   );

@@ -70,11 +70,11 @@ function LoginInner() {
   const others = demoAccounts.filter((a) => a.role !== "buyer");
 
   return (
-    <div className="mx-auto grid max-w-5xl gap-8 lg:grid-cols-[minmax(0,22rem)_1fr]">
-      <section className="space-y-4">
+    <div className="mx-auto grid max-w-5xl grid-cols-1 gap-8 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
+      <section className="min-w-0 space-y-4">
         <div>
           <h1 className="text-2xl font-bold">เข้าสู่ระบบ</h1>
-          <p className="text-sm text-muted">ใช้บัญชี U Ticket หรือเลือกบัญชีเดโมด้านขวา</p>
+          <p className="text-sm text-muted">ใช้บัญชี U Ticket หรือเลือกบัญชีเดโม<span className="lg:hidden">ด้านล่าง</span><span className="hidden lg:inline">ด้านขวา</span></p>
         </div>
         <form onSubmit={submit} className="space-y-3 rounded-xl border border-line bg-surface p-5">
           <label className="block space-y-1 text-sm">
@@ -107,7 +107,7 @@ function LoginInner() {
       </section>
 
       {demoAccounts.length > 0 && (
-        <section className="space-y-5">
+        <section className="min-w-0 space-y-5">
           <div>
             <h2 className="text-lg font-bold">บัญชีเดโม</h2>
             <p className="text-sm text-muted">กดเพื่อเข้าสู่ระบบทันที — ทุกบัญชีอยู่ใน Supabase Auth จริง (รหัสผ่านคือค่า DEMO_PASSWORD ใน .env.local)</p>
@@ -138,13 +138,13 @@ function LoginInner() {
               <select
                 value={pick}
                 onChange={(e) => setPick(e.target.value)}
-                className="min-w-0 flex-1 rounded-md border border-line bg-surface px-2 py-2 text-sm focus:border-brand focus:outline-none"
+                className="w-0 min-w-0 flex-1 rounded-md border border-line bg-surface px-2 py-2 text-sm focus:border-brand focus:outline-none"
                 aria-label="ผู้ซื้อเดโมทั้งหมด"
               >
                 <option value="">ผู้ซื้ออื่น ๆ ทั้งหมด {buyers.length} บัญชี…</option>
                 {buyers.map((a) => (
                   <option key={a.id} value={a.id}>
-                    {a.displayName} · {a.tier} · {a.email}
+                    {a.displayName} · {a.tier}
                   </option>
                 ))}
               </select>

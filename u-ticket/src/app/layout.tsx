@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { IBM_Plex_Sans_Thai, Sora } from "next/font/google";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import "./globals.css";
+import MobileTabBar from "@/components/MobileTabBar";
 import Navbar from "@/components/Navbar";
 import { UserProvider } from "@/components/UserProvider";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
@@ -41,9 +42,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <UserProvider>
           <Navbar />
           <main className="mx-auto max-w-6xl px-4 pb-16 pt-6">{children}</main>
-          <footer className="border-t border-line px-4 py-6 text-center text-xs text-muted">
+          <footer className="border-t border-line px-4 pt-6 pb-28 text-center text-xs text-muted lg:pb-6">
             U Ticket · U-Hackathon 2026 Track 1: AI · ข้อมูลทั้งหมดเป็นข้อมูลจำลอง
           </footer>
+          <MobileTabBar />
         </UserProvider>
         </AppRouterCacheProvider>
       </body>

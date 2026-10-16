@@ -17,11 +17,11 @@ export function LogoMark({ size = 32, accent = "var(--brand)", className }: { si
 }
 
 /** สัญลักษณ์ + ตัวหนังสือ "U Ticket" (Sora: U หนา 700, Ticket 500, letter-spacing −0.02em) */
-export default function Logo({ size = 32, className = "" }: { size?: number; className?: string }) {
+export default function Logo({ size = 32, className = "", textClassName = "" }: { size?: number; className?: string; textClassName?: string }) {
   return (
     <span className={`inline-flex items-center gap-2 text-foreground ${className}`}>
       <LogoMark size={size} />
-      <span className="font-display whitespace-nowrap leading-none tracking-[-0.02em]" style={{ fontSize: size * 0.62 }}>
+      <span className={`font-display whitespace-nowrap leading-none tracking-[-0.02em] ${textClassName}`} style={{ fontSize: size * 0.62 }}>
         <span className="font-bold">U</span> <span className="font-medium">Ticket</span>
       </span>
     </span>
