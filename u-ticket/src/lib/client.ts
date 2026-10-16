@@ -85,12 +85,12 @@ export const SOURCE_LABEL: Record<AiSource, string> = {
   fallback: "คำนวณพื้นฐาน",
 };
 
-/** ISO → ค่าสำหรับ <input type="datetime-local"> ตามเวลาไทย */
+/** ISO → "YYYY-MM-DDTHH:mm" ตามเวลาไทย (ใช้กับ DateTimePicker ในฟอร์มผู้จัด) */
 export function toLocalInput(iso: string) {
   return new Date(Date.parse(iso) + 7 * 3600_000).toISOString().slice(0, 16);
 }
 
-/** ค่าจาก <input type="datetime-local"> (เวลาไทย) → ISO */
+/** "YYYY-MM-DDTHH:mm" (เวลาไทย) → ISO */
 export function fromLocalInput(v: string) {
   return new Date(`${v}:00+07:00`).toISOString();
 }
