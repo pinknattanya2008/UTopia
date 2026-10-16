@@ -1,9 +1,10 @@
 "use client";
 
+import Alert from "@mui/material/Alert";
+
 import { useState } from "react";
 import Link from "next/link";
 import { useUser } from "./UserProvider";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutlined";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import LinkIcon from "@mui/icons-material/Link";
 import TierBadge from "./TierBadge";
@@ -16,19 +17,25 @@ export default function ConnectWallet() {
 
   if (state === "done" && user) {
     return (
-      <div className="animate-fade-up flex flex-wrap items-center gap-3 rounded-lg border border-ok/40 bg-ok/10 px-4 py-3">
-        <span className="flex items-center gap-1 text-ok">
-          <CheckCircleOutlineIcon fontSize="small" /> เชื่อมกระเป๋าแล้ว
-        </span>
+      <Alert
+        severity="success"
+        variant="outlined"
+        className="animate-fade-up"
+        action={
+          <Link href="/dashboard" className="flex items-center gap-1 self-center px-2 text-sm font-semibold text-brand hover:underline">
+            ดู Fan Score <ArrowForwardIcon fontSize="inherit" />
+          </Link>
+        }
+      >
+        <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
+        <span className="font-semibold">เชื่อมกระเป๋าแล้ว</span>
         <span className="flex items-center gap-2 font-semibold">
           <UserAvatar name={user.displayName} color={user.avatar} size="sm" />
           {user.displayName}
         </span>
         <TierBadge tier={user.tier} size="sm" />
-        <Link href="/dashboard" className="ml-auto flex items-center gap-1 text-sm font-semibold text-brand hover:underline">
-          ดู Fan Score <ArrowForwardIcon fontSize="inherit" />
-        </Link>
-      </div>
+        </span>
+      </Alert>
     );
   }
   return (

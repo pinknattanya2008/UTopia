@@ -1,12 +1,15 @@
 "use client";
 
+import AlertTitle from "@mui/material/AlertTitle";
+
+import Alert from "@mui/material/Alert";
+
 import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import TimerOutlinedIcon from "@mui/icons-material/TimerOutlined";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import { useUser } from "@/components/UserProvider";
 import Stepper from "@/components/Stepper";
 import ETicket from "@/components/ETicket";
@@ -44,7 +47,7 @@ export default function CheckoutPage({ params }: { params: Promise<{ bookingId: 
   if (error && !data) {
     return (
       <div className="mx-auto max-w-md space-y-4 py-12 text-center">
-        <p className="text-danger">{error}</p>
+        <Alert severity="error">{error}</Alert>
         <Link href="/" className="text-brand hover:underline">
           กลับหน้าแรก
         </Link>
@@ -89,13 +92,10 @@ export default function CheckoutPage({ params }: { params: Promise<{ bookingId: 
     return (
       <div className="mx-auto max-w-2xl space-y-5">
         <Stepper current={2} />
-        <div className="animate-fade-up rounded-xl border border-ok/40 bg-ok/10 p-6 text-center">
-          <CheckCircleIcon className="text-ok" sx={{ fontSize: 56 }} />
-          <h1 className="mt-2 text-2xl font-bold">ชำระเงินสำเร็จ</h1>
-          <p className="text-muted">
-            รหัสการจอง <span className="font-mono font-semibold text-foreground">{b.code}</span> · ชำระ {fmtTHB(b.total)}
-          </p>
-        </div>
+        <Alert severity="success" variant="outlined" className="animate-fade-up" sx={{ "& .MuiAlert-icon": { fontSize: 32 } }}>
+          <AlertTitle sx={{ fontSize: 20, fontWeight: 700 }}>ชำระเงินสำเร็จ</AlertTitle>
+          รหัสการจอง <span className="font-mono font-semibold">{b.code}</span> · ชำระ {fmtTHB(b.total)}
+        </Alert>
         <div className="space-y-4">
           {b.items.map((it, i) => (
             <ETicket
@@ -214,7 +214,11 @@ export default function CheckoutPage({ params }: { params: Promise<{ bookingId: 
             <p className="text-xs text-muted">ตัดเป็นเงินบาท (จำลอง)</p>
           </div>
         </div>
-        {error && <p className="mt-3 rounded-md bg-danger/10 p-2 text-sm text-danger">{error}</p>}
+        {error && (
+          <Alert severity="error" sx={{ mt: 1.5 }}>
+            {error}
+          </Alert>
+        )}
         <div className="mt-4 flex flex-col gap-2 sm:flex-row-reverse">
           <button
             onClick={pay}

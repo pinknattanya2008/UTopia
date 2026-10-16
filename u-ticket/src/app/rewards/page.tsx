@@ -1,5 +1,9 @@
 "use client";
 
+import Snackbar from "@mui/material/Snackbar";
+
+import Alert from "@mui/material/Alert";
+
 import { useEffect, useState } from "react";
 import type { SvgIconComponent } from "@mui/icons-material";
 import LocalOfferOutlinedIcon from "@mui/icons-material/LocalOfferOutlined";
@@ -7,8 +11,6 @@ import RocketLaunchOutlinedIcon from "@mui/icons-material/RocketLaunchOutlined";
 import CardMembershipIcon from "@mui/icons-material/CardMembership";
 import CheckroomIcon from "@mui/icons-material/Checkroom";
 import RedeemIcon from "@mui/icons-material/Redeem";
-import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutlined";
-import ErrorOutlineIcon from "@mui/icons-material/ErrorOutlined";
 import { useUser } from "@/components/UserProvider";
 import { api } from "@/lib/client";
 import type { Reward } from "@/lib/types";
@@ -63,12 +65,16 @@ export default function RewardsPage() {
         </div>
       </section>
 
-      {toast && (
-        <p className={`animate-fade-up flex items-center gap-2 rounded-md border p-3 text-sm ${toast.ok ? "border-ok/40 bg-ok/10 text-ok" : "border-danger/40 bg-danger/10 text-danger"}`}>
-          {toast.ok ? <CheckCircleOutlineIcon fontSize="small" /> : <ErrorOutlineIcon fontSize="small" />}
-          {toast.text}
-        </p>
-      )}
+      <Snackbar
+        open={!!toast}
+        autoHideDuration={4000}
+        onClose={() => setToast(null)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert severity={toast?.ok ? "success" : "error"} variant="filled" onClose={() => setToast(null)} sx={{ width: "100%" }}>
+          {toast?.text}
+        </Alert>
+      </Snackbar>
 
       <section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {data?.rewards.map((r) => {

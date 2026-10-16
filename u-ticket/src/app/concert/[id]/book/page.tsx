@@ -1,13 +1,13 @@
 "use client";
 
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
+
 import { use, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import CloseIcon from "@mui/icons-material/Close";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
-import BlockIcon from "@mui/icons-material/Block";
-import HourglassTopIcon from "@mui/icons-material/HourglassTop";
-import CheckCircleOutlinedIcon from "@mui/icons-material/CheckCircleOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import DemoClock from "@/components/DemoClock";
 import Stepper from "@/components/Stepper";
@@ -167,7 +167,7 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
 
   if (!data || !concert || !seatState) {
     return error ? (
-      <p className="text-danger">{error}</p>
+      <Alert severity="error">{error}</Alert>
     ) : (
       <div className="grid place-items-center py-24">
         <div className="h-10 w-10 animate-spin rounded-full border-4 border-brand/30 border-t-brand" />
@@ -297,7 +297,11 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
                 <dd className="tabular-nums text-brand">{fmtTHB(subtotal + fee)}</dd>
               </div>
             </dl>
-            {error && <p className="mt-3 rounded-md bg-danger/10 p-2 text-sm text-danger">{error}</p>}
+            {error && (
+              <Alert severity="error" sx={{ mt: 1.5 }}>
+                {error}
+              </Alert>
+            )}
             <button
               onClick={checkout}
               disabled={busy || cart.length === 0 || !canSelect}
@@ -314,7 +318,11 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
       {/* มือถือ: แถบสรุปยอดติดด้านล่าง กดล็อกที่นั่งได้โดยไม่ต้องเลื่อนลงไปที่ตะกร้า */}
       {canSelect && (
         <div className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-surface px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:hidden">
-          {error && <p className="mb-2 text-xs text-danger">{error}</p>}
+          {error && (
+            <Alert severity="error" sx={{ mb: 1, py: 0 }}>
+              {error}
+            </Alert>
+          )}
           <div className="mx-auto flex max-w-6xl items-center gap-3">
             <div className="min-w-0 flex-1">
               <p className="truncate text-xs text-muted">
@@ -341,48 +349,43 @@ export default function BookPage({ params }: { params: Promise<{ id: string }> }
 function AccessBanner({ access, name }: { access: Access; name: string }) {
   if (access.code === "ok") {
     return (
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-ok/40 bg-ok/10 p-3 text-sm">
-        <CheckCircleOutlinedIcon className="text-ok" fontSize="small" />
-        <span className="font-semibold text-ok">{access.message}</span>
-        {access.presale && (
-          <span className="flex items-center gap-1.5 text-muted">
-            · {name} <TierBadge tier={access.tier} size="sm" /> Fan Score {access.finalScore}
-          </span>
-        )}
-      </div>
+      <Alert severity="success" variant="outlined">
+        <span className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="font-semibold">{access.message}</span>
+          {access.presale && (
+            <span className="flex items-center gap-1.5 text-muted">
+              · {name} <TierBadge tier={access.tier} size="sm" /> Fan Score {access.finalScore}
+            </span>
+          )}
+        </span>
+      </Alert>
     );
   }
   if (access.code === "blocked_trust") {
     return (
-      <div className="flex gap-2 rounded-lg border border-danger/50 bg-danger/10 p-4 text-sm">
-        <BlockIcon className="shrink-0 text-danger" />
-        <div>
-          <p className="font-semibold text-danger">{name} ซื้อบัตรงานนี้ไม่ได้</p>
-          <p className="mt-1">{access.message}</p>
-          <p className="mt-1 text-muted">ถ้าเป็นการใช้งานจริง สามารถยื่นตรวจสอบบัญชีกับ U-topia ได้</p>
-        </div>
-      </div>
+      <Alert severity="error" variant="outlined">
+        <AlertTitle sx={{ fontWeight: 700 }}>{name} ซื้อบัตรงานนี้ไม่ได้</AlertTitle>
+        {access.message}
+        <span className="mt-1 block text-muted">ถ้าเป็นการใช้งานจริง สามารถยื่นตรวจสอบบัญชีกับ U-topia ได้</span>
+      </Alert>
     );
   }
   if (access.code === "not_yet") {
     return (
-      <div className="flex flex-wrap items-start gap-3 rounded-lg border border-brand/40 bg-brand/10 p-4 text-sm">
-        <HourglassTopIcon className="shrink-0 text-brand" />
-        <div className="flex-1">
-          <p className="font-semibold">
-            {access.message} — รอบของคุณเปิด {fmtTime(access.opensAt)} น. (ตอนนี้ {fmtTime(access.now)} น.)
-          </p>
-          {access.presale && (
-            <p className="mt-1 flex flex-wrap items-center gap-1.5 text-muted">
-              {name} <TierBadge tier={access.tier} size="sm" /> Fan Score {access.finalScore} ·
-              <Link href="/dashboard" className="font-semibold text-brand hover:underline">
-                เพิ่ม Fan Score เพื่อได้รอบที่เร็วขึ้น
-              </Link>
-            </p>
-          )}
-        </div>
-      </div>
+      <Alert severity="warning" variant="outlined">
+        <AlertTitle sx={{ fontWeight: 700 }}>
+          {access.message} — รอบของคุณเปิด {fmtTime(access.opensAt)} น. (ตอนนี้ {fmtTime(access.now)} น.)
+        </AlertTitle>
+        {access.presale && (
+          <span className="flex flex-wrap items-center gap-1.5 text-muted">
+            {name} <TierBadge tier={access.tier} size="sm" /> Fan Score {access.finalScore} ·
+            <Link href="/dashboard" className="font-semibold text-brand hover:underline">
+              เพิ่ม Fan Score เพื่อได้รอบที่เร็วขึ้น
+            </Link>
+          </span>
+        )}
+      </Alert>
     );
   }
-  return <p className="rounded-lg border border-line bg-surface p-4 text-sm text-muted">{access.message}</p>;
+  return <Alert severity="info" variant="outlined">{access.message}</Alert>;
 }

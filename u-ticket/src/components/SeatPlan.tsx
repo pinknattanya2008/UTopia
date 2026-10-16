@@ -1,5 +1,7 @@
 "use client";
 
+import Tooltip from "@mui/material/Tooltip";
+
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -326,16 +328,16 @@ export default function SeatPlan({
           { icon: RemoveIcon, label: "ซูมออก", fn: () => zoomAt(1 / 1.6, vb.x + vb.w / 2, vb.y + vb.h / 2, true) },
           { icon: CenterFocusStrongOutlinedIcon, label: "ดูทั้งผัง", fn: () => animateTo(FULL) },
         ].map(({ icon: Icon, label, fn }) => (
-          <button
-            key={label}
-            type="button"
-            onClick={fn}
-            aria-label={label}
-            title={label}
-            className="grid h-9 w-9 place-items-center rounded-md border border-line bg-surface text-foreground hover:border-brand hover:text-brand"
-          >
-            <Icon fontSize="small" />
-          </button>
+          <Tooltip key={label} title={label} placement="left">
+            <button
+              type="button"
+              onClick={fn}
+              aria-label={label}
+              className="grid h-9 w-9 place-items-center rounded-md border border-line bg-surface text-foreground hover:border-brand hover:text-brand"
+            >
+              <Icon fontSize="small" />
+            </button>
+          </Tooltip>
         ))}
       </div>
       <p className="pointer-events-none absolute bottom-2 left-2 rounded-lg bg-surface px-2 py-1 text-[11px] text-muted">

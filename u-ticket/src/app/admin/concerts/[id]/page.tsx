@@ -1,5 +1,9 @@
 "use client";
 
+import Tooltip from "@mui/material/Tooltip";
+
+import Alert from "@mui/material/Alert";
+
 import { use, useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -14,6 +18,7 @@ import AccountBalanceOutlinedIcon from "@mui/icons-material/AccountBalanceOutlin
 import ShieldOutlinedIcon from "@mui/icons-material/ShieldOutlined";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Kpi from "@/components/admin/Kpi";
+import { useConfirm } from "@/components/ConfirmProvider";
 import TierBadge from "@/components/TierBadge";
 import VenueMap from "@/components/VenueMap";
 import { api, fmtDate, fmtPct, fmtTHB, fmtTime } from "@/lib/client";
@@ -45,6 +50,7 @@ interface Stats {
 export default function AdminConcertPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
   const router = useRouter();
+  const confirm = useConfirm();
   const [data, setData] = useState<{ concert: Concert; stats: Stats } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,7 +76,7 @@ export default function AdminConcertPage({ params }: { params: Promise<{ id: str
   }
 
   async function remove() {
-    if (!confirm("ลบคอนเสิร์ตนี้?")) return;
+    if (!(await confirm({ title: "ลบคอนเสิร์ตนี้?", description: `"${data?.concert.title}" จะถูกลบถาวร`, confirmText: "ลบ", danger: true }))) return;
     try {
       await api(`/api/admin/concerts/${id}`, { method: "DELETE" });
       router.push("/admin");
@@ -79,7 +85,7 @@ export default function AdminConcertPage({ params }: { params: Promise<{ id: str
     }
   }
 
-  if (!data) return error ? <p className="text-danger">{error}</p> : <div className="h-64 animate-pulse rounded-xl bg-surface" />;
+  if (!data) return error ? <Alert severity="error">{error}</Alert> : <div className="h-64 animate-pulse rounded-xl bg-surface" />;
   const { concert: c, stats: s } = data;
   const hasSales = s.ticketsSold > 0 || s.held > 0;
 
@@ -124,14 +130,17 @@ export default function AdminConcertPage({ params }: { params: Promise<{ id: str
                 <PublishIcon fontSize="small" /> เผยแพร่
               </button>
             ) : (
-              <button
-                onClick={() => setStatus("draft")}
-                disabled={hasSales}
-                title={hasSales ? "มียอดขายแล้ว" : undefined}
-                className="flex items-center gap-1 rounded-md border border-line px-3 py-2 text-sm hover:border-brand disabled:opacity-40"
-              >
-                <UnpublishedOutlinedIcon fontSize="small" /> ยกเลิกเผยแพร่
-              </button>
+              <Tooltip title={hasSales ? "มียอดขายแล้ว ยกเลิกเผยแพร่ไม่ได้" : ""}>
+                <span>
+                  <button
+                    onClick={() => setStatus("draft")}
+                    disabled={hasSales}
+                    className="flex items-center gap-1 rounded-md border border-line px-3 py-2 text-sm hover:border-brand disabled:opacity-40"
+                  >
+                    <UnpublishedOutlinedIcon fontSize="small" /> ยกเลิกเผยแพร่
+                  </button>
+                </span>
+              </Tooltip>
             )}
             {c.status === "draft" && !hasSales && (
               <button onClick={remove} className="flex items-center gap-1 rounded-md border border-danger/40 px-3 py-2 text-sm text-danger">
@@ -140,7 +149,11 @@ export default function AdminConcertPage({ params }: { params: Promise<{ id: str
             )}
           </div>
         </div>
-        {error && <p className="mt-2 rounded-md bg-danger/10 p-2 text-sm text-danger">{error}</p>}
+        {error && (
+          <Alert severity="error" sx={{ mt: 1.5 }} onClose={() => setError(null)}>
+            {error}
+          </Alert>
+        )}
       </div>
 
       <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">

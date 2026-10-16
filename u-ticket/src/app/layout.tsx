@@ -3,6 +3,7 @@ import { IBM_Plex_Sans_Thai, Sora } from "next/font/google";
 import { AppRouterCacheProvider } from "@mui/material-nextjs/v15-appRouter";
 import "./globals.css";
 import MobileTabBar from "@/components/MobileTabBar";
+import MuiProvider from "@/components/MuiProvider";
 import Navbar from "@/components/Navbar";
 import { UserProvider } from "@/components/UserProvider";
 import { THEME_INIT_SCRIPT } from "@/lib/theme";
@@ -39,6 +40,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       </head>
       <body className={`${plexThai.variable} ${sora.variable} font-sans antialiased`}>
         <AppRouterCacheProvider options={{ enableCssLayer: true }}>
+        <MuiProvider>
         <UserProvider>
           <Navbar />
           <main className="mx-auto max-w-6xl px-4 pb-16 pt-6">{children}</main>
@@ -47,6 +49,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           </footer>
           <MobileTabBar />
         </UserProvider>
+        </MuiProvider>
         </AppRouterCacheProvider>
       </body>
     </html>

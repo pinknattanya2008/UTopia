@@ -1,9 +1,10 @@
 "use client";
 
+import Alert from "@mui/material/Alert";
+
 import { useEffect, useRef, useState } from "react";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
 import ReplayIcon from "@mui/icons-material/Replay";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import QueueTable, { type QueueRowView } from "@/components/QueueTable";
 import TierBadge from "@/components/TierBadge";
 import { useUser } from "@/components/UserProvider";
@@ -92,9 +93,7 @@ export default function PresalePage() {
       </section>
 
       {phase === "error" && (
-        <p className="rounded-md border border-danger/40 bg-danger/10 p-4 text-sm text-danger">
-          จำลองไม่สำเร็จ ลองกดอีกครั้ง
-        </p>
+        <Alert severity="error">จำลองไม่สำเร็จ ลองกดอีกครั้ง</Alert>
       )}
 
       {phase === "loading" && (
@@ -122,9 +121,11 @@ export default function PresalePage() {
               ) : (
                 <p className="text-muted">ถ้าเรียงตามจำนวนธุรกรรมอย่างเดียว บัญชีปั๊มแต้มและบอทจะได้คิวแรก ๆ…</p>
               )}
-              {phase === "final" && data.notice && <p className="mt-2 flex items-center gap-1 text-xs text-muted">
-                  <InfoOutlinedIcon fontSize="inherit" /> {data.notice}
-                </p>}
+              {phase === "final" && data.notice && (
+                <Alert severity="info" sx={{ mt: 1.5, py: 0, fontSize: 12 }}>
+                  {data.notice}
+                </Alert>
+              )}
             </div>
             <div className="rounded-lg border border-danger/40 bg-danger/10 p-4">
               <p className="text-xs font-semibold text-danger">บอท/ปั๊มแต้มที่ถูกคัดออก</p>

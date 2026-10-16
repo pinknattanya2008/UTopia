@@ -1,5 +1,7 @@
 "use client";
 
+import Alert from "@mui/material/Alert";
+
 import { useRef, useState } from "react";
 import AddIcon from "@mui/icons-material/Add";
 import RemoveIcon from "@mui/icons-material/Remove";
@@ -10,6 +12,9 @@ import HideImageOutlinedIcon from "@mui/icons-material/HideImageOutlined";
 import RotateLeftIcon from "@mui/icons-material/RotateLeft";
 import RotateRightIcon from "@mui/icons-material/RotateRight";
 import RestoreIcon from "@mui/icons-material/Restore";
+import MenuItem from "@mui/material/MenuItem";
+import Slider from "@mui/material/Slider";
+import TextField from "@mui/material/TextField";
 import type { MapRect, Section, Zone } from "@/lib/types";
 import { MAP } from "@/lib/theme";
 import { MAP_H, MAP_W, MAX_ROWS, MAX_SEATS_PER_ROW, removedSet, sectionBounds, sectionCapacity } from "@/lib/venue";
@@ -326,15 +331,15 @@ export default function LayoutEditor({
           <>
             <label className="flex items-center gap-1.5 text-xs text-muted">
               ความชัด
-              <input
-                type="range"
+              <Slider
+                size="small"
                 min={0.1}
                 max={1}
                 step={0.05}
                 value={background.opacity}
-                onChange={(e) => onChange({ background: { ...background, opacity: Number(e.target.value) } })}
-                className="w-20 accent-[var(--brand)]"
+                onChange={(_, v) => onChange({ background: { ...background, opacity: v as number } })}
                 aria-label="ความชัดของรูปผัง"
+                sx={{ width: 96 }}
               />
             </label>
             <button type="button" className={btn} onClick={() => onChange({ background: null })} disabled={locked}>
@@ -353,7 +358,11 @@ export default function LayoutEditor({
           }}
         />
       </div>
-      {error && <p className="rounded-md bg-danger/10 p-2 text-xs text-danger">{error}</p>}
+      {error && (
+        <Alert severity="error" onClose={() => setError(null)}>
+          {error}
+        </Alert>
+      )}
 
       {/* ผัง */}
       <div className="overflow-hidden rounded-lg border border-line">
@@ -455,10 +464,10 @@ export default function LayoutEditor({
       {(() => {
         const overlaps = findOverlaps(sections, stage);
         return overlaps.length ? (
-          <p className="rounded-md bg-danger/10 px-3 py-2 text-xs text-danger">
+          <Alert severity="warning">
             มีโซนวางทับกัน: {overlaps.slice(0, 4).join(", ")}
             {overlaps.length > 4 && ` และอีก ${overlaps.length - 4} คู่`} — ลากแยกออกจากกันก่อนเผยแพร่
-          </p>
+          </Alert>
         ) : null;
       })()}
       <p className="text-xs text-muted">
@@ -506,18 +515,29 @@ export default function LayoutEditor({
           </label>
           <label className="space-y-1 text-xs">
             <span className="text-muted">โซนราคา</span>
-            <select className={input} value={selected.zoneId} disabled={locked} onChange={(e) => setSection(selected.id, { zoneId: e.target.value })}>
+            <TextField
+              select
+              size="small"
+              fullWidth
+              value={selected.zoneId}
+              disabled={locked}
+              onChange={(e) => setSection(selected.id, { zoneId: e.target.value })}
+              slotProps={{ htmlInput: { "aria-label": "โซนราคา" } }}
+            >
               {zones.map((z) => (
-                <option key={z.id} value={z.id}>
-                  {z.name}
-                </option>
+                <MenuItem key={z.id} value={z.id} sx={{ gap: 1 }}>
+                  <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: z.color }} /> {z.name}
+                </MenuItem>
               ))}
-            </select>
+            </TextField>
           </label>
           <label className="space-y-1 text-xs">
             <span className="text-muted">ประเภท</span>
-            <select
-              className={input}
+            <TextField
+              select
+              size="small"
+              fullWidth
+              slotProps={{ htmlInput: { "aria-label": "ประเภท" } }}
               value={selected.kind}
               disabled={locked}
               onChange={(e) =>
@@ -529,9 +549,9 @@ export default function LayoutEditor({
                 )
               }
             >
-              <option value="seated">ที่นั่ง</option>
-              <option value="standing">ยืน</option>
-            </select>
+              <MenuItem value="seated">ที่นั่ง</MenuItem>
+              <MenuItem value="standing">ยืน</MenuItem>
+            </TextField>
           </label>
 
           {selected.kind === "seated" ? (

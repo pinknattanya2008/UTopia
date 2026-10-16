@@ -1,7 +1,10 @@
 "use client";
 
+import Alert from "@mui/material/Alert";
+
 import { Suspense, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import AccountSelect from "@/components/AccountSelect";
 import TierBadge from "@/components/TierBadge";
 import UserAvatar from "@/components/UserAvatar";
 import { useUser } from "@/components/UserProvider";
@@ -99,7 +102,7 @@ function LoginInner() {
               className="w-full rounded-md border border-line bg-background px-3 py-2 focus:border-brand focus:outline-none"
             />
           </label>
-          {error && <p className="rounded-md bg-danger/10 p-2 text-sm text-danger">{error}</p>}
+          {error && <Alert severity="error">{error}</Alert>}
           <button type="submit" disabled={busy !== null} className="w-full rounded-lg bg-brand py-2.5 font-bold text-white hover:bg-brand-dark disabled:opacity-60">
             {busy === "form" ? "กำลังเข้าสู่ระบบ…" : "เข้าสู่ระบบ"}
           </button>
@@ -135,19 +138,15 @@ function LoginInner() {
               ))}
             </div>
             <div className="mt-2 flex gap-2">
-              <select
+              <AccountSelect
+                accounts={buyers}
+                buyersOnly
                 value={pick}
-                onChange={(e) => setPick(e.target.value)}
-                className="w-0 min-w-0 flex-1 rounded-md border border-line bg-surface px-2 py-2 text-sm focus:border-brand focus:outline-none"
-                aria-label="ผู้ซื้อเดโมทั้งหมด"
-              >
-                <option value="">ผู้ซื้ออื่น ๆ ทั้งหมด {buyers.length} บัญชี…</option>
-                {buyers.map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.displayName} · {a.tier}
-                  </option>
-                ))}
-              </select>
+                onChange={setPick}
+                label="ผู้ซื้อเดโมทั้งหมด"
+                placeholder={`ผู้ซื้ออื่น ๆ ทั้งหมด ${buyers.length} บัญชี…`}
+                sx={{ flex: 1, minWidth: 0 }}
+              />
               <button
                 type="button"
                 disabled={!pick || busy !== null}

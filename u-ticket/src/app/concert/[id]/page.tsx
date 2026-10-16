@@ -1,3 +1,4 @@
+import Alert from "@mui/material/Alert";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import PlaceOutlinedIcon from "@mui/icons-material/PlaceOutlined";
@@ -24,7 +25,7 @@ export default async function ConcertPage({ params }: { params: Promise<{ id: st
   return (
     <div className="space-y-8">
       {concert.status === "draft" && (
-        <p className="rounded-lg border border-brand/40 bg-brand/10 p-3 text-sm">หน้านี้เป็นร่าง (ตัวอย่างสำหรับผู้จัด) ยังไม่เปิดขาย</p>
+        <Alert severity="info" variant="outlined">หน้านี้เป็นร่าง (ตัวอย่างสำหรับผู้จัด) ยังไม่เปิดขาย</Alert>
       )}
       <section className="rounded-xl border border-line bg-surface">
         <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-end sm:justify-between sm:p-8">

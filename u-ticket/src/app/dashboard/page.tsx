@@ -1,5 +1,7 @@
 "use client";
 
+import Alert from "@mui/material/Alert";
+
 import { useEffect, useState } from "react";
 import type { SvgIconComponent } from "@mui/icons-material";
 import CreditCardIcon from "@mui/icons-material/CreditCard";
@@ -82,7 +84,7 @@ export default function DashboardPage() {
     setExplaining(false);
   }
 
-  if (error) return <p className="text-danger">โหลดข้อมูลไม่สำเร็จ ลองรีเฟรชหน้า</p>;
+  if (error) return <Alert severity="error">โหลดข้อมูลไม่สำเร็จ ลองรีเฟรชหน้า</Alert>;
   if (!detail || detail.user.id !== userId) {
     return (
       <div className="grid place-items-center py-24 text-muted">

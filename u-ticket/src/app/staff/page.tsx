@@ -1,8 +1,9 @@
 "use client";
 
+import Alert from "@mui/material/Alert";
+import AlertTitle from "@mui/material/AlertTitle";
+
 import { useCallback, useEffect, useRef, useState } from "react";
-import CheckCircleIcon from "@mui/icons-material/CheckCircle";
-import ErrorOutlinedIcon from "@mui/icons-material/ErrorOutlined";
 import HistoryIcon from "@mui/icons-material/History";
 import { api, fmtDateTime } from "@/lib/client";
 
@@ -65,31 +66,29 @@ export default function StaffPage() {
       </form>
 
       {result && (
-        <div
-          className={`animate-fade-up flex gap-3 rounded-xl border p-4 ${
-            result.status === "ok" ? "border-ok/40 bg-ok/10" : result.status === "already" ? "border-brand/40 bg-brand-soft" : "border-danger/40 bg-danger/10"
-          }`}
+        <Alert
           role="status"
+          className="animate-fade-up"
+          severity={result.status === "ok" ? "success" : result.status === "already" ? "warning" : "error"}
+          variant="outlined"
+          sx={{ "& .MuiAlert-icon": { fontSize: 28 } }}
         >
           {result.status === "error" ? (
-            <ErrorOutlinedIcon className="shrink-0 text-danger" />
+            <AlertTitle sx={{ fontWeight: 700, mb: 0 }}>{result.message}</AlertTitle>
           ) : (
-            <CheckCircleIcon className={`shrink-0 ${result.status === "ok" ? "text-ok" : "text-brand"}`} />
-          )}
-          {result.status === "error" ? (
-            <p className="font-semibold text-danger">{result.message}</p>
-          ) : (
-            <div className="min-w-0">
-              <p className="text-lg font-bold">{result.status === "ok" ? "เข้างานได้" : `เช็คอินไปแล้วเมื่อ ${fmtDateTime(result.at)}`}</p>
-              <p className="text-sm">
+            <>
+              <AlertTitle sx={{ fontSize: 18, fontWeight: 700 }}>
+                {result.status === "ok" ? "เข้างานได้" : `เช็คอินไปแล้วเมื่อ ${fmtDateTime(result.at)}`}
+              </AlertTitle>
+              <span className="block">
                 {result.holder} · {result.seat}
-              </p>
-              <p className="text-xs text-muted">
+              </span>
+              <span className="block text-xs text-muted">
                 {result.concert} · <span className="font-mono">{result.ticketId}</span>
-              </p>
-            </div>
+              </span>
+            </>
           )}
-        </div>
+        </Alert>
       )}
 
       {summary && (

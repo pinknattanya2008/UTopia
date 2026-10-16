@@ -12,6 +12,9 @@ import ThemeToggle from "./ThemeToggle";
 import TierBadge from "./TierBadge";
 import UserAvatar from "./UserAvatar";
 import { ROLE_LABEL } from "@/lib/client";
+import AccountSelect from "./AccountSelect";
+import IconButton from "@mui/material/IconButton";
+import Tooltip from "@mui/material/Tooltip";
 
 const LINKS = [
   { href: "/", label: "หน้าแรก" },
@@ -51,54 +54,30 @@ function AccountArea() {
   return (
     <div className="flex items-center gap-2">
       {demoAccounts.length > 0 && (
-        <>
-          <label className="sr-only" htmlFor="account-select">
-            สลับบัญชีเดโม
-          </label>
-          <select
-            id="account-select"
-            value={account?.id ?? ""}
-            onChange={(e) => setUserId(e.target.value)}
-            className="w-[8.5rem] rounded-md border border-line bg-surface px-2 py-1.5 text-sm focus:border-brand focus:outline-none sm:w-auto sm:max-w-[14rem]"
-            title="สลับบัญชีเดโม"
-          >
-            {!account && <option value="">เลือกบัญชีเดโม…</option>}
-            <optgroup label="ผู้ซื้อ">
-              {demoAccounts
-                .filter((a) => a.role === "buyer")
-                .map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.displayName} · {a.tier}
-                  </option>
-                ))}
-            </optgroup>
-            <optgroup label="ผู้จัด / แอดมิน / Staff">
-              {demoAccounts
-                .filter((a) => a.role !== "buyer")
-                .map((a) => (
-                  <option key={a.id} value={a.id}>
-                    {a.displayName}
-                  </option>
-                ))}
-            </optgroup>
-          </select>
-        </>
+        <AccountSelect
+          accounts={demoAccounts}
+          value={account?.id ?? ""}
+          onChange={setUserId}
+          label="สลับบัญชีเดโม"
+          sx={{ width: { xs: 136, sm: "auto" }, minWidth: { sm: 180 }, maxWidth: { sm: 240 } }}
+        />
       )}
       {account ? (
         <>
-          <span className="hidden items-center gap-2 sm:flex" title={account.email ?? ""}>
+          <span className="hidden items-center gap-2 sm:flex">
             <UserAvatar name={account.displayName} color={account.avatar} size="sm" />
             {user ? <TierBadge tier={user.tier} size="sm" /> : <span className="rounded-md bg-surface-2 px-2 py-0.5 text-xs text-muted">{ROLE_LABEL[account.role]}</span>}
           </span>
-          <button
-            type="button"
-            onClick={logout}
-            title="ออกจากระบบ"
-            aria-label="ออกจากระบบ"
-            className="grid h-9 w-9 place-items-center rounded-md border border-line text-muted hover:border-danger hover:text-danger"
-          >
-            <LogoutIcon fontSize="small" />
-          </button>
+          <Tooltip title="ออกจากระบบ">
+            <IconButton
+              size="small"
+              onClick={logout}
+              aria-label="ออกจากระบบ"
+              sx={{ border: 1, borderColor: "divider", borderRadius: 1.5, width: 36, height: 36, color: "text.secondary", "&:hover": { color: "error.main", borderColor: "error.main" } }}
+            >
+              <LogoutIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
         </>
       ) : (
         <Link

@@ -1,12 +1,19 @@
 "use client";
 
+import Tooltip from "@mui/material/Tooltip";
+
+import Alert from "@mui/material/Alert";
+
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import CheckIcon from "@mui/icons-material/Check";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import AddIcon from "@mui/icons-material/Add";
 import CloseIcon from "@mui/icons-material/Close";
 import LayoutEditor, { type LayoutPatch } from "@/components/admin/LayoutEditor";
+import { useConfirm } from "@/components/ConfirmProvider";
+import ColorSwatchPicker from "@/components/ColorSwatchPicker";
+import dayjs from "dayjs";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { api, fmtTHB, fromLocalInput, toLocalInput } from "@/lib/client";
 import type { Concert, MapRect, OrganizerPlan, Section, VenueTemplateId, Zone } from "@/lib/types";
 import { buildFromTemplate, getTemplate, PLANS, SERVICE_FEE_PER_TICKET, stageOf, TEMPLATES, withZoneCapacity, ZONE_COLORS } from "@/lib/venue";
@@ -15,8 +22,8 @@ type Form = {
   artist: string;
   title: string;
   venue: string;
-  date: string; // datetime-local
-  salesOpenAt: string; // datetime-local
+  date: string; // "YYYY-MM-DDTHH:mm" เวลาไทย
+  salesOpenAt: string; // "YYYY-MM-DDTHH:mm" เวลาไทย
   description: string;
   template: VenueTemplateId;
   plan: OrganizerPlan;
@@ -67,6 +74,7 @@ const input =
 
 export default function ConcertForm({ concert, layoutLocked = false }: { concert?: Concert; layoutLocked?: boolean }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const [f, setF] = useState<Form>(() => initialForm(concert));
   const [busy, setBusy] = useState<"draft" | "published" | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -147,14 +155,27 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
               <span className="text-muted">สถานที่</span>
               <input className={input} value={f.venue} onChange={(e) => set("venue", e.target.value)} placeholder="เช่น Impact Arena, Bangkok" />
             </label>
-            <label className="space-y-1 text-sm">
-              <span className="text-muted">วันและเวลาแสดง</span>
-              <input type="datetime-local" className={input} value={f.date} onChange={(e) => set("date", e.target.value)} />
-            </label>
-            <label className="space-y-1 text-sm">
-              <span className="text-muted">เวลาเปิดขายทั่วไป</span>
-              <input type="datetime-local" className={input} value={f.salesOpenAt} onChange={(e) => set("salesOpenAt", e.target.value)} />
-            </label>
+            <div className="pt-1 text-sm">
+              <DateTimePicker
+                label="วันและเวลาแสดง"
+                value={dayjs(f.date)}
+                onChange={(v) => v?.isValid() && set("date", v.format("YYYY-MM-DDTHH:mm"))}
+                ampm={false}
+                format="DD/MM/BBBB HH:mm"
+                slotProps={{ textField: { size: "small", fullWidth: true } }}
+              />
+            </div>
+            <div className="pt-1 text-sm">
+              <DateTimePicker
+                label="เวลาเปิดขายทั่วไป"
+                value={dayjs(f.salesOpenAt)}
+                onChange={(v) => v?.isValid() && set("salesOpenAt", v.format("YYYY-MM-DDTHH:mm"))}
+                ampm={false}
+                format="DD/MM/BBBB HH:mm"
+                maxDateTime={dayjs(f.date)}
+                slotProps={{ textField: { size: "small", fullWidth: true } }}
+              />
+            </div>
             <label className="space-y-1 text-sm sm:col-span-2">
               <span className="text-muted">รายละเอียด</span>
               <textarea className={`${input} min-h-20`} value={f.description} onChange={(e) => set("description", e.target.value)} />
@@ -166,9 +187,9 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
         <section className="rounded-xl border border-line bg-surface p-5">
           <h2 className="mb-1 font-bold">2. ผังสถานที่และโซนราคา</h2>
           {layoutLocked && (
-            <p className="mb-3 flex items-center gap-1.5 text-xs text-brand">
-              <InfoOutlinedIcon fontSize="inherit" /> มียอดขายแล้ว ผังที่นั่งถูกล็อก แก้ได้เฉพาะชื่อโซน ราคา และข้อมูลงาน
-            </p>
+            <Alert severity="info" sx={{ mb: 1.5 }}>
+              มียอดขายแล้ว ผังที่นั่งถูกล็อก แก้ได้เฉพาะชื่อโซน ราคา และข้อมูลงาน
+            </Alert>
           )}
           <p className="mt-2 text-xs text-muted">
             เริ่มจาก template แล้วปรับเองได้อิสระ หรือวางรูปผังจริงของสถานที่แล้ววาง section ตามรูป
@@ -179,8 +200,12 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
               <button
                 key={t.id}
                 type="button"
-                onClick={() => {
-                  if (f.template === "custom" && !confirm(`ใช้ template ${t.name}? ผังที่ปรับไว้จะถูกแทนที่ (รูปพื้นหลังยังอยู่)`)) return;
+                onClick={async () => {
+                  if (
+                    f.template === "custom" &&
+                    !(await confirm({ title: `ใช้ template ${t.name}?`, description: "ผังที่ปรับไว้จะถูกแทนที่ (รูปพื้นหลังยังอยู่)", confirmText: "ใช้ template นี้" }))
+                  )
+                    return;
                   pickTemplate(t.id);
                 }}
                 disabled={layoutLocked && f.template !== t.id}
@@ -200,13 +225,7 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
           <div className="space-y-2">
             {zones.map((z) => (
               <div key={z.id} className="grid grid-cols-[auto_1fr_8rem] items-center gap-2 sm:grid-cols-[auto_1fr_1.4fr_8rem_5rem]">
-                <input
-                  type="color"
-                  value={z.color}
-                  onChange={(e) => setZone(z.id, { color: e.target.value })}
-                  aria-label={`สีของ ${z.name}`}
-                  className="h-9 w-9 cursor-pointer rounded-lg border border-line bg-transparent"
-                />
+                <ColorSwatchPicker value={z.color} onChange={(c) => setZone(z.id, { color: c })} label={z.name} />
                 <input className={input} value={z.name} onChange={(e) => setZone(z.id, { name: e.target.value })} aria-label="ชื่อโซน" />
                 <input
                   className={`${input} hidden sm:block`}
@@ -229,16 +248,19 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
                 </label>
                 <span className="hidden items-center justify-end gap-1 text-right text-xs text-muted sm:flex">
                   {z.capacity.toLocaleString("th-TH")} ที่
-                  <button
-                    type="button"
-                    onClick={() => removeZone(z.id)}
-                    disabled={layoutLocked || zones.length <= 1 || z.capacity > 0}
-                    title={z.capacity > 0 ? "ย้าย section ออกจากโซนนี้ก่อน" : "ลบโซน"}
-                    aria-label={`ลบโซน ${z.name}`}
-                    className="rounded p-0.5 hover:text-danger disabled:opacity-30"
-                  >
-                    <CloseIcon fontSize="inherit" />
-                  </button>
+                  <Tooltip title={z.capacity > 0 ? "ย้าย section ออกจากโซนนี้ก่อน" : "ลบโซน"}>
+                    <span>
+                      <button
+                        type="button"
+                        onClick={() => removeZone(z.id)}
+                        disabled={layoutLocked || zones.length <= 1 || z.capacity > 0}
+                        aria-label={`ลบโซน ${z.name}`}
+                        className="rounded p-0.5 hover:text-danger disabled:opacity-30"
+                      >
+                        <CloseIcon fontSize="inherit" />
+                      </button>
+                    </span>
+                  </Tooltip>
                 </span>
               </div>
             ))}
@@ -330,7 +352,11 @@ export default function ConcertForm({ concert, layoutLocked = false }: { concert
           </dl>
           <p className="mt-2 text-xs text-muted">ผู้ซื้อจ่ายค่าบริการเพิ่ม {SERVICE_FEE_PER_TICKET} บาท/ใบ ไม่หักจากยอดของผู้จัด</p>
         </div>
-        {error && <p className="rounded-md bg-danger/10 p-3 text-sm text-danger">{error}</p>}
+        {error && (
+          <Alert severity="error" onClose={() => setError(null)}>
+            {error}
+          </Alert>
+        )}
         <div className="flex gap-2">
           <button
             onClick={() => save("draft")}

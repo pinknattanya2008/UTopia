@@ -11,6 +11,7 @@ import RestartAltIcon from "@mui/icons-material/RestartAlt";
 import StorefrontOutlinedIcon from "@mui/icons-material/StorefrontOutlined";
 import PersonOutlineIcon from "@mui/icons-material/PersonOutlined";
 import Kpi from "@/components/admin/Kpi";
+import { useConfirm } from "@/components/ConfirmProvider";
 import { api, fmtDate, fmtPct, fmtTHB } from "@/lib/client";
 import type { OrganizerPlan } from "@/lib/types";
 
@@ -46,6 +47,7 @@ const short = (n: number) =>
   n >= 1_000_000 ? `${(n / 1_000_000).toLocaleString("th-TH", { maximumFractionDigits: 2 })} ล้าน` : n.toLocaleString("th-TH");
 
 export default function AdminPage() {
+  const confirm = useConfirm();
   const [data, setData] = useState<Overview | null>(null);
   const load = useCallback(() => api<Overview>("/api/admin").then(setData).catch(() => {}), []);
   useEffect(() => {
@@ -53,7 +55,13 @@ export default function AdminPage() {
   }, [load]);
 
   async function reset() {
-    if (!confirm("ล้างข้อมูลเดโมทั้งหมด (การจอง, คอนที่สร้างเพิ่ม, แต้มที่ใช้) กลับเป็นค่าเริ่มต้น?")) return;
+    const ok = await confirm({
+      title: "ล้างข้อมูลเดโมทั้งหมด?",
+      description: "การจอง เช็คอิน แต้มที่ใช้ และคอนที่สร้างเพิ่ม จะถูกล้างกลับเป็นค่าเริ่มต้นใน Supabase",
+      confirmText: "ล้างข้อมูล",
+      danger: true,
+    });
+    if (!ok) return;
     await api("/api/admin/reset", { json: {} });
     load();
   }
